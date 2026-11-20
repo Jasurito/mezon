@@ -39,11 +39,14 @@ class Settings(BaseSettings):
     RAG_RRF_K: int = 60
     RAG_TITLE_SIMILARITY: float = 0.6  # порог pg_trgm word_similarity по названию статьи
     RAG_MAX_SOURCES: int = 8  # сколько статей уходит наставнику
+    RERANKER: Literal["none", "llm"] = "none"  # llm = один дополнительный вызов быстрой модели
+    RERANK_CANDIDATES: int = 15  # сколько кандидатов отдаётся reranker'у
+    RERANK_TIMEOUT: float | None = None  # None = fast_timeout
     SCENARIOS_DIR: Path = REPO_ROOT / "scenarios"
     SEED_PATH: Path | None = None
     STRICT_CITATIONS: bool = True
 
-    @field_validator("ANTHROPIC_API_KEY", "EMBEDDER", "SEED_PATH", mode="before")
+    @field_validator("ANTHROPIC_API_KEY", "EMBEDDER", "SEED_PATH", "RERANK_TIMEOUT", mode="before")
     @classmethod
     def _empty_to_none(cls, v):
         if isinstance(v, str) and not v.strip():

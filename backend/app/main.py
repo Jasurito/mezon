@@ -9,6 +9,7 @@ from app.api import health, legal, scenarios, sessions, users
 from app.api import analytics as analytics_api
 from app.api import dashboard as dashboard_api
 from app.api import mentor as mentor_api
+from app.api import npc as npc_api
 from app.api import quiz as quiz_api
 from app.config import get_settings
 from app.db import get_db
@@ -58,6 +59,7 @@ def create_app() -> FastAPI:
     api.include_router(health.router)
     api.include_router(legal.router)
     api.include_router(mentor_api.router)
+    api.include_router(npc_api.router)
     api.include_router(users.router)
     api.include_router(scenarios.router)
     api.include_router(sessions.router)

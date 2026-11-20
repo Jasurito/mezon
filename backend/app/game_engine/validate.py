@@ -157,6 +157,7 @@ def validate_scenario(sc: Scenario) -> list[str]:
     errs += _dups("evidence", [e.id for e in sc.evidence])
     errs += _dups("fact", [f.id for f in sc.facts])
     errs += _dups("decision", [d.decision_id for d in sc.decisions])
+    errs += _dups("npc question", [q.question_id for q in sc.npc_questions])
     for d in sc.decisions:
         errs += _dups(f"option of decision '{d.decision_id}'", [o.id for o in d.options])
 
@@ -179,6 +180,23 @@ def validate_scenario(sc: Scenario) -> list[str]:
     # references
     if sc.intro.player_role.character_id not in char_ids:
         errs.append(f"intro.player_role: unknown character '{sc.intro.player_role.character_id}'")
+    facts_by_id = {f.id: f for f in sc.facts}
+    for q in sc.npc_questions:
+        if q.character_id not in char_ids:
+            errs.append(f"npc_question '{q.question_id}': unknown character '{q.character_id}'")
+        for s_id in q.stages:
+            if s_id not in stage_ids:
+                errs.append(f"npc_question '{q.question_id}': unknown stage '{s_id}'")
+            elif s_id == RESULTS:
+                errs.append(f"npc_question '{q.question_id}': stage {RESULTS} is not allowed")
+        for f_id in q.fact_ids:
+            fact = facts_by_id.get(f_id)
+            if fact is None:
+                errs.append(f"npc_question '{q.question_id}': unknown fact '{f_id}'")
+            elif q.character_id not in fact.known_by:
+                errs.append(
+                    f"npc_question '{q.question_id}': character '{q.character_id}' does not know fact '{f_id}'"
+                )
     for e in sc.evidence:
         for f in e.facts:
             if f not in fact_ids:

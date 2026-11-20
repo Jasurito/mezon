@@ -28,6 +28,11 @@ _MESSAGES: dict[str, dict[Locale, str]] = {
         "uz-Latn": "AI tushuntirishi hozir mavjud emas. Savolingizga tegishli normalar quyida.",
         "uz-Cyrl": "AI тушунтириши ҳозир мавжуд эмас. Саволингизга тегишли нормалар қуйида.",
     },
+    "npc_unknown": {
+        "ru": "Извините, я не понял вопрос. Спросите, пожалуйста, иначе.",
+        "uz-Latn": "Kechirasiz, savolni tushunmadim. Iltimos, boshqacha so‘rang.",
+        "uz-Cyrl": "Кечирасиз, саволни тушунмадим. Илтимос, бошқача сўранг.",
+    },
 }
 
 

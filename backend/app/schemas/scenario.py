@@ -187,6 +187,18 @@ class Fact(_Model):
     known_by: list[str]
 
 
+class NpcQuestion(_Model):
+    """A free-text question the player may ask a character; answers come only from ``fact_ids``."""
+
+    question_id: str
+    character_id: str
+    stages: list[str] = []  # empty = any stage except RESULTS
+    label_key: str  # canonical wording of the question
+    fact_ids: list[str] = Field(min_length=1)
+    answer_key: str  # scripted answer: used without AI and as the fallback
+    keywords_key: str | None = None  # comma-separated keywords for the no-AI lexical search
+
+
 class Transition(_Model):
     to: str
     when: Condition
@@ -273,6 +285,7 @@ class Scenario(_Model):
     characters: list[Character]
     evidence: list[Evidence]
     facts: list[Fact]
+    npc_questions: list[NpcQuestion] = []
     stages: list[Stage] = Field(min_length=1)
     decisions: list[DecisionPoint]
     evaluation_rules: list[EvaluationRule]

@@ -161,6 +161,94 @@
       "known_by": [
         "expert"
       ]
+    },
+    {
+      "id": "F_DEFECT_DATE",
+      "text_key": "fact.defect_date",
+      "known_by": [
+        "plaintiff"
+      ]
+    },
+    {
+      "id": "F_COMPLAINT_SENT",
+      "text_key": "fact.complaint_sent",
+      "known_by": [
+        "plaintiff"
+      ]
+    },
+    {
+      "id": "F_DEFENDANT_BASIS",
+      "text_key": "fact.defendant_basis",
+      "known_by": [
+        "defendant_rep"
+      ]
+    }
+  ],
+  "npc_questions": [
+    {
+      "question_id": "plaintiff_defect",
+      "character_id": "plaintiff",
+      "stages": [
+        "PREPARATION"
+      ],
+      "label_key": "npcq.plaintiff_defect.label",
+      "fact_ids": [
+        "F_DEFECT_DATE",
+        "F_COMPLAINT_SENT"
+      ],
+      "answer_key": "npcq.plaintiff_defect.answer",
+      "keywords_key": "npcq.plaintiff_defect.keywords"
+    },
+    {
+      "question_id": "plaintiff_notice",
+      "character_id": "plaintiff",
+      "stages": [
+        "PREPARATION"
+      ],
+      "label_key": "npcq.plaintiff_notice.label",
+      "fact_ids": [
+        "F_COMPLAINT_SENT",
+        "F_NOTICE"
+      ],
+      "answer_key": "npcq.plaintiff_notice.answer",
+      "keywords_key": "npcq.plaintiff_notice.keywords"
+    },
+    {
+      "question_id": "plaintiff_warranty",
+      "character_id": "plaintiff",
+      "stages": [],
+      "label_key": "npcq.plaintiff_warranty.label",
+      "fact_ids": [
+        "F_WARRANTY",
+        "F_PURCHASE"
+      ],
+      "answer_key": "npcq.plaintiff_warranty.answer",
+      "keywords_key": "npcq.plaintiff_warranty.keywords"
+    },
+    {
+      "question_id": "defendant_cause",
+      "character_id": "defendant_rep",
+      "stages": [
+        "PARTY_EXPLANATIONS"
+      ],
+      "label_key": "npcq.defendant_cause.label",
+      "fact_ids": [
+        "F_DEFENDANT_BASIS"
+      ],
+      "answer_key": "npcq.defendant_cause.answer",
+      "keywords_key": "npcq.defendant_cause.keywords"
+    },
+    {
+      "question_id": "defendant_purchase",
+      "character_id": "defendant_rep",
+      "stages": [],
+      "label_key": "npcq.defendant_purchase.label",
+      "fact_ids": [
+        "F_PURCHASE",
+        "F_NOTICE"
+      ],
+      "answer_key": "npcq.defendant_purchase.answer",
+      "keywords_key": "npcq.defendant_purchase.keywords"
     }
   ],
   "stages": [

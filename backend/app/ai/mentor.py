@@ -29,6 +29,7 @@ from app.models.legal import Chunk
 from app.rag.embedder import Embedder
 from app.rag.language import detect_language
 from app.rag.pipeline import Candidate, hybrid_search
+from app.rag.rerank import NullReranker, RerankItem, get_reranker
 from app.rag.search import strip_header
 from app.rag.validate import validate_blocks
 from app.scenarios.registry import Registry
@@ -58,6 +59,7 @@ class MentorPlan:
     user_message: str = ""
     session_id: str | None = None
     user_id: Any = None
+    reranked: bool = False
     error: tuple[str, str] | None = None
 
 
@@ -127,14 +129,40 @@ def prepare(
         plan.kind = "insufficient"
         return plan
 
-    chosen = select_candidates(outcome.candidates, settings.RAG_MAX_SOURCES)
+    limit = settings.RAG_MAX_SOURCES
+    reranker = get_reranker(settings, llm)
+    use_rerank = (
+        llm is not None
+        and not isinstance(reranker, NullReranker)
+        and len(outcome.candidates) > limit
+    )
+    pool = select_candidates(outcome.candidates, max(settings.RERANK_CANDIDATES, limit)) if use_rerank else None
+    chosen = pool if pool is not None else select_candidates(outcome.candidates, limit)
+    views = {c.article_id: get_article_view(db, c.article_id, language) for c in chosen}
     chunk_texts = dict(
         db.execute(select(Chunk.id, Chunk.text).where(Chunk.id.in_([c.chunk_id for c in chosen]))).all()
     )
+    if pool is not None:
+        items = [
+            RerankItem(
+                id=f"r{i}",
+                document=views[c.article_id].document_title,
+                article_number=views[c.article_id].article_number,
+                article_title=views[c.article_id].article_title,
+                text=strip_header(chunk_texts.get(c.chunk_id) or views[c.article_id].text),
+                exact=c.exact,
+                scenario=c.scenario,
+                ref=c,
+            )
+            for i, c in enumerate(pool, start=1)
+        ]
+        ranked = reranker.rerank(question, items)
+        plan.reranked = True
+        chosen = select_candidates([it.ref for it in ranked], limit)
     prompt_sources: list[SourceForPrompt] = []
     for i, cand in enumerate(chosen, start=1):
         sid = f"c{i}"
-        view = get_article_view(db, cand.article_id, language)
+        view = views[cand.article_id]
         plan.sources_payload.append({"source_id": sid, "citation": view.model_dump(mode="json")})
         plan.source_articles[sid] = view.article_number
         prompt_sources.append(
@@ -193,6 +221,7 @@ def stream_events(
         "blocks_kept": 0,
         "blocks_dropped": 0,
         "session_id": plan.session_id,
+        "reranked": plan.reranked,
     }
 
     if plan.kind == "error":
