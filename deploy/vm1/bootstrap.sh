@@ -51,6 +51,10 @@ if ! grep -q '^MONGO_URL=' /etc/mezon/backend.env; then
   pw="$(sed -n 's/^MONGO_INITDB_ROOT_PASSWORD=//p' /etc/mezon/mongo.env)"
   printf 'MONGO_URL=mongodb://mezon:%s@mezon-mongo:27017/?authSource=admin\nMONGO_DB=mezon\n' "$pw" >> /etc/mezon/backend.env
 fi
+# add settings that are new in the template, never overwrite existing values
+grep -E '^[A-Z_]+=' "$HERE/env/backend.env.example" | while IFS= read -r line; do
+  grep -q "^${line%%=*}=" /etc/mezon/backend.env || printf '%s\n' "$line" >> /etc/mezon/backend.env
+done
 [ -f /etc/mezon/frontend.build.env ] || install -m 644 "$HERE/env/frontend.build.env.example" /etc/mezon/frontend.build.env
 
 # 5. systemd units
