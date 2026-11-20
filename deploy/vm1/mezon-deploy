@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# Mezon deploy on vm1. Installed root-owned at /usr/local/sbin/mezon-deploy by bootstrap.sh;
+# the CI "deploy" user may run it via sudo (and nothing else).
+#
+#   mezon-deploy [--sha <git-sha>] <frontend|backend|all> [...]
+#
+# For each target: build the image from /opt/mezon/src (synced by CI), keep the previous image
+# as :previous, restart the systemd unit, wait for the health check, roll back if it fails.
+set -euo pipefail
+
+SRC=/opt/mezon/src
+CONF=/etc/mezon
+SHA=manual
+TARGETS=()
+
+log() { printf '[mezon-deploy] %s\n' "$*"; }
+die() { log "ERROR: $*"; exit 1; }
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --sha) [[ "${2:-}" =~ ^[0-9a-f]{7,40}$ ]] || die "invalid --sha"; SHA="${2:0:12}"; shift 2 ;;
+    frontend|backend) TARGETS+=("$1"); shift ;;
+    all) TARGETS+=(backend frontend); shift ;;
+    *) die "unknown argument: $1 (use frontend, backend or all)" ;;
+  esac
+done
+[ ${#TARGETS[@]} -gt 0 ] || die "nothing to deploy (use frontend, backend or all)"
+[ -d "$SRC" ] || die "$SRC is missing: CI must rsync the repository first"
+
+# mounts used by mezon-backend.service must exist even before content is committed
+mkdir -p "$SRC/scenarios" "$SRC/legal_data"
+
+wait_healthy() { # url
+  for _ in $(seq 1 60); do curl -fs -o /dev/null --max-time 3 "$1" && return 0; sleep 2; done
+  return 1
+}
+
+deploy() {
+  local name=$1 img="mezon-$1" ctx url
+  local -a args=()
+  case "$name" in
+    frontend)
+      ctx="$SRC/frontend"; url="http://127.0.0.1:3000/uz"
+      # NEXT_PUBLIC_* are baked in at build time
+      local mode=mock sketches=true
+      if [ -f "$CONF/frontend.build.env" ]; then
+        mode=$(sed -n 's/^NEXT_PUBLIC_API_MODE=//p' "$CONF/frontend.build.env" | tail -1)
+        sketches=$(sed -n 's/^NEXT_PUBLIC_SHOW_SKETCHES=//p' "$CONF/frontend.build.env" | tail -1)
+      fi
+      args=(--build-arg "NEXT_PUBLIC_API_MODE=${mode:-mock}" --build-arg "NEXT_PUBLIC_SHOW_SKETCHES=${sketches:-true}") ;;
+    backend)
+      ctx="$SRC/backend"; url="http://127.0.0.1:8000/api/health"
+      systemctl start mezon-db ;;
+  esac
+
+  if docker image inspect "$img:latest" >/dev/null 2>&1; then docker tag "$img:latest" "$img:previous"; fi
+  log "building $img:$SHA"
+  docker build --pull -t "$img:$SHA" -t "$img:latest" "${args[@]}" "$ctx"
+
+  log "restarting mezon-$name"
+  systemctl restart "mezon-$name"
+  if wait_healthy "$url"; then
+    log "mezon-$name is healthy ($SHA)"
+    return 0
+  fi
+
+  log "mezon-$name failed its health check, rolling back"
+  journalctl -u "mezon-$name" -n 60 --no-pager || true
+  if docker image inspect "$img:previous" >/dev/null 2>&1; then
+    docker tag "$img:previous" "$img:latest"
+    systemctl restart "mezon-$name"
+    wait_healthy "$url" && log "rolled back to the previous image" || log "previous image is unhealthy too"
+  fi
+  return 1
+}
+
+status=0
+for t in "${TARGETS[@]}"; do deploy "$t" || status=1; done
+
+# keep the 3 newest SHA tags per image, drop dangling layers
+for img in mezon-frontend mezon-backend; do
+  docker images "$img" --format '{{.Tag}} {{.CreatedAt}}' | grep -vE '^(latest|previous) ' | sort -k2 -r | tail -n +4 \
+    | awk '{print $1}' | xargs -r -I{} docker rmi "$img:{}" >/dev/null 2>&1 || true
+done
+docker image prune -f >/dev/null
+
+exit $status

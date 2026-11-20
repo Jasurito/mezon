@@ -1,0 +1,22 @@
+# Mezon Next.js frontend. Image "mezon-frontend:latest" is built on this host by /usr/local/sbin/mezon-deploy.
+[Unit]
+Description=Mezon frontend (Next.js)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/docker network create mezon
+ExecStartPre=-/usr/bin/docker rm -f mezon-frontend
+ExecStart=/usr/bin/docker run --rm --name mezon-frontend --network mezon \
+  -p 127.0.0.1:3000:3000 \
+  mezon-frontend:latest
+ExecStop=/usr/bin/docker stop -t 15 mezon-frontend
+Restart=always
+RestartSec=5
+TimeoutStartSec=60
+TimeoutStopSec=25
+
+[Install]
+WantedBy=multi-user.target

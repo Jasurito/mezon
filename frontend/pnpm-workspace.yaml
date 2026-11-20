@@ -1,0 +1,9 @@
+allowBuilds:
+  '@parcel/watcher': false
+  '@swc/core': false
+  sharp: false
+  unrs-resolver: false
+minimumReleaseAgeExclude:
+  - '@eloqnt/extractor@0.1.0'
+  - '@eloqnt/messages@0.1.0'
+  - next-intl@4.15.3

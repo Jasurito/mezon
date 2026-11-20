@@ -1,0 +1,173 @@
+# CI for frontend + backend, CD to vm1 (systemd units, see deploy/vm1/README.md).
+# Secrets: VM1_SSH_KEY (private key of the "deploy" user on vm1), VM1_KNOWN_HOSTS (ssh-keyscan of vm1.modeus.cc).
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: What to deploy to vm1
+        type: choice
+        options: [all, frontend, backend]
+        default: all
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+      infra: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            backend:
+              - 'backend/**'
+              - 'scenarios/**'
+              - 'legal_data/**'
+            infra:
+              - 'deploy/**'
+              - '.github/workflows/ci-cd.yml'
+
+  frontend:
+    name: Frontend (typecheck, lint, build)
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: uz-Cyrl locale is generated and up to date
+        run: pnpm i18n && git diff --exit-code -- locales/uz-Cyrl.json
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+  backend:
+    name: Backend (pytest + Postgres/pgvector)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: adolat
+          POSTGRES_PASSWORD: adolat
+          POSTGRES_DB: adolat
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U adolat"
+          --health-interval 3s --health-timeout 3s --health-retries 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - run: pip install ".[dev]"
+      - run: pytest -q
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg://adolat:adolat@localhost:5433/adolat_test
+      - name: Docker image builds
+        run: docker build -t mezon-backend:ci .
+
+  deploy:
+    name: Deploy to vm1
+    needs: [changes, frontend, backend]
+    # main only, after every check that ran has passed (skipped jobs are fine)
+    if: >-
+      always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    environment:
+      name: vm1
+      url: https://mezon.modeus.cc
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Decide what to deploy
+        id: targets
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_TARGET: ${{ inputs.target }}
+          FE: ${{ needs.changes.outputs.frontend }}
+          BE: ${{ needs.changes.outputs.backend }}
+          INFRA: ${{ needs.changes.outputs.infra }}
+          HAS_KEY: ${{ secrets.VM1_SSH_KEY != '' && secrets.VM1_KNOWN_HOSTS != '' }}
+        run: |
+          t=""
+          if [ "$EVENT" = "workflow_dispatch" ]; then t="$INPUT_TARGET"
+          elif [ "$INFRA" = "true" ]; then t="all"
+          else
+            [ "$BE" = "true" ] && t="$t backend"
+            [ "$FE" = "true" ] && t="$t frontend"
+          fi
+          if [ -n "$t" ] && [ "$HAS_KEY" != "true" ]; then
+            echo "::warning::VM1_SSH_KEY / VM1_KNOWN_HOSTS secrets are not set, skipping deploy (see deploy/vm1/README.md)"
+            t=""
+          fi
+          echo "list=$(echo $t)" >> "$GITHUB_OUTPUT"
+          echo "Deploy targets: ${t:-none}"
+
+      - name: Configure SSH
+        if: steps.targets.outputs.list != ''
+        env:
+          VM1_SSH_KEY: ${{ secrets.VM1_SSH_KEY }}
+          VM1_KNOWN_HOSTS: ${{ secrets.VM1_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VM1_SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$VM1_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Sync source to vm1
+        if: steps.targets.outputs.list != ''
+        run: |
+          rsync -az --delete \
+            --exclude '.git/' --exclude 'node_modules/' --exclude '.next/' --exclude '.venv/' \
+            --exclude '__pycache__/' --exclude '.pytest_cache/' --exclude '.DS_Store' \
+            ./ deploy@vm1.modeus.cc:/opt/mezon/src/
+
+      - name: Build and restart on vm1
+        if: steps.targets.outputs.list != ''
+        env:
+          TARGETS: ${{ steps.targets.outputs.list }}
+        run: ssh deploy@vm1.modeus.cc sudo /usr/local/sbin/mezon-deploy --sha "$GITHUB_SHA" $TARGETS
+
+      - name: Public smoke test
+        if: steps.targets.outputs.list != ''
+        run: |
+          curl -fsS -o /dev/null -w "frontend %{http_code}\n" https://mezon.modeus.cc/uz
+          curl -sS -o /dev/null -w "api/health %{http_code}\n" https://mezon.modeus.cc/api/health

@@ -35,7 +35,15 @@ services:
       db:
         condition: service_healthy
 
-  # Сервис frontend добавит владелец фронтенда.
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # mock: demo backend inside the browser; live: calls the backend under /api (nginx routes it)
+        NEXT_PUBLIC_API_MODE: ${FRONTEND_API_MODE:-mock}
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
+    restart: unless-stopped
 
 volumes:
   pgdata:

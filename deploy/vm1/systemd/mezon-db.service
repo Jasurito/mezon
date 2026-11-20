@@ -1,0 +1,24 @@
+# Mezon PostgreSQL 16 + pgvector. Data lives in the docker volume "mezon-pgdata".
+[Unit]
+Description=Mezon database (PostgreSQL 16 + pgvector)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/docker network create mezon
+ExecStartPre=-/usr/bin/docker rm -f mezon-db
+ExecStart=/usr/bin/docker run --rm --name mezon-db --network mezon \
+  --env-file /etc/mezon/db.env \
+  -v mezon-pgdata:/var/lib/postgresql/data \
+  --shm-size=128m \
+  pgvector/pgvector:pg16
+ExecStop=/usr/bin/docker stop -t 30 mezon-db
+Restart=always
+RestartSec=5
+TimeoutStartSec=300
+TimeoutStopSec=45
+
+[Install]
+WantedBy=multi-user.target
