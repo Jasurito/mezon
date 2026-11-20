@@ -1,0 +1,41 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: adolat
+      POSTGRES_PASSWORD: adolat
+      POSTGRES_DB: adolat
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U adolat -d adolat"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+psycopg://adolat:adolat@db:5432/adolat
+      SCENARIOS_DIR: /app/scenarios
+      SEED_PATH: /seed/seed.sql.gz
+    volumes:
+      - ./scenarios:/app/scenarios:ro
+      - ./legal_data:/seed:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Сервис frontend добавит владелец фронтенда.
+
+volumes:
+  pgdata:

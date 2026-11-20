@@ -1,0 +1,1097 @@
+{
+  "$defs": {
+    "Action": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "question",
+            "evidence",
+            "motion",
+            "objection",
+            "argument",
+            "decision",
+            "continue"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label_key": {
+          "title": "Label Key",
+          "type": "string"
+        },
+        "target_character": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Character"
+        },
+        "evidence_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Id"
+        },
+        "decision_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decision Id"
+        },
+        "requires": {
+          "$ref": "#/$defs/Condition"
+        },
+        "effects": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Effect"
+          },
+          "title": "Effects",
+          "type": "array"
+        },
+        "repeatable": {
+          "default": false,
+          "title": "Repeatable",
+          "type": "boolean"
+        },
+        "hint_citation_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Hint Citation Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "label_key"
+      ],
+      "title": "Action",
+      "type": "object"
+    },
+    "Card": {
+      "additionalProperties": false,
+      "properties": {
+        "title_key": {
+          "title": "Title Key",
+          "type": "string"
+        },
+        "category_key": {
+          "title": "Category Key",
+          "type": "string"
+        },
+        "difficulty": {
+          "enum": [
+            "beginner",
+            "intermediate",
+            "advanced"
+          ],
+          "title": "Difficulty",
+          "type": "string"
+        },
+        "minutes": {
+          "title": "Minutes",
+          "type": "integer"
+        },
+        "topic_keys": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Topic Keys",
+          "type": "array"
+        },
+        "cover": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cover"
+        },
+        "available": {
+          "default": true,
+          "title": "Available",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "title_key",
+        "category_key",
+        "difficulty",
+        "minutes",
+        "topic_keys"
+      ],
+      "title": "Card",
+      "type": "object"
+    },
+    "Character": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "sprite": {
+          "title": "Sprite",
+          "type": "string"
+        },
+        "name_key": {
+          "title": "Name Key",
+          "type": "string"
+        },
+        "role_key": {
+          "title": "Role Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "sprite",
+        "name_key",
+        "role_key"
+      ],
+      "title": "Character",
+      "type": "object"
+    },
+    "Chose": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_id": {
+          "title": "Decision Id",
+          "type": "string"
+        },
+        "option": {
+          "title": "Option",
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision_id",
+        "option"
+      ],
+      "title": "Chose",
+      "type": "object"
+    },
+    "Claim": {
+      "additionalProperties": false,
+      "properties": {
+        "side": {
+          "enum": [
+            "plaintiff",
+            "defendant"
+          ],
+          "title": "Side",
+          "type": "string"
+        },
+        "text_key": {
+          "title": "Text Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "side",
+        "text_key"
+      ],
+      "title": "Claim",
+      "type": "object"
+    },
+    "Condition": {
+      "additionalProperties": false,
+      "description": "Boolean DSL node: always | flag | not | all | any | gte | chose.",
+      "properties": {
+        "always": {
+          "anyOf": [
+            {
+              "const": true,
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Always"
+        },
+        "flag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Flag"
+        },
+        "not": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Condition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "all": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Condition"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "All"
+        },
+        "any": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Condition"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Any"
+        },
+        "gte": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Gte"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "chose": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Chose"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "Condition",
+      "type": "object"
+    },
+    "DecisionPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_id": {
+          "title": "Decision Id",
+          "type": "string"
+        },
+        "stage": {
+          "title": "Stage",
+          "type": "string"
+        },
+        "label_key": {
+          "title": "Label Key",
+          "type": "string"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/Option"
+          },
+          "title": "Options",
+          "type": "array"
+        },
+        "best": {
+          "title": "Best",
+          "type": "string"
+        },
+        "consequences": {
+          "additionalProperties": {
+            "items": {
+              "$ref": "#/$defs/Effect"
+            },
+            "type": "array"
+          },
+          "default": {},
+          "title": "Consequences",
+          "type": "object"
+        },
+        "score": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "default": {},
+          "title": "Score",
+          "type": "object"
+        },
+        "explanation_key": {
+          "title": "Explanation Key",
+          "type": "string"
+        },
+        "citation_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Citation Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "decision_id",
+        "stage",
+        "label_key",
+        "options",
+        "best",
+        "explanation_key"
+      ],
+      "title": "DecisionPoint",
+      "type": "object"
+    },
+    "Effect": {
+      "additionalProperties": false,
+      "description": "State-changing DSL node. Exactly one key.",
+      "properties": {
+        "set": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Set"
+        },
+        "unset": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unset"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "say": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Say"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "react": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/React"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "add_evidence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Add Evidence"
+        },
+        "mistake": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Mistake"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "legal_note": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LegalNote"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "goto": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Goto"
+        }
+      },
+      "title": "Effect",
+      "type": "object"
+    },
+    "EvaluationRule": {
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "title": "Outcome",
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/Condition"
+        },
+        "title_key": {
+          "title": "Title Key",
+          "type": "string"
+        },
+        "ruling_key": {
+          "title": "Ruling Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "outcome",
+        "when",
+        "title_key",
+        "ruling_key"
+      ],
+      "title": "EvaluationRule",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title_key": {
+          "title": "Title Key",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "document",
+            "object",
+            "testimony"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "text_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text Key"
+        },
+        "facts": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Facts",
+          "type": "array"
+        },
+        "in_case_file": {
+          "default": true,
+          "title": "In Case File",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "title_key",
+        "type"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Fact": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "text_key": {
+          "title": "Text Key",
+          "type": "string"
+        },
+        "known_by": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Known By",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "text_key",
+        "known_by"
+      ],
+      "title": "Fact",
+      "type": "object"
+    },
+    "Gte": {
+      "additionalProperties": false,
+      "description": "``{\"var\": \"score\", \"value\": N}`` or ``{\"count\": [flags], \"value\": N}``.",
+      "properties": {
+        "var": {
+          "anyOf": [
+            {
+              "const": "score",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Var"
+        },
+        "count": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Count"
+        },
+        "value": {
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "Gte",
+      "type": "object"
+    },
+    "Intro": {
+      "additionalProperties": false,
+      "properties": {
+        "story_key": {
+          "title": "Story Key",
+          "type": "string"
+        },
+        "player_role": {
+          "$ref": "#/$defs/PlayerRole"
+        },
+        "claims": {
+          "items": {
+            "$ref": "#/$defs/Claim"
+          },
+          "title": "Claims",
+          "type": "array"
+        },
+        "legal_acts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Legal Acts",
+          "type": "array"
+        }
+      },
+      "required": [
+        "story_key",
+        "player_role",
+        "claims",
+        "legal_acts"
+      ],
+      "title": "Intro",
+      "type": "object"
+    },
+    "LegalNote": {
+      "additionalProperties": false,
+      "properties": {
+        "citation_id": {
+          "title": "Citation Id",
+          "type": "string"
+        },
+        "text_key": {
+          "title": "Text Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "citation_id",
+        "text_key"
+      ],
+      "title": "LegalNote",
+      "type": "object"
+    },
+    "Mistake": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "title_key": {
+          "title": "Title Key",
+          "type": "string"
+        },
+        "explanation_key": {
+          "title": "Explanation Key",
+          "type": "string"
+        },
+        "correct_action_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Correct Action Key"
+        },
+        "citation_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Citation Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "category",
+        "title_key",
+        "explanation_key"
+      ],
+      "title": "Mistake",
+      "type": "object"
+    },
+    "MistakeRule": {
+      "additionalProperties": false,
+      "properties": {
+        "when": {
+          "$ref": "#/$defs/Condition"
+        },
+        "mistake": {
+          "$ref": "#/$defs/Mistake"
+        }
+      },
+      "required": [
+        "when",
+        "mistake"
+      ],
+      "title": "MistakeRule",
+      "type": "object"
+    },
+    "Option": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label_key": {
+          "title": "Label Key",
+          "type": "string"
+        },
+        "when": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Condition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "label_key"
+      ],
+      "title": "Option",
+      "type": "object"
+    },
+    "PlayerRole": {
+      "additionalProperties": false,
+      "properties": {
+        "character_id": {
+          "title": "Character Id",
+          "type": "string"
+        },
+        "title_key": {
+          "title": "Title Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "character_id",
+        "title_key"
+      ],
+      "title": "PlayerRole",
+      "type": "object"
+    },
+    "React": {
+      "additionalProperties": false,
+      "properties": {
+        "character": {
+          "title": "Character",
+          "type": "string"
+        },
+        "reaction": {
+          "enum": [
+            "nod",
+            "object",
+            "surprised",
+            "think",
+            "gavel"
+          ],
+          "title": "Reaction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "character",
+        "reaction"
+      ],
+      "title": "React",
+      "type": "object"
+    },
+    "Recommendation": {
+      "additionalProperties": false,
+      "properties": {
+        "topic_key": {
+          "title": "Topic Key",
+          "type": "string"
+        },
+        "citation_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Citation Ids",
+          "type": "array"
+        },
+        "scenario_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scenario Id"
+        }
+      },
+      "required": [
+        "topic_key"
+      ],
+      "title": "Recommendation",
+      "type": "object"
+    },
+    "Say": {
+      "additionalProperties": false,
+      "properties": {
+        "speaker": {
+          "title": "Speaker",
+          "type": "string"
+        },
+        "text_key": {
+          "title": "Text Key",
+          "type": "string"
+        },
+        "emotion": {
+          "default": "neutral",
+          "title": "Emotion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "speaker",
+        "text_key"
+      ],
+      "title": "Say",
+      "type": "object"
+    },
+    "Stage": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title_key": {
+          "title": "Title Key",
+          "type": "string"
+        },
+        "on_enter": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Effect"
+          },
+          "title": "On Enter",
+          "type": "array"
+        },
+        "actions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Action"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "transitions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Transition"
+          },
+          "title": "Transitions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title_key"
+      ],
+      "title": "Stage",
+      "type": "object"
+    },
+    "Transition": {
+      "additionalProperties": false,
+      "properties": {
+        "to": {
+          "title": "To",
+          "type": "string"
+        },
+        "when": {
+          "$ref": "#/$defs/Condition"
+        }
+      },
+      "required": [
+        "to",
+        "when"
+      ],
+      "title": "Transition",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "scenario_id": {
+      "title": "Scenario Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "legal_date": {
+      "format": "date",
+      "title": "Legal Date",
+      "type": "string"
+    },
+    "fictional_notice_key": {
+      "title": "Fictional Notice Key",
+      "type": "string"
+    },
+    "reveal_mistakes": {
+      "default": false,
+      "title": "Reveal Mistakes",
+      "type": "boolean"
+    },
+    "max_score": {
+      "title": "Max Score",
+      "type": "integer"
+    },
+    "card": {
+      "$ref": "#/$defs/Card"
+    },
+    "intro": {
+      "$ref": "#/$defs/Intro"
+    },
+    "citations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Citations",
+      "type": "array"
+    },
+    "characters": {
+      "items": {
+        "$ref": "#/$defs/Character"
+      },
+      "title": "Characters",
+      "type": "array"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "facts": {
+      "items": {
+        "$ref": "#/$defs/Fact"
+      },
+      "title": "Facts",
+      "type": "array"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/Stage"
+      },
+      "minItems": 1,
+      "title": "Stages",
+      "type": "array"
+    },
+    "decisions": {
+      "items": {
+        "$ref": "#/$defs/DecisionPoint"
+      },
+      "title": "Decisions",
+      "type": "array"
+    },
+    "evaluation_rules": {
+      "items": {
+        "$ref": "#/$defs/EvaluationRule"
+      },
+      "title": "Evaluation Rules",
+      "type": "array"
+    },
+    "mistake_rules": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/MistakeRule"
+      },
+      "title": "Mistake Rules",
+      "type": "array"
+    },
+    "mistake_categories": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Mistake Categories",
+      "type": "array"
+    },
+    "recommendations": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Recommendation"
+      },
+      "default": {},
+      "title": "Recommendations",
+      "type": "object"
+    }
+  },
+  "required": [
+    "scenario_id",
+    "schema_version",
+    "version",
+    "legal_date",
+    "fictional_notice_key",
+    "max_score",
+    "card",
+    "intro",
+    "citations",
+    "characters",
+    "evidence",
+    "facts",
+    "stages",
+    "decisions",
+    "evaluation_rules",
+    "mistake_categories"
+  ],
+  "title": "Scenario",
+  "type": "object"
+}

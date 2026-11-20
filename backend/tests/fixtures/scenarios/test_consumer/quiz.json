@@ -1,0 +1,145 @@
+{
+  "scenario_id": "test_consumer",
+  "pre": [
+    {
+      "question_id": "pre1",
+      "text_key": "quiz.pre1.text",
+      "options": [
+        {
+          "id": "a",
+          "text_key": "quiz.pre1.a"
+        },
+        {
+          "id": "b",
+          "text_key": "quiz.pre1.b"
+        },
+        {
+          "id": "c",
+          "text_key": "quiz.pre1.c"
+        }
+      ],
+      "correct_option": "b",
+      "explanation_key": "quiz.pre1.expl",
+      "citation_ids": [
+        "TEST_CPRL.art.2"
+      ]
+    },
+    {
+      "question_id": "pre2",
+      "text_key": "quiz.pre2.text",
+      "options": [
+        {
+          "id": "a",
+          "text_key": "quiz.pre2.a"
+        },
+        {
+          "id": "b",
+          "text_key": "quiz.pre2.b"
+        },
+        {
+          "id": "c",
+          "text_key": "quiz.pre2.c"
+        }
+      ],
+      "correct_option": "a",
+      "explanation_key": "quiz.pre2.expl",
+      "citation_ids": [
+        "TEST_CPC.art.1"
+      ]
+    },
+    {
+      "question_id": "pre3",
+      "text_key": "quiz.pre3.text",
+      "options": [
+        {
+          "id": "a",
+          "text_key": "quiz.pre3.a"
+        },
+        {
+          "id": "b",
+          "text_key": "quiz.pre3.b"
+        },
+        {
+          "id": "c",
+          "text_key": "quiz.pre3.c"
+        }
+      ],
+      "correct_option": "b",
+      "explanation_key": "quiz.pre3.expl",
+      "citation_ids": [
+        "TEST_CPC.art.2"
+      ]
+    }
+  ],
+  "post": [
+    {
+      "question_id": "post1",
+      "text_key": "quiz.post1.text",
+      "options": [
+        {
+          "id": "a",
+          "text_key": "quiz.post1.a"
+        },
+        {
+          "id": "b",
+          "text_key": "quiz.post1.b"
+        },
+        {
+          "id": "c",
+          "text_key": "quiz.post1.c"
+        }
+      ],
+      "correct_option": "a",
+      "explanation_key": "quiz.post1.expl",
+      "citation_ids": [
+        "TEST_CPRL.art.2"
+      ]
+    },
+    {
+      "question_id": "post2",
+      "text_key": "quiz.post2.text",
+      "options": [
+        {
+          "id": "a",
+          "text_key": "quiz.post2.a"
+        },
+        {
+          "id": "b",
+          "text_key": "quiz.post2.b"
+        },
+        {
+          "id": "c",
+          "text_key": "quiz.post2.c"
+        }
+      ],
+      "correct_option": "a",
+      "explanation_key": "quiz.post2.expl",
+      "citation_ids": [
+        "TEST_CPC.art.1"
+      ]
+    },
+    {
+      "question_id": "post3",
+      "text_key": "quiz.post3.text",
+      "options": [
+        {
+          "id": "a",
+          "text_key": "quiz.post3.a"
+        },
+        {
+          "id": "b",
+          "text_key": "quiz.post3.b"
+        },
+        {
+          "id": "c",
+          "text_key": "quiz.post3.c"
+        }
+      ],
+      "correct_option": "b",
+      "explanation_key": "quiz.post3.expl",
+      "citation_ids": [
+        "TEST_CPRL.art.1"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1309 @@
+{
+  "scenario_id": "test_consumer",
+  "schema_version": 1,
+  "version": "0.1.0",
+  "legal_date": "2026-03-01",
+  "fictional_notice_key": "fictional",
+  "reveal_mistakes": false,
+  "max_score": 100,
+  "card": {
+    "title_key": "card.title",
+    "category_key": "card.category",
+    "difficulty": "beginner",
+    "minutes": 15,
+    "topic_keys": [
+      "card.topic1",
+      "card.topic2"
+    ],
+    "cover": null,
+    "available": true
+  },
+  "intro": {
+    "story_key": "intro.story",
+    "player_role": {
+      "character_id": "plaintiff_rep",
+      "title_key": "intro.role"
+    },
+    "claims": [
+      {
+        "side": "plaintiff",
+        "text_key": "claim.plaintiff"
+      },
+      {
+        "side": "defendant",
+        "text_key": "claim.defendant"
+      }
+    ],
+    "legal_acts": [
+      "TEST_CPRL",
+      "TEST_CC",
+      "TEST_CPC"
+    ]
+  },
+  "citations": [
+    "TEST_CPRL.art.1",
+    "TEST_CPRL.art.2",
+    "TEST_CC.art.1",
+    "TEST_CPC.art.1",
+    "TEST_CPC.art.2"
+  ],
+  "characters": [
+    {
+      "id": "judge",
+      "sprite": "judge",
+      "name_key": "char.judge.name",
+      "role_key": "char.judge.role"
+    },
+    {
+      "id": "plaintiff_rep",
+      "sprite": "lawyer_a",
+      "name_key": "char.plaintiff_rep.name",
+      "role_key": "char.plaintiff_rep.role"
+    },
+    {
+      "id": "plaintiff",
+      "sprite": "citizen_m",
+      "name_key": "char.plaintiff.name",
+      "role_key": "char.plaintiff.role"
+    },
+    {
+      "id": "defendant_rep",
+      "sprite": "lawyer_b",
+      "name_key": "char.defendant_rep.name",
+      "role_key": "char.defendant_rep.role"
+    },
+    {
+      "id": "expert",
+      "sprite": "expert",
+      "name_key": "char.expert.name",
+      "role_key": "char.expert.role"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "contract",
+      "title_key": "ev.contract",
+      "type": "document",
+      "facts": [
+        "F_PURCHASE"
+      ]
+    },
+    {
+      "id": "receipt",
+      "title_key": "ev.receipt",
+      "type": "document",
+      "facts": [
+        "F_PURCHASE"
+      ]
+    },
+    {
+      "id": "warranty",
+      "title_key": "ev.warranty",
+      "type": "document",
+      "facts": [
+        "F_WARRANTY"
+      ]
+    },
+    {
+      "id": "chat",
+      "title_key": "ev.chat",
+      "type": "document",
+      "facts": [
+        "F_NOTICE"
+      ]
+    },
+    {
+      "id": "claim_letter",
+      "title_key": "ev.claim_letter",
+      "type": "document",
+      "facts": [
+        "F_NOTICE"
+      ]
+    },
+    {
+      "id": "expert_report",
+      "title_key": "ev.expert_report",
+      "type": "testimony",
+      "text_key": "ev.expert_report.text",
+      "facts": [
+        "F_DEFECT"
+      ],
+      "in_case_file": false
+    }
+  ],
+  "facts": [
+    {
+      "id": "F_PURCHASE",
+      "text_key": "fact.purchase",
+      "known_by": [
+        "plaintiff",
+        "defendant_rep"
+      ]
+    },
+    {
+      "id": "F_WARRANTY",
+      "text_key": "fact.warranty",
+      "known_by": [
+        "plaintiff"
+      ]
+    },
+    {
+      "id": "F_NOTICE",
+      "text_key": "fact.notice",
+      "known_by": [
+        "plaintiff",
+        "defendant_rep"
+      ]
+    },
+    {
+      "id": "F_DEFECT",
+      "text_key": "fact.defect",
+      "known_by": [
+        "expert"
+      ]
+    }
+  ],
+  "stages": [
+    {
+      "id": "INTRO",
+      "title_key": "stage.intro",
+      "on_enter": [
+        {
+          "say": [
+            "narrator",
+            "line.intro.narrator"
+          ]
+        },
+        {
+          "say": [
+            "plaintiff",
+            "line.intro.plaintiff",
+            "worried"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "enter_courtroom",
+          "kind": "continue",
+          "label_key": "act.enter_courtroom",
+          "effects": [
+            {
+              "set": "intro_done"
+            }
+          ]
+        }
+      ],
+      "transitions": [
+        {
+          "to": "CASE_REVIEW",
+          "when": {
+            "flag": "intro_done"
+          }
+        }
+      ]
+    },
+    {
+      "id": "CASE_REVIEW",
+      "title_key": "stage.case_review",
+      "on_enter": [
+        {
+          "say": [
+            "judge",
+            "line.case_review"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "review_contract",
+          "kind": "evidence",
+          "label_key": "act.review_contract",
+          "evidence_id": "contract",
+          "effects": [
+            {
+              "set": "contract_reviewed"
+            },
+            {
+              "score": 2
+            }
+          ]
+        },
+        {
+          "id": "review_receipt",
+          "kind": "evidence",
+          "label_key": "act.review_receipt",
+          "evidence_id": "receipt",
+          "effects": [
+            {
+              "set": "receipt_reviewed"
+            },
+            {
+              "score": 2
+            }
+          ]
+        },
+        {
+          "id": "review_warranty",
+          "kind": "evidence",
+          "label_key": "act.review_warranty",
+          "evidence_id": "warranty",
+          "effects": [
+            {
+              "set": "warranty_reviewed"
+            },
+            {
+              "score": 2
+            }
+          ]
+        },
+        {
+          "id": "review_chat",
+          "kind": "evidence",
+          "label_key": "act.review_chat",
+          "evidence_id": "chat",
+          "effects": [
+            {
+              "set": "chat_reviewed"
+            },
+            {
+              "score": 2
+            }
+          ]
+        },
+        {
+          "id": "review_claim_letter",
+          "kind": "evidence",
+          "label_key": "act.review_claim_letter",
+          "evidence_id": "claim_letter",
+          "effects": [
+            {
+              "set": "claim_letter_reviewed"
+            },
+            {
+              "score": 2
+            }
+          ]
+        },
+        {
+          "id": "to_preparation",
+          "kind": "continue",
+          "label_key": "act.to_preparation",
+          "requires": {
+            "gte": {
+              "count": [
+                "contract_reviewed",
+                "receipt_reviewed",
+                "warranty_reviewed",
+                "chat_reviewed",
+                "claim_letter_reviewed"
+              ],
+              "value": 3
+            }
+          },
+          "effects": [
+            {
+              "set": "case_review_done"
+            }
+          ]
+        }
+      ],
+      "transitions": [
+        {
+          "to": "PREPARATION",
+          "when": {
+            "flag": "case_review_done"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PREPARATION",
+      "title_key": "stage.preparation",
+      "actions": [
+        {
+          "id": "ask_plaintiff_defect",
+          "kind": "question",
+          "label_key": "act.ask_plaintiff_defect",
+          "target_character": "plaintiff",
+          "effects": [
+            {
+              "set": "defect_clarified"
+            },
+            {
+              "score": 3
+            },
+            {
+              "say": [
+                "plaintiff",
+                "line.defect"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ask_plaintiff_notice",
+          "kind": "question",
+          "label_key": "act.ask_plaintiff_notice",
+          "target_character": "plaintiff",
+          "effects": [
+            {
+              "set": "notice_clarified"
+            },
+            {
+              "score": 3
+            },
+            {
+              "say": [
+                "plaintiff",
+                "line.notice"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "to_hearing",
+          "kind": "continue",
+          "label_key": "act.to_hearing",
+          "effects": [
+            {
+              "set": "preparation_done"
+            }
+          ]
+        }
+      ],
+      "transitions": [
+        {
+          "to": "HEARING_OPENING",
+          "when": {
+            "flag": "preparation_done"
+          }
+        }
+      ]
+    },
+    {
+      "id": "HEARING_OPENING",
+      "title_key": "stage.hearing",
+      "on_enter": [
+        {
+          "say": [
+            "judge",
+            "line.hearing.open"
+          ]
+        },
+        {
+          "react": [
+            "judge",
+            "gavel"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "declare_claim",
+          "kind": "argument",
+          "label_key": "act.declare_claim",
+          "effects": [
+            {
+              "set": "claim_declared"
+            },
+            {
+              "score": 5
+            },
+            {
+              "say": [
+                "plaintiff_rep",
+                "line.claim",
+                "confident"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "to_explanations",
+          "kind": "continue",
+          "label_key": "act.to_explanations",
+          "effects": [
+            {
+              "set": "hearing_done"
+            }
+          ]
+        }
+      ],
+      "transitions": [
+        {
+          "to": "PARTY_EXPLANATIONS",
+          "when": {
+            "flag": "hearing_done"
+          }
+        }
+      ]
+    },
+    {
+      "id": "PARTY_EXPLANATIONS",
+      "title_key": "stage.explanations",
+      "actions": [
+        {
+          "id": "give_explanation",
+          "kind": "argument",
+          "label_key": "act.give_explanation",
+          "effects": [
+            {
+              "set": "explanation_given"
+            },
+            {
+              "score": 3
+            },
+            {
+              "react": [
+                "judge",
+                "nod"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ask_defendant_cause",
+          "kind": "question",
+          "label_key": "act.ask_defendant_cause",
+          "target_character": "defendant_rep",
+          "effects": [
+            {
+              "set": "defect_cause_asked"
+            },
+            {
+              "score": 3
+            },
+            {
+              "react": [
+                "defendant_rep",
+                "think"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "to_evidence",
+          "kind": "continue",
+          "label_key": "act.to_evidence",
+          "effects": [
+            {
+              "set": "explanations_done"
+            }
+          ]
+        }
+      ],
+      "transitions": [
+        {
+          "to": "EVIDENCE_EXAMINATION",
+          "when": {
+            "flag": "explanations_done"
+          }
+        }
+      ]
+    },
+    {
+      "id": "EVIDENCE_EXAMINATION",
+      "title_key": "stage.evidence",
+      "on_enter": [
+        {
+          "say": [
+            "judge",
+            "line.evidence.open"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "present_contract",
+          "kind": "evidence",
+          "label_key": "act.present_contract",
+          "target_character": "judge",
+          "evidence_id": "contract",
+          "requires": {
+            "flag": "contract_reviewed"
+          },
+          "hint_citation_ids": [],
+          "effects": [
+            {
+              "set": "contract_presented"
+            },
+            {
+              "score": 4
+            },
+            {
+              "react": [
+                "judge",
+                "nod"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "present_receipt",
+          "kind": "evidence",
+          "label_key": "act.present_receipt",
+          "target_character": "judge",
+          "evidence_id": "receipt",
+          "requires": {
+            "flag": "receipt_reviewed"
+          },
+          "hint_citation_ids": [
+            "TEST_CPC.art.1"
+          ],
+          "effects": [
+            {
+              "set": "receipt_presented"
+            },
+            {
+              "score": 6
+            },
+            {
+              "react": [
+                "judge",
+                "nod"
+              ]
+            },
+            {
+              "legal_note": {
+                "citation_id": "TEST_CPC.art.1",
+                "text_key": "note.present_receipt"
+              }
+            }
+          ]
+        },
+        {
+          "id": "present_warranty",
+          "kind": "evidence",
+          "label_key": "act.present_warranty",
+          "target_character": "judge",
+          "evidence_id": "warranty",
+          "requires": {
+            "flag": "warranty_reviewed"
+          },
+          "hint_citation_ids": [],
+          "effects": [
+            {
+              "set": "warranty_presented"
+            },
+            {
+              "score": 4
+            },
+            {
+              "react": [
+                "judge",
+                "nod"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "present_chat",
+          "kind": "evidence",
+          "label_key": "act.present_chat",
+          "target_character": "judge",
+          "evidence_id": "chat",
+          "requires": {
+            "flag": "chat_reviewed"
+          },
+          "hint_citation_ids": [
+            "TEST_CPC.art.1"
+          ],
+          "effects": [
+            {
+              "set": "chat_presented"
+            },
+            {
+              "score": 6
+            },
+            {
+              "react": [
+                "judge",
+                "nod"
+              ]
+            },
+            {
+              "legal_note": {
+                "citation_id": "TEST_CPC.art.1",
+                "text_key": "note.present_chat"
+              }
+            }
+          ]
+        },
+        {
+          "id": "present_claim_letter",
+          "kind": "evidence",
+          "label_key": "act.present_claim_letter",
+          "target_character": "judge",
+          "evidence_id": "claim_letter",
+          "requires": {
+            "flag": "claim_letter_reviewed"
+          },
+          "hint_citation_ids": [],
+          "effects": [
+            {
+              "set": "claim_letter_presented"
+            },
+            {
+              "score": 2
+            },
+            {
+              "react": [
+                "judge",
+                "nod"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "review_expert_report",
+          "kind": "evidence",
+          "label_key": "act.review_expert_report",
+          "evidence_id": "expert_report",
+          "requires": {
+            "flag": "expertise_ordered"
+          },
+          "effects": [
+            {
+              "set": "expert_report_reviewed"
+            },
+            {
+              "score": 2
+            }
+          ]
+        },
+        {
+          "id": "present_expert_report",
+          "kind": "evidence",
+          "label_key": "act.present_expert_report",
+          "target_character": "judge",
+          "evidence_id": "expert_report",
+          "requires": {
+            "flag": "expert_report_reviewed"
+          },
+          "effects": [
+            {
+              "set": "expert_report_presented"
+            },
+            {
+              "score": 6
+            },
+            {
+              "react": [
+                "judge",
+                "nod"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "object_unverified",
+          "kind": "objection",
+          "label_key": "act.object_unverified",
+          "requires": {
+            "flag": "defect_cause_asked"
+          },
+          "effects": [
+            {
+              "set": "objection_made"
+            },
+            {
+              "score": 2
+            },
+            {
+              "react": [
+                "defendant_rep",
+                "object"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "to_motions",
+          "kind": "continue",
+          "label_key": "act.to_motions",
+          "requires": {
+            "not": {
+              "flag": "motions_done"
+            }
+          },
+          "effects": [
+            {
+              "set": "go_motions"
+            }
+          ]
+        },
+        {
+          "id": "to_debate",
+          "kind": "continue",
+          "label_key": "act.to_debate",
+          "requires": {
+            "flag": "motions_done"
+          },
+          "effects": [
+            {
+              "set": "evidence_done"
+            }
+          ]
+        }
+      ],
+      "transitions": [
+        {
+          "to": "MOTIONS",
+          "when": {
+            "flag": "go_motions"
+          }
+        },
+        {
+          "to": "DEBATE",
+          "when": {
+            "flag": "evidence_done"
+          }
+        }
+      ]
+    },
+    {
+      "id": "MOTIONS",
+      "title_key": "stage.motions",
+      "on_enter": [
+        {
+          "unset": "go_motions"
+        },
+        {
+          "say": [
+            "judge",
+            "line.motions.open"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "request_expertise",
+          "kind": "motion",
+          "label_key": "act.request_expertise",
+          "hint_citation_ids": [
+            "TEST_CPC.art.2"
+          ],
+          "effects": [
+            {
+              "set": "expertise_requested"
+            },
+            {
+              "set": "expertise_ordered"
+            },
+            {
+              "score": 8
+            },
+            {
+              "add_evidence": "expert_report"
+            },
+            {
+              "say": [
+                "plaintiff_rep",
+                "line.motion.expertise"
+              ]
+            },
+            {
+              "say": [
+                "judge",
+                "line.motion.granted"
+              ]
+            },
+            {
+              "legal_note": {
+                "citation_id": "TEST_CPC.art.2",
+                "text_key": "note.expertise"
+              }
+            }
+          ]
+        },
+        {
+          "id": "request_witness",
+          "kind": "motion",
+          "label_key": "act.request_witness",
+          "effects": [
+            {
+              "set": "irrelevant_motion"
+            },
+            {
+              "score": -2
+            },
+            {
+              "react": [
+                "judge",
+                "surprised"
+              ]
+            },
+            {
+              "say": [
+                "judge",
+                "line.motion.denied"
+              ]
+            },
+            {
+              "mistake": {
+                "category": "procedure",
+                "title_key": "mistake.irrelevant.title",
+                "explanation_key": "mistake.irrelevant.expl",
+                "citation_ids": [
+                  "TEST_CPC.art.1"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "finish_motions",
+          "kind": "continue",
+          "label_key": "act.finish_motions",
+          "effects": [
+            {
+              "set": "motions_done"
+            }
+          ]
+        }
+      ],
+      "transitions": [
+        {
+          "to": "EVIDENCE_EXAMINATION",
+          "when": {
+            "all": [
+              {
+                "flag": "motions_done"
+              },
+              {
+                "flag": "expertise_ordered"
+              },
+              {
+                "not": {
+                  "flag": "expert_report_reviewed"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "to": "DEBATE",
+          "when": {
+            "flag": "motions_done"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DEBATE",
+      "title_key": "stage.debate",
+      "actions": [
+        {
+          "id": "argue_warranty",
+          "kind": "argument",
+          "label_key": "act.argue_warranty",
+          "hint_citation_ids": [
+            "TEST_CPRL.art.1"
+          ],
+          "effects": [
+            {
+              "set": "argued_warranty"
+            },
+            {
+              "score": 5
+            },
+            {
+              "legal_note": {
+                "citation_id": "TEST_CPRL.art.1",
+                "text_key": "note.warranty"
+              }
+            }
+          ]
+        },
+        {
+          "id": "argue_burden",
+          "kind": "argument",
+          "label_key": "act.argue_burden",
+          "hint_citation_ids": [
+            "TEST_CPRL.art.2"
+          ],
+          "effects": [
+            {
+              "set": "argued_burden"
+            },
+            {
+              "score": 8
+            },
+            {
+              "legal_note": {
+                "citation_id": "TEST_CPRL.art.2",
+                "text_key": "note.burden"
+              }
+            }
+          ]
+        },
+        {
+          "id": "to_decision",
+          "kind": "continue",
+          "label_key": "act.to_decision",
+          "effects": [
+            {
+              "set": "debate_done"
+            }
+          ]
+        }
+      ],
+      "transitions": [
+        {
+          "to": "DECISION",
+          "when": {
+            "flag": "debate_done"
+          }
+        }
+      ]
+    },
+    {
+      "id": "DECISION",
+      "title_key": "stage.decision",
+      "on_enter": [
+        {
+          "say": [
+            "judge",
+            "line.decision.open"
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "final_claim",
+          "kind": "decision",
+          "label_key": "act.final_claim",
+          "decision_id": "final_claim",
+          "hint_citation_ids": [
+            "TEST_CPRL.art.1"
+          ],
+          "effects": [
+            {
+              "set": "final_chosen"
+            },
+            {
+              "say": [
+                "plaintiff_rep",
+                "line.final",
+                "confident"
+              ]
+            }
+          ]
+        }
+      ],
+      "transitions": [
+        {
+          "to": "RESULTS",
+          "when": {
+            "flag": "final_chosen"
+          }
+        }
+      ]
+    },
+    {
+      "id": "RESULTS",
+      "title_key": "stage.results"
+    }
+  ],
+  "decisions": [
+    {
+      "decision_id": "present_evidence",
+      "stage": "EVIDENCE_EXAMINATION",
+      "label_key": "dec.present_evidence",
+      "options": [
+        {
+          "id": "receipt_and_chat",
+          "label_key": "opt.receipt_and_chat",
+          "when": {
+            "all": [
+              {
+                "flag": "receipt_presented"
+              },
+              {
+                "flag": "chat_presented"
+              }
+            ]
+          }
+        },
+        {
+          "id": "receipt_only",
+          "label_key": "opt.receipt_only",
+          "when": {
+            "flag": "receipt_presented"
+          }
+        },
+        {
+          "id": "chat_only",
+          "label_key": "opt.chat_only",
+          "when": {
+            "flag": "chat_presented"
+          }
+        },
+        {
+          "id": "other",
+          "label_key": "opt.other",
+          "when": {
+            "always": true
+          }
+        }
+      ],
+      "best": "receipt_and_chat",
+      "explanation_key": "expl.present_evidence",
+      "citation_ids": [
+        "TEST_CPC.art.1"
+      ]
+    },
+    {
+      "decision_id": "motion_expertise",
+      "stage": "MOTIONS",
+      "label_key": "dec.motion_expertise",
+      "options": [
+        {
+          "id": "request_expertise",
+          "label_key": "opt.request_expertise",
+          "when": {
+            "flag": "expertise_requested"
+          }
+        },
+        {
+          "id": "none",
+          "label_key": "opt.none",
+          "when": {
+            "always": true
+          }
+        }
+      ],
+      "best": "request_expertise",
+      "explanation_key": "expl.motion_expertise",
+      "citation_ids": [
+        "TEST_CPC.art.2"
+      ]
+    },
+    {
+      "decision_id": "final_claim",
+      "stage": "DECISION",
+      "label_key": "dec.final_claim",
+      "options": [
+        {
+          "id": "repair",
+          "label_key": "opt.repair"
+        },
+        {
+          "id": "replace",
+          "label_key": "opt.replace"
+        },
+        {
+          "id": "refund",
+          "label_key": "opt.refund"
+        },
+        {
+          "id": "reduce_price",
+          "label_key": "opt.reduce_price"
+        }
+      ],
+      "best": "refund",
+      "consequences": {
+        "repair": [
+          {
+            "set": "claim_repair"
+          },
+          {
+            "say": [
+              "judge",
+              "line.claim_repair"
+            ]
+          }
+        ],
+        "replace": [
+          {
+            "set": "claim_replace"
+          },
+          {
+            "say": [
+              "judge",
+              "line.claim_replace"
+            ]
+          }
+        ],
+        "refund": [
+          {
+            "set": "claim_refund"
+          },
+          {
+            "say": [
+              "judge",
+              "line.claim_refund"
+            ]
+          }
+        ],
+        "reduce_price": [
+          {
+            "set": "claim_reduce_price"
+          },
+          {
+            "say": [
+              "judge",
+              "line.claim_reduce_price"
+            ]
+          }
+        ]
+      },
+      "score": {
+        "refund": 20,
+        "replace": 10,
+        "repair": 5,
+        "reduce_price": 0
+      },
+      "explanation_key": "expl.final_claim",
+      "citation_ids": [
+        "TEST_CPRL.art.1",
+        "TEST_CC.art.1"
+      ]
+    }
+  ],
+  "evaluation_rules": [
+    {
+      "outcome": "claim_granted",
+      "when": {
+        "all": [
+          {
+            "chose": {
+              "decision_id": "final_claim",
+              "option": "refund"
+            }
+          },
+          {
+            "flag": "expertise_requested"
+          },
+          {
+            "flag": "receipt_presented"
+          },
+          {
+            "flag": "chat_presented"
+          }
+        ]
+      },
+      "title_key": "out.granted.title",
+      "ruling_key": "out.granted.ruling"
+    },
+    {
+      "outcome": "claim_partially_granted",
+      "when": {
+        "all": [
+          {
+            "flag": "receipt_presented"
+          },
+          {
+            "any": [
+              {
+                "chose": {
+                  "decision_id": "final_claim",
+                  "option": "refund"
+                }
+              },
+              {
+                "chose": {
+                  "decision_id": "final_claim",
+                  "option": "replace"
+                }
+              },
+              {
+                "chose": {
+                  "decision_id": "final_claim",
+                  "option": "repair"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "title_key": "out.partial.title",
+      "ruling_key": "out.partial.ruling"
+    },
+    {
+      "outcome": "claim_denied",
+      "when": {
+        "always": true
+      },
+      "title_key": "out.denied.title",
+      "ruling_key": "out.denied.ruling"
+    }
+  ],
+  "mistake_rules": [
+    {
+      "when": {
+        "not": {
+          "flag": "expertise_requested"
+        }
+      },
+      "mistake": {
+        "category": "procedure",
+        "title_key": "mistake.no_expertise.title",
+        "explanation_key": "mistake.no_expertise.expl",
+        "correct_action_key": "mistake.no_expertise.fix",
+        "citation_ids": [
+          "TEST_CPC.art.2"
+        ]
+      }
+    },
+    {
+      "when": {
+        "not": {
+          "flag": "receipt_presented"
+        }
+      },
+      "mistake": {
+        "category": "evidence",
+        "title_key": "mistake.no_receipt.title",
+        "explanation_key": "mistake.no_receipt.expl",
+        "correct_action_key": "mistake.no_receipt.fix",
+        "citation_ids": [
+          "TEST_CPC.art.1"
+        ]
+      }
+    },
+    {
+      "when": {
+        "chose": {
+          "decision_id": "final_claim",
+          "option": "reduce_price"
+        }
+      },
+      "mistake": {
+        "category": "substantive",
+        "title_key": "mistake.weak_claim.title",
+        "explanation_key": "mistake.weak_claim.expl",
+        "citation_ids": [
+          "TEST_CPRL.art.1"
+        ]
+      }
+    }
+  ],
+  "mistake_categories": [
+    "procedure",
+    "evidence",
+    "substantive"
+  ],
+  "recommendations": {
+    "procedure": {
+      "topic_key": "rec.procedure",
+      "citation_ids": [
+        "TEST_CPC.art.2"
+      ]
+    },
+    "evidence": {
+      "topic_key": "rec.evidence",
+      "citation_ids": [
+        "TEST_CPC.art.1"
+      ]
+    },
+    "substantive": {
+      "topic_key": "rec.substantive",
+      "citation_ids": [
+        "TEST_CPRL.art.1",
+        "TEST_CC.art.1"
+      ]
+    }
+  }
+}

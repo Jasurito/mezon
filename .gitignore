@@ -3,3 +3,8 @@
 
 # OS
 .DS_Store
+
+# Secrets: API keys live only in local .env
+.env
+.env.*
+!.env.example

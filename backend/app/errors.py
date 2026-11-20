@@ -1,0 +1,113 @@
+from typing import Any
+
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import OperationalError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+
+class AppError(Exception):
+    code = "INTERNAL_ERROR"
+    http_status = 500
+    default_message = "Внутренняя ошибка сервера"
+
+    def __init__(
+        self,
+        message: str | None = None,
+        *,
+        details: dict[str, Any] | None = None,
+        code: str | None = None,
+        http_status: int | None = None,
+    ) -> None:
+        self.message = message or self.default_message
+        self.details = details or {}
+        if code is not None:
+            self.code = code
+        if http_status is not None:
+            self.http_status = http_status
+        super().__init__(self.message)
+
+
+class NotFoundError(AppError):
+    code = "NOT_FOUND"
+    http_status = 404
+    default_message = "Объект не найден"
+
+
+class IllegalActionError(AppError):
+    code = "ILLEGAL_ACTION"
+    http_status = 409
+    default_message = "Действие недоступно на этом этапе"
+
+
+class SessionFinishedError(AppError):
+    code = "SESSION_FINISHED"
+    http_status = 409
+    default_message = "Дело уже завершено"
+
+
+class SessionNotFinishedError(AppError):
+    code = "SESSION_NOT_FINISHED"
+    http_status = 409
+    default_message = "Дело ещё не завершено"
+
+
+class SessionOutdatedError(AppError):
+    """The session's action log no longer replays on the current scenario version."""
+
+    code = "SESSION_OUTDATED"
+    http_status = 409
+    default_message = "Сценарий обновился, это дело нужно начать заново"
+
+
+class DbUnavailableError(AppError):
+    code = "DB_UNAVAILABLE"
+    http_status = 503
+    default_message = "Нет соединения с базой данных"
+
+
+def error_response(
+    status: int, code: str, message: str, details: Any = None
+) -> JSONResponse:
+    body = {"error": {"code": code, "message": message, "details": details if details is not None else {}}}
+    return JSONResponse(status_code=status, content=jsonable_encoder(body))
+
+
+def _safe_error(err: dict[str, Any]) -> dict[str, Any]:
+    out = {k: v for k, v in err.items() if k != "ctx"}
+    if "ctx" in err:
+        out["ctx"] = {k: str(v) for k, v in err["ctx"].items()}
+    if "input" in out:
+        try:
+            jsonable_encoder(out["input"])
+        except Exception:
+            out["input"] = str(out["input"])
+    return out
+
+
+def install_error_handlers(app: FastAPI) -> None:
+    @app.exception_handler(AppError)
+    async def _app_error(_: Request, exc: AppError):
+        return error_response(exc.http_status, exc.code, exc.message, exc.details)
+
+    @app.exception_handler(RequestValidationError)
+    async def _validation(_: Request, exc: RequestValidationError):
+        return error_response(
+            422,
+            "VALIDATION_ERROR",
+            "Неверное тело запроса",
+            {"errors": [_safe_error(e) for e in exc.errors()]},
+        )
+
+    @app.exception_handler(OperationalError)
+    async def _db(_: Request, exc: OperationalError):
+        return error_response(503, "DB_UNAVAILABLE", DbUnavailableError.default_message)
+
+    @app.exception_handler(StarletteHTTPException)
+    async def _http(_: Request, exc: StarletteHTTPException):
+        if exc.status_code == 404:
+            return error_response(404, "NOT_FOUND", "Объект не найден")
+        message = exc.detail if isinstance(exc.detail, str) else "Ошибка запроса"
+        return error_response(exc.status_code, f"HTTP_{exc.status_code}", message)

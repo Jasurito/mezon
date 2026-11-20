@@ -1,0 +1,96 @@
+{
+  "$defs": {
+    "Question": {
+      "additionalProperties": false,
+      "properties": {
+        "question_id": {
+          "title": "Question Id",
+          "type": "string"
+        },
+        "text_key": {
+          "title": "Text Key",
+          "type": "string"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/QuizOption"
+          },
+          "title": "Options",
+          "type": "array"
+        },
+        "correct_option": {
+          "title": "Correct Option",
+          "type": "string"
+        },
+        "explanation_key": {
+          "title": "Explanation Key",
+          "type": "string"
+        },
+        "citation_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Citation Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "question_id",
+        "text_key",
+        "options",
+        "correct_option",
+        "explanation_key"
+      ],
+      "title": "Question",
+      "type": "object"
+    },
+    "QuizOption": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "text_key": {
+          "title": "Text Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "text_key"
+      ],
+      "title": "QuizOption",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "scenario_id": {
+      "title": "Scenario Id",
+      "type": "string"
+    },
+    "pre": {
+      "items": {
+        "$ref": "#/$defs/Question"
+      },
+      "title": "Pre",
+      "type": "array"
+    },
+    "post": {
+      "items": {
+        "$ref": "#/$defs/Question"
+      },
+      "title": "Post",
+      "type": "array"
+    }
+  },
+  "required": [
+    "scenario_id",
+    "pre",
+    "post"
+  ],
+  "title": "Quiz",
+  "type": "object"
+}
