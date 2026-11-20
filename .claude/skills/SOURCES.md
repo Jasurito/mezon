@@ -3,3 +3,4 @@ Installed 2026-11-20 for LexHackathon (ADOLAT frontend). Reviewed before install
 - web-design-guidelines/guidelines.md: github.com/vercel-labs/web-interface-guidelines @ 434b7f9 (vendored snapshot, offline)
 - shadcn: github.com/shadcn-ui/ui skills/shadcn @ f50887a
 - phaser-*: github.com/phaserjs/phaser skills/ @ 02d8931 (Phaser 4; dirs + names prefixed "phaser-")
+- graphify: knowledge-graph skill (pip package `graphifyy`, version 0.9.113), copied from the maintainer's user skills on 2026-11-20 and reviewed. It installs the package itself on first use (uv or pip).
