@@ -1,0 +1,2 @@
+# Git LFS: big generated files live outside the git history (install: brew install git-lfs && git lfs install)
+legal_data/seed.sql.gz filter=lfs diff=lfs merge=lfs -text

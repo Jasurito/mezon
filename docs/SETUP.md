@@ -9,7 +9,7 @@
 - Python 3.12 (проект требует `>=3.12,<3.13`).
 - Node.js. В `frontend/package.json` версия не указана, а в `frontend/Dockerfile` используется Node 24. Ставьте Node 24.
 - pnpm отдельно ставить не нужно: он запускается через corepack (`corepack pnpm ...`), версия `pnpm@11.25.0` записана в `package.json`.
-- Git.
+- Git и Git LFS (`brew install git-lfs`, затем один раз `git lfs install`): через LFS хранится готовая база законов `legal_data/seed.sql.gz`.
 - Место на диске: модели Ollama занимают около 10 ГБ (см. [MODELS.md](MODELS.md)).
 - Память: для локальной модели `gemma3:12b` рекомендуется 16 ГБ. Без модели хватит и меньшего.
 

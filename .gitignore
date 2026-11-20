@@ -19,5 +19,3 @@ graphify-out/*
 legal_data/processed/embeddings_cache/
 # Ingestion: промежуточные JSONL (пересобираются командой make ingest ARGS="run"); отчёты остаются в git
 legal_data/processed/*.jsonl
-# Ingestion: готовая база законов, хранится в GitHub Releases, не в git
-legal_data/seed.sql.gz

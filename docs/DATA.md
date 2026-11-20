@@ -137,7 +137,7 @@ Seed (`legal_data/seed.sql.gz`) это готовая база законов в
 
 - Собирается командой `make seed-dump` после проверки человеком.
 - Содержит только данные правовых таблиц (без схемы).
-- Хранится не в git, а файлом в GitHub Releases. Скачайте его и положите в `legal_data/seed.sql.gz`.
+- Хранится в git через Git LFS (`.gitattributes`): в истории лежит только ссылка, сам файл — на GitHub LFS. `git pull` скачивает его автоматически, если установлен git-lfs.
 - Бэкенд в docker загружает seed при старте, если таблицы законов пусты (путь задаётся `SEED_PATH`, в `docker-compose.yml` это `/seed/seed.sql.gz`).
 
 Для локальной работы seed не нужен: хватит `make demo-laws`.
@@ -154,7 +154,7 @@ Seed (`legal_data/seed.sql.gz`) это готовая база законов в
 
 - `legal_data/processed/*.jsonl`: пересобирается за минуту.
 - `legal_data/processed/embeddings_cache/`: кэш векторов.
-- `legal_data/seed.sql.gz`: хранится в GitHub Releases.
+- `legal_data/seed.sql.gz`: хранится через Git LFS.
 
 ## Как добавить новый закон или новую редакцию
 
