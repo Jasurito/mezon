@@ -8,7 +8,8 @@
 ## 1. Стек
 
 - Next.js (App Router), TypeScript, Tailwind CSS
-- Phaser 3: только сцена суда
+- shadcn/ui: компоненты интерфейса вокруг игры (Sheet для EvidenceDrawer и LegalPanel, Dialog для DECISION, тосты, прогресс). Доступность и фокус с клавиатуры из коробки
+- Phaser 4: только сцена суда (Phaser 3 заморожен на 3.90; официальные skills — под v4)
 - Zustand: состояние
 - `next-intl`: локализация, язык в URL
 - `openapi-typescript` + `openapi-fetch`: клиент API генерируется из `/openapi.json` командой `make api-client`. Файлы в `lib/api/` руками не редактируются.
