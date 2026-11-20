@@ -2,7 +2,9 @@
 
 Used by `make demo`. The data is the test corpus from tests/fixtures (clearly marked as
 test data, not real law). It goes into a separate database (adolat_demo), so the main
-`adolat` database stays empty for the real seed from ingestion.
+`adolat` database stays empty for the real seed from ingestion. Real laws (draft editions)
+are added to the same demo database by `make demo-laws`; the TEST_* corpus is loaded
+whenever no TEST_* documents are present.
 """
 
 from __future__ import annotations
@@ -42,8 +44,12 @@ def main() -> None:
 
     engine = create_engine(url)
     with Session(engine) as s:
-        if s.scalar(select(func.count()).select_from(LegalDocument)):
-            print("demo legal data already loaded")
+        # тестовые данные грузим, если нет документов TEST_* (настоящие законы из `make demo-laws`
+        # живут в этой же базе и не должны считаться «тестовыми данными уже загружены»)
+        if s.scalar(
+            select(func.count()).select_from(LegalDocument).where(LegalDocument.document_key.like("TEST\\_%", escape="\\"))
+        ):
+            print("demo TEST legal data already loaded")
         else:
             seed_test_legal_data(s)
             seed_test_chunks(s)

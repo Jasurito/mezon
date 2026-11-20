@@ -31,7 +31,7 @@ trap cleanup INT TERM EXIT
 (
   cd "$ROOT/backend"
   DATABASE_URL="$DEMO_DB_URL" MONGO_URL="$DEMO_MONGO_URL" MONGO_DB=adolat_demo \
-  SCENARIOS_DIR=tests/fixtures/scenarios \
+  SCENARIOS_DIR=../scenarios:tests/fixtures/scenarios \
   CORS_ORIGINS="http://localhost:$FRONTEND_PORT" \
     .venv/bin/uvicorn app.main:app --reload --port "$DEMO_PORT" 2>&1 | sed -u 's/^/[back]  /'
 ) &

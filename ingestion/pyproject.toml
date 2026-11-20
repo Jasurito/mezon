@@ -1,0 +1,30 @@
+[project]
+name = "adolat-ingestion"
+version = "0.1.0"
+description = "ADOLAT legal ingestion: legal_data/raw + sources.yaml -> Postgres legal tables and seed"
+requires-python = ">=3.12,<3.13"
+# Бэкенд (app.*) в зависимости не указан: пакет ставится в тот же venv, где уже стоит adolat-backend.
+dependencies = [
+    "selectolax>=0.3",
+    "python-docx>=1.1",
+    "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["legal_ingestion*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"
+markers = [
+    "db: test needs a running Postgres",
+]

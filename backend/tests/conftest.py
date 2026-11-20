@@ -88,7 +88,11 @@ def client(db_session, db_url):
 
     app = create_app()
     app.dependency_overrides[get_db] = lambda: db_session
-    app.dependency_overrides[get_settings] = lambda: Settings(DATABASE_URL=db_url)
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        DATABASE_URL=db_url,
+        # без сценариев: реальные дела из scenarios/ требуют законов в базе (их грузит `make demo-laws`)
+        SCENARIOS_DIR=BACKEND_DIR / "tests" / "fixtures" / "no_scenarios",
+    )
     with TestClient(app) as c:
         yield c
 

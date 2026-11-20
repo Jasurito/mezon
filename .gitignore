@@ -14,3 +14,10 @@ graphify-out/*
 !graphify-out/graph.html
 !graphify-out/graph.json
 !graphify-out/GRAPH_REPORT.md
+
+# Ingestion: кэш эмбеддингов
+legal_data/processed/embeddings_cache/
+# Ingestion: промежуточные JSONL (пересобираются командой make ingest ARGS="run"); отчёты остаются в git
+legal_data/processed/*.jsonl
+# Ingestion: готовая база законов, хранится в GitHub Releases, не в git
+legal_data/seed.sql.gz

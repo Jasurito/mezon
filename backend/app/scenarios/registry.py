@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Callable
 from contextlib import AbstractContextManager
+from pathlib import Path
 
 from fastapi import Request
 from sqlalchemy.orm import Session
@@ -12,7 +14,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings
 from app.game_engine import collect_citation_ids
 from app.legal.service import missing_citation_ids
-from app.scenarios.loader import LoadedScenario, load_all
+from app.scenarios.loader import LoadedScenario, ScenarioValidationError, load_all
 
 log = logging.getLogger("adolat.scenarios")
 
@@ -39,17 +41,43 @@ def find_missing_citations(registry: Registry, db: Session) -> dict[str, list[st
     return result
 
 
+def scenario_roots(settings: Settings) -> list[Path]:
+    """SCENARIOS_DIR: один путь или несколько через os.pathsep (':' на Linux/macOS)."""
+    raw = os.fspath(settings.SCENARIOS_DIR)
+    return [Path(p) for p in raw.split(os.pathsep) if p.strip()]
+
+
+def load_from_roots(roots: list[Path]) -> Registry:
+    """Сценарии из всех каталогов; повтор scenario_id в разных каталогах = ошибка."""
+    registry: Registry = {}
+    origin: dict[str, Path] = {}
+    errors: list[str] = []
+    for root in roots:
+        if not root.is_dir():
+            log.warning("каталог сценариев %s не существует, пропущен", root)
+            continue
+        for sid, loaded in load_all(root, strict=True).items():
+            if sid in registry:
+                errors.append(f"duplicate scenario_id '{sid}': {origin[sid]} and {root}")
+                continue
+            registry[sid] = loaded
+            origin[sid] = root
+    if errors:
+        raise ScenarioValidationError(errors)
+    return registry
+
+
 def load_registry(settings: Settings, open_db: Callable[[], AbstractContextManager[Session]]) -> Registry:
     """Загрузить сценарии и проверить ссылки.
 
     Ошибки схемы и (при STRICT_CITATIONS) отсутствующие ссылки поднимают исключение:
     сервер не должен стартовать.
     """
-    root = settings.SCENARIOS_DIR
-    if not root.is_dir():
-        log.warning("SCENARIOS_DIR %s не существует, реестр сценариев пуст", root)
+    roots = scenario_roots(settings)
+    if not any(r.is_dir() for r in roots):
+        log.warning("SCENARIOS_DIR %s не существует, реестр сценариев пуст", settings.SCENARIOS_DIR)
         return {}
-    registry = load_all(root, strict=True)
+    registry = load_from_roots(roots)
     for sid, loaded in registry.items():
         if loaded.warnings:
             # обычно это сотни ключей uz-Cyrl: одна строка на сценарий, полный список — в debug
@@ -60,7 +88,7 @@ def load_registry(settings: Settings, open_db: Callable[[], AbstractContextManag
             for w in loaded.warnings:
                 log.debug("scenario warning: %s", w)
     if not registry:
-        log.warning("в %s нет сценариев", root)
+        log.warning("в %s нет сценариев", settings.SCENARIOS_DIR)
         return registry
     try:
         with open_db() as db:

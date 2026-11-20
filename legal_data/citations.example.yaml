@@ -1,0 +1,8 @@
+# Шаблон. Скопируйте в citations.yaml. Заполняется вручную после проверки статей по загруженному тексту.
+# Формат: docs/INGESTION.md §3.3. Номеров статей здесь нет намеренно: выдумывать их нельзя.
+- citation_id: EXAMPLE.art.N         # <document_key>.art.<номер статьи>
+  document_key: EXAMPLE
+  article_number: "N"                # строкой, как в базе: "25", "25-1", "25¹"
+  part: null                         # номер части статьи или null
+  topic: "<о чём статья, одной фразой>"
+  verified_by: "XX"

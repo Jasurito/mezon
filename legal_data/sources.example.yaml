@@ -1,0 +1,31 @@
+# Шаблон. Скопируйте в sources.yaml и заполните РЕАЛЬНЫМИ данными с lex.uz.
+# Здесь только плейсхолдеры: настоящих номеров, дат и названий нет.
+# Формат: docs/INGESTION.md §3.2. Даты только в формате ГГГГ-ММ-ДД.
+terms_of_use:
+  checked_at: 2000-01-01          # когда прочитали условия использования lex.uz
+  checked_by: "XX"
+  summary: "<что сказано в условиях lex.uz про копирование и автоматический доступ>"
+  fetch_allowed: false
+
+documents:
+  - document_key: EXAMPLE            # короткий ключ латиницей, цифры и «_»; используется в citation_id
+    title:                           # хотя бы один язык
+      ru: "<официальное название на русском>"
+      uz-Latn: "<official title in Uzbek (Latin)>"
+    document_type: law               # constitution | code | law | plenum_resolution | decree
+    document_number: null            # номер акта, как на lex.uz
+    adoption_date: null              # ГГГГ-ММ-ДД
+    issuing_body: null
+    source_url: "https://lex.uz/docs/<id>"
+    status: in_force                 # in_force | repealed
+    # Пропуски в нумерации статей, которые не ошибка (например, статья исключена из текста):
+    known_gaps: {}                   # пример: {ru: ["5", "6"]}
+    versions:
+      - language: ru                 # ru | uz-Latn | uz-Cyrl
+        file: raw/EXAMPLE_ru_2000-01-01.html   # <document_key>_<language>_<effective_from>.<html|docx>
+        source_url: "https://lex.uz/docs/<id>"
+        effective_from: 2000-01-01   # дата редакции, как указана на lex.uz
+        effective_to: null
+        is_official_text: null       # true/false ставит Legal QA, null = не проверено
+        retrieved_at: 2000-01-01     # когда скачали файл
+        verified_by: null            # пока null, редакция загружается как pending_review
