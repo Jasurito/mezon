@@ -7,7 +7,7 @@ import { routing, type Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
 export const LOCALE_LABELS: Record<Locale, { short: string; long: string }> = {
-  "uz-Latn": { short: "Oʻz", long: "Oʻzbekcha" },
+  "uz-Latn": { short: "Öz", long: "Özbekça" },
   "uz-Cyrl": { short: "Ўз", long: "Ўзбекча" },
   ru: { short: "Ru", long: "Русский" },
 };

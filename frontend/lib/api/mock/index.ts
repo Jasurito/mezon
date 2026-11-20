@@ -80,7 +80,7 @@ async function* mentorStream(question: string, sessionId: string | null, L: Loca
   await delay(350);
   if (!legal) {
     yield { event: "sources", data: [] };
-    yield { event: "done", data: { insufficient_sources: true, ai_unavailable: false, message: uz(L, L === "ru" ? "В загруженной правовой базе недостаточно источников, чтобы ответить на этот вопрос." : "Yuklangan huquqiy bazada bu savolga javob berish uchun manba yetarli emas."), disclaimer: "" } };
+    yield { event: "done", data: { insufficient_sources: true, ai_unavailable: false, message: uz(L, L === "ru" ? "В загруженной правовой базе недостаточно источников, чтобы ответить на этот вопрос." : "Yuklangan huquqiy bazada bu savolga javob beriş uçun manba yetarli emas."), disclaimer: "" } };
     return;
   }
   const sources = ["CPC.art.W", "CPC.art.Z", "CPRL.art.X"].map((id, i) => ({ source_id: "c" + (i + 1), citation: citation(id, L) }));
@@ -89,20 +89,20 @@ async function* mentorStream(question: string, sessionId: string | null, L: Loca
   const blocks: { text: string; source_ids: string[] }[] = [];
   const miss = new Set(ev?.mistakes.map((m) => m.category) ?? []);
   if (/(dalil|доказ|hisobga|учёл|учел)/i.test(q)) {
-    blocks.push({ text: ru ? "Ключевые доказательства по делу: кассовый чек (факт и дата покупки) и переписка с продавцом (своевременное обращение)." : "Ishdagi asosiy dalillar: kassa cheki (xarid fakti va sanasi) va sotuvchi bilan yozishma (oʻz vaqtida murojaat).", source_ids: ["c2"] });
-    if (miss.has("evidence")) blocks.push({ text: ru ? "Вы представили не все из них, поэтому часть обстоятельств осталась неподтверждённой." : "Siz ularning hammasini taqdim etmadingiz, shuning uchun ayrim holatlar tasdiqlanmay qoldi.", source_ids: ["c2"] });
+    blocks.push({ text: ru ? "Ключевые доказательства по делу: кассовый чек (факт и дата покупки) и переписка с продавцом (своевременное обращение)." : "Işdagi asosiy dalillar: kassa çeki (xarid fakti va sanasi) va sotuvçi bilan yozişma (öz vaqtida murojaat).", source_ids: ["c2"] });
+    if (miss.has("evidence")) blocks.push({ text: ru ? "Вы представили не все из них, поэтому часть обстоятельств осталась неподтверждённой." : "Siz ularning hammasini taqdim etmadingiz, şuning uçun ayrim holatlar tasdiqlanmay qoldi.", source_ids: ["c2"] });
   } else if (/(modda|статья|stat|norma|норм)/i.test(q)) {
-    blocks.push({ text: ru ? "Права покупателя при недостатке товара регулирует закон о защите прав потребителей, а порядок доказывания и ходатайств — Гражданский процессуальный кодекс." : "Tovar nuqsoni boʻyicha xaridor huquqlari isteʼmolchilar huquqlarini himoya qilish toʻgʻrisidagi qonunda, isbotlash va iltimosnomalar tartibi esa Fuqarolik protsessual kodeksida.", source_ids: ["c3", "c2"] });
+    blocks.push({ text: ru ? "Права покупателя при недостатке товара регулирует закон о защите прав потребителей, а порядок доказывания и ходатайств — Гражданский процессуальный кодекс." : "Tovar nuqsoni böyiça xaridor huquqlari isteʼmolçilar huquqlarini himoya qiliş töğrisidagi qonunda, isbotlaş va iltimosnomalar tartibi esa Fuqarolik protsessual kodeksida.", source_ids: ["c3", "c2"] });
   } else {
-    blocks.push({ text: ru ? "Главным спорным вопросом была причина поломки: продавец утверждал, что телефон повредил покупатель." : "Asosiy nizoli masala nosozlik sababi edi: sotuvchi telefonni xaridor buzgan, deb taʼkidladi.", source_ids: [] });
-    if (miss.has("procedure")) blocks.push({ text: ru ? "Чтобы установить причину недостатка, сторона может попросить суд назначить экспертизу. Вы не заявили это ходатайство, поэтому вопрос остался открытым." : "Nosozlik sababini aniqlash uchun tomon suddan ekspertiza tayinlashni soʻrashi mumkin. Siz bu iltimosnomani bildirmadingiz, shuning uchun masala ochiq qoldi.", source_ids: ["c1"] });
-    else blocks.push({ text: ru ? "Вы заявили ходатайство об экспертизе, и заключение подтвердило заводской дефект. Это был решающий шаг." : "Siz ekspertiza haqida iltimosnoma bildirdingiz va xulosa zavod nuqsonini tasdiqladi. Bu hal qiluvchi qadam boʻldi.", source_ids: ["c1"] });
-    if (miss.has("remedy_choice")) blocks.push({ text: ru ? "Итоговое требование не совпало с целью покупателя: он хотел вернуть деньги." : "Yakuniy talab xaridor maqsadiga mos kelmadi: u pulni qaytarishni xohlagan edi.", source_ids: ["c3"] });
-    else blocks.push({ text: ru ? "Требование о возврате денег вы выбрали правильно: закон даёт покупателю такое право при недостатке товара." : "Pulni qaytarish talabini toʻgʻri tanladingiz: qonun nuqsonli tovar boʻyicha xaridorga shunday huquq beradi.", source_ids: ["c3"] });
+    blocks.push({ text: ru ? "Главным спорным вопросом была причина поломки: продавец утверждал, что телефон повредил покупатель." : "Asosiy nizoli masala nosozlik sababi edi: sotuvçi telefonni xaridor buzgan, deb taʼkidladi.", source_ids: [] });
+    if (miss.has("procedure")) blocks.push({ text: ru ? "Чтобы установить причину недостатка, сторона может попросить суд назначить экспертизу. Вы не заявили это ходатайство, поэтому вопрос остался открытым." : "Nosozlik sababini aniqlaş uçun tomon suddan ekspertiza tayinlaşni söraşi mumkin. Siz bu iltimosnomani bildirmadingiz, şuning uçun masala oçiq qoldi.", source_ids: ["c1"] });
+    else blocks.push({ text: ru ? "Вы заявили ходатайство об экспертизе, и заключение подтвердило заводской дефект. Это был решающий шаг." : "Siz ekspertiza haqida iltimosnoma bildirdingiz va xulosa zavod nuqsonini tasdiqladi. Bu hal qiluvçi qadam böldi.", source_ids: ["c1"] });
+    if (miss.has("remedy_choice")) blocks.push({ text: ru ? "Итоговое требование не совпало с целью покупателя: он хотел вернуть деньги." : "Yakuniy talab xaridor maqsadiga mos kelmadi: u pulni qaytarişni xohlagan edi.", source_ids: ["c3"] });
+    else blocks.push({ text: ru ? "Требование о возврате денег вы выбрали правильно: закон даёт покупателю такое право при недостатке товара." : "Pulni qaytariş talabini töğri tanladingiz: qonun nuqsonli tovar böyiça xaridorga şunday huquq beradi.", source_ids: ["c3"] });
   }
   for (const b of blocks) { await delay(500); yield { event: "block", data: { text: uz(L, b.text), source_ids: b.source_ids, verified: true } }; }
   await delay(150);
-  yield { event: "done", data: { insufficient_sources: false, ai_unavailable: false, disclaimer: uz(L, ru ? "Образовательное объяснение, не юридическая консультация" : "Taʼlim maqsadidagi tushuntirish, yuridik maslahat emas") } };
+  yield { event: "done", data: { insufficient_sources: false, ai_unavailable: false, disclaimer: uz(L, ru ? "Образовательное объяснение, не юридическая консультация" : "Taʼlim maqsadidagi tuşuntiriş, yuridik maslahat emas") } };
 }
 
 export const mockApi: Api = {

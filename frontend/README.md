@@ -34,7 +34,7 @@ locales/                          uz-Latn.json, ru.json (hand-written), uz-Cyrl.
 
 ## Notes for the team
 
-- **Languages.** URLs use `/uz`, `/uz-cyrl` and `/ru`; the locale codes sent to the API stay `uz-Latn`, `uz-Cyrl` and `ru`. Uzbek Cyrillic is a deterministic transliteration. **The legal member must spot-check it** (legal text is never transliterated).
+- **Languages.** URLs use `/uz`, `/uz-cyrl` and `/ru`; the locale codes sent to the API stay `uz-Latn`, `uz-Cyrl` and `ru`. **Uzbek Latin uses the 2026 alphabet** (law of 21.10.2026: `ö ğ ş ç` instead of `oʻ gʻ sh ch`; the tutuq `ʼ` stays). `lib/translit.ts` has `toNewLatin()` for converting old-alphabet text, and the Cyrillic generator understands both alphabets. Uzbek Cyrillic is a deterministic transliteration. **The legal member must spot-check it** (legal text is never transliterated).
 - **Fonts.** Every font was checked for `ʻ ʼ ў қ ғ ҳ`. Manrope and Pixelify Sans fail, so don't use them.
 - **The mock case is placeholder content.** Article numbers are `X/Z/W` and the article text is empty on purpose (no invented law). Quiz questions and stage names need legal review.
 - **Backend gap.** Evidence documents need a body endpoint (e.g. `GET /api/scenarios/{id}/documents/{doc}`). `lib/api/live.ts` marks it with a TODO.

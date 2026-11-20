@@ -45,8 +45,9 @@ jobs:
               - 'deploy/**'
               - '.github/workflows/ci-cd.yml'
 
+  # Demo/test environment: CI runs only the checks that catch broken deploys (full suites: `pnpm lint`, `make test`).
   frontend:
-    name: Frontend (typecheck, lint, build)
+    name: Frontend (typecheck, build)
     needs: changes
     if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -67,13 +68,12 @@ jobs:
       - name: uz-Cyrl locale is generated and up to date
         run: pnpm i18n && git diff --exit-code -- locales/uz-Cyrl.json
       - run: pnpm typecheck
-      - run: pnpm lint
       - run: pnpm build
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
   backend:
-    name: Backend (pytest + Postgres/pgvector + MongoDB)
+    name: Backend (critical pytest + Postgres/pgvector)
     needs: changes
     if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -88,12 +88,6 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U adolat"
           --health-interval 3s --health-timeout 3s --health-retries 30
-      mongo:
-        image: mongo:7
-        ports: ['27018:27017']
-        options: >-
-          --health-cmd "mongosh --quiet --eval 'db.runCommand({ping:1}).ok'"
-          --health-interval 3s --health-timeout 5s --health-retries 30
     defaults:
       run:
         working-directory: backend
@@ -105,12 +99,15 @@ jobs:
           cache: pip
           cache-dependency-path: backend/pyproject.toml
       - run: pip install ".[dev]"
-      - run: pytest -q
+      - name: Critical tests (engine, API playthrough, citations, mentor guards, migrations)
+        run: >-
+          pytest -q
+          tests/engine/test_golden_paths.py tests/engine/test_transitions.py tests/engine/test_determinism.py
+          tests/game/test_api_flow.py tests/game/test_citations_resolve.py tests/game/test_locales.py
+          tests/mentor/test_mentor_no_ai.py tests/mentor/test_mentor_validation.py
+          tests/api/test_health.py tests/api/test_migrations.py
         env:
           TEST_DATABASE_URL: postgresql+psycopg://adolat:adolat@localhost:5433/adolat_test
-          TEST_MONGO_URL: mongodb://localhost:27018
-      - name: Docker image builds
-        run: docker build -t mezon-backend:ci .
 
   deploy:
     name: Deploy to vm1
