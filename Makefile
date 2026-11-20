@@ -4,7 +4,7 @@ DEMO_PORT ?= 8002
 DEMO_DB_URL ?= postgresql+psycopg://adolat:adolat@localhost:5433/adolat_demo
 DEMO_MONGO_URL ?= mongodb://localhost:27018
 
-.PHONY: db-up migrate dev test history-backfill api-client demo demo-reset
+.PHONY: db-up migrate dev test history-backfill api-client demo demo-reset demo-seed dev-all
 
 db-up:
 	docker compose up -d db mongo
@@ -35,12 +35,18 @@ history-backfill:
 
 # Local demo: separate DB adolat_demo with TEST legal data + the test case scenario.
 # LLM settings (LLM_PROVIDER=ollama etc.) come from .env. Swagger: http://localhost:$(DEMO_PORT)/docs
-demo: db-up
+demo-seed: db-up
 	cd backend && DATABASE_URL=$(DEMO_DB_URL) .venv/bin/python scripts/demo_seed.py
+
+demo: demo-seed
 	@echo "Swagger: http://localhost:$(DEMO_PORT)/docs   (Ctrl+C to stop)"
 	cd backend && DATABASE_URL=$(DEMO_DB_URL) MONGO_URL=$(DEMO_MONGO_URL) MONGO_DB=adolat_demo \
 		SCENARIOS_DIR=tests/fixtures/scenarios \
 		.venv/bin/uvicorn app.main:app --reload --port $(DEMO_PORT)
+
+# Everything locally in one terminal: databases + demo data + backend (:8002) + frontend live (:3000).
+dev-all: demo-seed
+	@DEMO_PORT=$(DEMO_PORT) DEMO_DB_URL=$(DEMO_DB_URL) DEMO_MONGO_URL=$(DEMO_MONGO_URL) ./scripts/dev-all.sh
 
 demo-reset:
 	docker compose exec -T db psql -U adolat -d postgres -c "DROP DATABASE IF EXISTS adolat_demo"
