@@ -9,7 +9,8 @@ GitHub Actions (.github/workflows/ci-cd.yml)
                 ssh deploy@vm1 sudo mezon-deploy --sha <sha> <backend|frontend|all>
 vm1
   /usr/local/sbin/mezon-deploy   build image on the host, keep :previous, systemctl restart, health check, rollback
-  systemd: mezon-db.service ─> mezon-backend.service (127.0.0.1:8000)    mezon-frontend.service (127.0.0.1:3000)
+  systemd: mezon-db.service (Postgres) ─┐
+           mezon-mongo.service (history) ┴> mezon-backend.service (127.0.0.1:8000)    mezon-frontend.service (127.0.0.1:3000)
   nginx:   https://mezon.modeus.cc  /api/* -> :8000, everything else -> :3000
 ```
 
@@ -20,7 +21,7 @@ To deploy by hand: Actions → **CI/CD** → **Run workflow**, then pick all, fr
 
 | Path | Where it goes on vm1 |
 |---|---|
-| `systemd/mezon-{db,backend,frontend}.service` | `/etc/systemd/system/` |
+| `systemd/mezon-{db,mongo,backend,frontend}.service` | `/etc/systemd/system/` |
 | `mezon-deploy` | `/usr/local/sbin/mezon-deploy` (root-owned; the `deploy` user may only `sudo` this) |
 | `env/backend.env.example` | appended to `/etc/mezon/backend.env` (secrets, `chmod 600`, never in git) |
 | `env/frontend.build.env.example` | `/etc/mezon/frontend.build.env` (`NEXT_PUBLIC_API_MODE=mock\|live`) |
@@ -48,16 +49,18 @@ Without the key or the known hosts the deploy job is skipped with a warning (CI 
 ## Operations
 
 ```bash
-systemctl status mezon-db mezon-backend mezon-frontend
+systemctl status mezon-db mezon-mongo mezon-backend mezon-frontend
 journalctl -u mezon-backend -f                      # logs (container stdout goes to journald)
 sudo mezon-deploy all                               # rebuild + restart from /opt/mezon/src
 sudo nano /etc/mezon/backend.env && sudo systemctl restart mezon-backend   # e.g. set ANTHROPIC_API_KEY
-docker exec -it mezon-db psql -U mezon mezon         # database shell
+docker exec -it mezon-db psql -U mezon mezon         # Postgres shell
+docker exec -it mezon-mongo mongosh -u mezon -p "$(sudo sed -n 's/^MONGO_INITDB_ROOT_PASSWORD=//p' /etc/mezon/mongo.env)"   # Mongo shell
 ```
 
 **Rollback.** Every deploy tags the running image as `:previous` first. If the new one fails its health check (`/uz` for the frontend, `/api/health` for the backend), `mezon-deploy` switches back automatically. To roll back by hand:
 `docker tag mezon-backend:previous mezon-backend:latest && systemctl restart mezon-backend`.
 
-**Data.** Postgres data is in the docker volume `mezon-pgdata`. Back it up with `docker exec mezon-db pg_dump -U mezon mezon | gzip > mezon-$(date +%F).sql.gz`.
+**Data.** Postgres data is in the docker volume `mezon-pgdata` and MongoDB data in `mezon-mongodata`. Both survive container restarts, redeploys and reboots, but a volume is not a backup:
+`docker exec mezon-db pg_dump -U mezon mezon | gzip > pg-$(date +%F).sql.gz` and `docker exec mezon-mongo mongodump -u mezon -p … --authenticationDatabase admin --archive --gzip > mongo-$(date +%F).gz`.
 
 **Frontend → real backend.** Set `NEXT_PUBLIC_API_MODE=live` in `/etc/mezon/frontend.build.env`, then run `sudo mezon-deploy frontend` (the value is baked in at build time).

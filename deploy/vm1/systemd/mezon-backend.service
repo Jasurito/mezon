@@ -3,7 +3,9 @@
 [Unit]
 Description=Mezon backend (FastAPI)
 Requires=docker.service mezon-db.service
-After=docker.service mezon-db.service
+# MongoDB history is optional for the backend (MONGO_URL), so Wants, not Requires
+Wants=mezon-mongo.service
+After=docker.service mezon-db.service mezon-mongo.service
 
 [Service]
 Type=simple

@@ -50,7 +50,7 @@ deploy() {
       args=(--build-arg "NEXT_PUBLIC_API_MODE=${mode:-mock}" --build-arg "NEXT_PUBLIC_SHOW_SKETCHES=${sketches:-true}") ;;
     backend)
       ctx="$SRC/backend"; url="http://127.0.0.1:8000/api/health"
-      systemctl start mezon-db ;;
+      systemctl start mezon-db mezon-mongo ;;
   esac
 
   if docker image inspect "$img:latest" >/dev/null 2>&1; then docker tag "$img:latest" "$img:previous"; fi

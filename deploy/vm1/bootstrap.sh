@@ -5,7 +5,7 @@
 #
 # Creates: user "deploy" (SSH key restricted, can only sudo /usr/local/sbin/mezon-deploy),
 # /opt/mezon/src (rsync target), /etc/mezon/*.env (secrets, generated once, never in git),
-# systemd units mezon-db / mezon-backend / mezon-frontend.
+# systemd units mezon-db / mezon-mongo / mezon-backend / mezon-frontend.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PUBKEY="${1:-}"
@@ -42,12 +42,21 @@ if [ ! -f /etc/mezon/backend.env ]; then
   { printf 'DATABASE_URL=postgresql+psycopg://mezon:%s@mezon-db:5432/mezon\n' "$pw"; cat "$HERE/env/backend.env.example"; } > /etc/mezon/backend.env
   chmod 600 /etc/mezon/backend.env
 fi
+if [ ! -f /etc/mezon/mongo.env ]; then
+  pw="$(openssl rand -hex 24)"
+  printf 'MONGO_INITDB_ROOT_USERNAME=mezon\nMONGO_INITDB_ROOT_PASSWORD=%s\n' "$pw" > /etc/mezon/mongo.env
+  chmod 600 /etc/mezon/mongo.env
+fi
+if ! grep -q '^MONGO_URL=' /etc/mezon/backend.env; then
+  pw="$(sed -n 's/^MONGO_INITDB_ROOT_PASSWORD=//p' /etc/mezon/mongo.env)"
+  printf 'MONGO_URL=mongodb://mezon:%s@mezon-mongo:27017/?authSource=admin\nMONGO_DB=mezon\n' "$pw" >> /etc/mezon/backend.env
+fi
 [ -f /etc/mezon/frontend.build.env ] || install -m 644 "$HERE/env/frontend.build.env.example" /etc/mezon/frontend.build.env
 
 # 5. systemd units
 install -m 644 "$HERE"/systemd/mezon-*.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable mezon-db.service mezon-backend.service mezon-frontend.service >/dev/null
-systemctl start mezon-db.service
+systemctl enable mezon-db.service mezon-mongo.service mezon-backend.service mezon-frontend.service >/dev/null
+systemctl start mezon-db.service mezon-mongo.service
 
 echo "bootstrap done. Next: CI rsyncs the repo to /opt/mezon/src and runs 'sudo mezon-deploy all'."
