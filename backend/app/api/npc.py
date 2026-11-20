@@ -8,6 +8,8 @@ from app.ai.llm import LLM, get_llm
 from app.ai.npc import answer_question
 from app.config import Settings, get_settings
 from app.db import get_db
+from app.history import get_history
+from app.history.store import HistoryStore, make_activity, safely
 from app.errors import NotFoundError, SessionFinishedError
 from app.game_engine import available_actions
 from app.models.app_tables import Event as EventRow
@@ -29,6 +31,7 @@ def ask_npc(
     settings: Settings = Depends(get_settings),
     llm: LLM | None = Depends(get_llm),
     now: datetime = Depends(get_now),
+    history: HistoryStore = Depends(get_history),
 ):
     """Свободный вопрос персонажу: ответ строится только из фактов сценария, состояние игры не меняется."""
     r = game.load_replayed(db, registry, session_id)
@@ -49,21 +52,26 @@ def ask_npc(
     )
     suggested = f"ask_{res.question_id}"
     available = {a.id for a in available_actions(sc, r.state)}
+    npc_payload = {
+        "character_id": character_id,
+        "question_id": res.question_id,
+        "ai_generated": res.ai_generated,
+        "stage": r.state.stage,
+    }
     db.add(
         EventRow(
             session_id=r.session.id,
             user_id=r.session.user_id,
             type="npc_question",
-            payload={
-                "character_id": character_id,
-                "question_id": res.question_id,
-                "ai_generated": res.ai_generated,
-                "stage": r.state.stage,
-            },
+            payload=npc_payload,
             ts=now,
         )
     )
     db.commit()
+    safely(
+        history.add_activity,
+        make_activity(r.session.user_id, "npc_question", now, r.session.id, npc_payload),
+    )
     return NpcAnswer(
         speaker=character_id,
         text=res.text,

@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.errors import AppError, NotFoundError
+from app.history.store import HistoryStore, make_activity, safely
 from app.i18n import message, translate
 from app.models.app_tables import Event, QuizAttempt, User
 from app.scenarios.loader import LoadedScenario
@@ -24,6 +25,7 @@ from app.schemas.analytics import (
 )
 from app.schemas.legal import Locale
 from app.schemas.quiz import Question
+from app.services import stats
 
 
 def _quiz_questions(registry: Registry, scenario_id: str, kind: QuizKind) -> tuple[LoadedScenario, list[Question]]:
@@ -59,6 +61,7 @@ def submit_attempt(
     body: QuizAttemptIn,
     locale: Locale,
     now: datetime,
+    history: HistoryStore | None = None,
 ) -> QuizAttemptOut:
     loaded, questions = _quiz_questions(registry, scenario_id, body.kind)
     if db.get(User, body.user_id) is None:
@@ -120,14 +123,11 @@ def submit_attempt(
         ts=now,
     )
     db.add(attempt)
-    db.add(
-        Event(
-            user_id=body.user_id,
-            type="quiz_attempt",
-            payload={"scenario_id": scenario_id, "kind": body.kind, "score": score, "max": max_score},
-            ts=now,
-        )
-    )
+    payload = {"scenario_id": scenario_id, "kind": body.kind, "score": score, "max": max_score}
+    db.add(Event(user_id=body.user_id, type="quiz_attempt", payload=payload, ts=now))
+    stats.on_quiz_attempt(db, body.user_id, now)
     db.commit()
+    if history is not None:
+        safely(history.add_activity, make_activity(body.user_id, "quiz_attempt", now, None, payload))
     return QuizAttemptOut(attempt_id=attempt.id, score=score, max=max_score, review=review, learning_gain=gain)
 

@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     LLM_FAST_TIMEOUT: float = 4
     LLM_MENTOR_EFFORT: str = "medium"
     EMBEDDER: str | None = None
+    MONGO_URL: str | None = None  # пусто = история (MongoDB) выключена
+    MONGO_DB: str = "adolat"
     CORS_ORIGINS: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
     RAG_MIN_SCORE: float = 0.01
     RAG_TOP_K: int = 30  # размер списка каждой ветки поиска перед слиянием
@@ -46,7 +48,7 @@ class Settings(BaseSettings):
     SEED_PATH: Path | None = None
     STRICT_CITATIONS: bool = True
 
-    @field_validator("ANTHROPIC_API_KEY", "EMBEDDER", "SEED_PATH", "RERANK_TIMEOUT", mode="before")
+    @field_validator("ANTHROPIC_API_KEY", "EMBEDDER", "MONGO_URL", "SEED_PATH", "RERANK_TIMEOUT", mode="before")
     @classmethod
     def _empty_to_none(cls, v):
         if isinstance(v, str) and not v.strip():

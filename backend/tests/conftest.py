@@ -4,7 +4,7 @@ import os
 # До импорта app.*: тесты не читают локальный .env (ключи, LLM_PROVIDER=ollama и т. п.)
 # и не видят переменных LLM/RAG из окружения разработчика.
 os.environ["ADOLAT_NO_DOTENV"] = "1"
-for _var in ("ANTHROPIC_API_KEY", "LLM_PROVIDER", "OLLAMA_URL", "OLLAMA_MODEL", "EMBEDDER", "RAG_MAX_SOURCES"):
+for _var in ("ANTHROPIC_API_KEY", "LLM_PROVIDER", "OLLAMA_URL", "OLLAMA_MODEL", "EMBEDDER", "RAG_MAX_SOURCES", "MONGO_URL", "MONGO_DB"):
     os.environ.pop(_var, None)
 
 from pathlib import Path  # noqa: E402
@@ -91,3 +91,31 @@ def client(db_session, db_url):
     app.dependency_overrides[get_settings] = lambda: Settings(DATABASE_URL=db_url)
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture
+def mongo_url() -> str:
+    return os.environ.get("TEST_MONGO_URL", "mongodb://localhost:27018")
+
+
+@pytest.fixture
+def mongo_store(mongo_url):
+    """MongoHistoryStore на отдельной базе adolat_test; коллекции чистятся перед тестом; недоступна = skip."""
+    from pymongo import MongoClient
+
+    probe = MongoClient(mongo_url, serverSelectionTimeoutMS=800)
+    try:
+        probe.admin.command("ping")
+    except Exception as exc:
+        probe.close()
+        pytest.skip(f"MongoDB недоступна ({exc.__class__.__name__}); запустите `make db-up`")
+    for coll in ("session_history", "user_activity"):
+        probe["adolat_test"][coll].delete_many({})
+    probe.close()
+
+    from app.history.mongo import MongoHistoryStore
+
+    store = MongoHistoryStore(mongo_url, "adolat_test", timeout_ms=800)
+    store.ensure_indexes()
+    yield store
+    store.close()

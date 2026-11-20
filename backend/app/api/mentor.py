@@ -14,6 +14,8 @@ from app.ai.llm import LLM, get_llm
 from app.ai.mentor import MentorPlan, prepare, stream_events
 from app.config import Settings, get_settings
 from app.db import SessionLocal, get_db
+from app.history import get_history
+from app.history.store import HistoryStore, make_activity, safely
 from app.models.app_tables import Event as EventRow
 from app.rag.deps import embedder_dep
 from app.rag.embedder import Embedder
@@ -49,7 +51,9 @@ def format_sse(event: str, data: Any) -> str:
     return f"event: {event}\ndata: {payload}\n\n"
 
 
-def _recorder(plan: MentorPlan, open_db: DbFactory, now: datetime) -> Callable[[dict[str, Any]], None]:
+def _recorder(
+    plan: MentorPlan, open_db: DbFactory, now: datetime, history: HistoryStore | None = None
+) -> Callable[[dict[str, Any]], None]:
     def record(payload: dict[str, Any]) -> None:
         try:
             with open_db() as db:
@@ -63,6 +67,11 @@ def _recorder(plan: MentorPlan, open_db: DbFactory, now: datetime) -> Callable[[
                     )
                 )
                 db.commit()
+            if history is not None and plan.user_id is not None:
+                safely(
+                    history.add_activity,
+                    make_activity(plan.user_id, "mentor_question", now, plan.session_id, payload),
+                )
         except Exception:  # noqa: BLE001 - аналитика не должна ломать ответ
             log.exception("не удалось записать событие mentor_question")
 
@@ -79,6 +88,7 @@ def ask(
     embedder: Embedder = Depends(embedder_dep),
     open_event_db: DbFactory = Depends(get_event_db_factory),
     now: datetime = Depends(get_now),
+    history: HistoryStore = Depends(get_history),
 ) -> StreamingResponse:
     """Ответ наставника потоком SSE: sources → block* → done (или один error)."""
     # Вся работа с БД до начала потока: зависимость с yield может закрыть сессию раньше генератора.
@@ -91,7 +101,7 @@ def ask(
         embedder=embedder,
         today=now.date(),
     )
-    record = _recorder(plan, open_event_db, now)
+    record = _recorder(plan, open_event_db, now, history)
 
     def gen() -> Iterator[str]:
         for name, data in stream_events(plan, llm, settings, record):

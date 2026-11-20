@@ -25,6 +25,7 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     display_name: Mapped[str | None] = mapped_column(Text)
     group_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    preferred_locale: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -80,3 +81,19 @@ class QuizAttempt(Base):
     score: Mapped[int] = mapped_column(Integer)
     max_score: Mapped[int] = mapped_column(Integer)
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class UserStats(Base):
+    __tablename__ = "user_stats"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    sessions_started: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    sessions_finished: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    total_score: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    best_score: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    total_time_sec: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    quizzes_taken: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    last_active_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    active_days: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    streak_days: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

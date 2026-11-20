@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.analytics import quiz as quiz_service
 from app.db import get_db
+from app.history import get_history
+from app.history.store import HistoryStore
 from app.scenarios.registry import Registry, get_registry
 from app.schemas.analytics import QuizAttemptIn, QuizAttemptOut, QuizKind, QuizOut
 from app.schemas.legal import Locale
@@ -32,6 +34,7 @@ def post_attempt(
     db: Session = Depends(get_db),
     registry: Registry = Depends(get_registry),
     now: datetime = Depends(get_now),
+    history: HistoryStore = Depends(get_history),
 ):
     """Проверить ответы, сохранить попытку; для post считается прирост знаний."""
-    return quiz_service.submit_attempt(db, registry, scenario_id, body, locale, now)
+    return quiz_service.submit_attempt(db, registry, scenario_id, body, locale, now, history)

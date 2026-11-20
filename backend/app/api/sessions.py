@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.history import get_history
+from app.history.store import HistoryStore
 from app.scenarios.registry import Registry, get_registry
 from app.schemas.api import (
     ActionRequest,
@@ -26,9 +28,10 @@ def create_session(
     db: Session = Depends(get_db),
     registry: Registry = Depends(get_registry),
     now: datetime = Depends(get_now),
+    history: HistoryStore = Depends(get_history),
 ):
     """Начать игру: создаёт сессию и возвращает начальное состояние со вступительными репликами."""
-    return game.start_session(db, registry, body.user_id, body.scenario_id, body.locale, now)
+    return game.start_session(db, registry, body.user_id, body.scenario_id, body.locale, now, history)
 
 
 @router.get("/sessions/{session_id}", response_model=GameState)
@@ -48,9 +51,10 @@ def patch_session(
     body: PatchSession,
     db: Session = Depends(get_db),
     registry: Registry = Depends(get_registry),
+    history: HistoryStore = Depends(get_history),
 ):
     """Сменить язык сессии; состояние игры не меняется."""
-    return game.set_locale(db, registry, session_id, body.locale)
+    return game.set_locale(db, registry, session_id, body.locale, history)
 
 
 @router.post("/sessions/{session_id}/actions", response_model=GameState)
@@ -60,10 +64,11 @@ def post_action(
     db: Session = Depends(get_db),
     registry: Registry = Depends(get_registry),
     now: datetime = Depends(get_now),
+    history: HistoryStore = Depends(get_history),
 ):
     """Выполнить действие; ответ на языке сессии."""
     params = body.params.model_dump(exclude_none=True) if body.params else None
-    return game.perform_action(db, registry, session_id, body.action_id, params or None, now)
+    return game.perform_action(db, registry, session_id, body.action_id, params or None, now, history)
 
 
 @router.get("/sessions/{session_id}/result", response_model=SessionResult)

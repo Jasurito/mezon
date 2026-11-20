@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from app.analytics import events as events_service
 from app.analytics import summary as summary_service
 from app.db import get_db
+from app.history import get_history
+from app.history.store import HistoryStore
 from app.scenarios.registry import Registry, get_registry
 from app.schemas.analytics import EventsIn, EventsOut, ScenarioSummary
 from app.schemas.legal import Locale
@@ -19,9 +21,10 @@ def post_events(
     body: EventsIn,
     db: Session = Depends(get_db),
     now: datetime = Depends(get_now),
+    history: HistoryStore = Depends(get_history),
 ):
     """Клиентские события пачкой; неизвестные типы считаются в rejected."""
-    return events_service.ingest(db, body, now)
+    return events_service.ingest(db, body, now, history)
 
 
 @router.get("/analytics/scenarios/{scenario_id}/summary", response_model=ScenarioSummary)

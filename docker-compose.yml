@@ -15,6 +15,18 @@ services:
       timeout: 3s
       retries: 20
 
+  mongo:
+    image: mongo:7
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
   backend:
     build: ./backend
     env_file:
@@ -22,6 +34,7 @@ services:
         required: false
     environment:
       DATABASE_URL: postgresql+psycopg://adolat:adolat@db:5432/adolat
+      MONGO_URL: mongodb://mongo:27017
       SCENARIOS_DIR: /app/scenarios
       SEED_PATH: /seed/seed.sql.gz
     volumes:
@@ -33,6 +46,8 @@ services:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
       db:
+        condition: service_healthy
+      mongo:
         condition: service_healthy
 
   frontend:
@@ -47,3 +62,4 @@ services:
 
 volumes:
   pgdata:
+  mongodata:

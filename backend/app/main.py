@@ -6,6 +6,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import health, legal, scenarios, sessions, users
+from app.api import history as history_api
 from app.api import analytics as analytics_api
 from app.api import dashboard as dashboard_api
 from app.api import mentor as mentor_api
@@ -14,6 +15,7 @@ from app.api import quiz as quiz_api
 from app.config import get_settings
 from app.db import get_db
 from app.errors import install_error_handlers
+from app.history import build_store
 from app.scenarios.registry import load_registry
 
 
@@ -41,7 +43,13 @@ async def lifespan(app: FastAPI):
     settings = app.dependency_overrides.get(get_settings, get_settings)()
     # Ошибки схемы и отсутствующие ссылки на закон: исключение, сервер не стартует.
     app.state.scenarios = load_registry(settings, _db_opener(app))
-    yield
+    history = build_store(settings)
+    history.ensure_indexes()  # create_index идемпотентен; недоступная Mongo только логируется
+    app.state.history = history
+    try:
+        yield
+    finally:
+        history.close()
 
 
 def create_app() -> FastAPI:
@@ -61,6 +69,7 @@ def create_app() -> FastAPI:
     api.include_router(mentor_api.router)
     api.include_router(npc_api.router)
     api.include_router(users.router)
+    api.include_router(history_api.router)
     api.include_router(scenarios.router)
     api.include_router(sessions.router)
     api.include_router(quiz_api.router)
