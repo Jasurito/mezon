@@ -1,5 +1,6 @@
 # CI for frontend + backend, CD to vm1 (systemd units, see deploy/vm1/README.md).
-# Secrets: VM1_SSH_KEY (private key of the "deploy" user on vm1), VM1_KNOWN_HOSTS (ssh-keyscan of vm1.modeus.cc).
+# Secret VM1_SSH_KEY (private key of the "deploy" user on vm1); variable VM1_KNOWN_HOSTS (ssh-keyscan of vm1.modeus.cc,
+# public data, so a repository variable; a secret with the same name also works).
 name: CI/CD
 
 on:
@@ -126,7 +127,7 @@ jobs:
           FE: ${{ needs.changes.outputs.frontend }}
           BE: ${{ needs.changes.outputs.backend }}
           INFRA: ${{ needs.changes.outputs.infra }}
-          HAS_KEY: ${{ secrets.VM1_SSH_KEY != '' && secrets.VM1_KNOWN_HOSTS != '' }}
+          HAS_KEY: ${{ secrets.VM1_SSH_KEY != '' && (vars.VM1_KNOWN_HOSTS != '' || secrets.VM1_KNOWN_HOSTS != '') }}
         run: |
           t=""
           if [ "$EVENT" = "workflow_dispatch" ]; then t="$INPUT_TARGET"
@@ -136,7 +137,7 @@ jobs:
             [ "$FE" = "true" ] && t="$t frontend"
           fi
           if [ -n "$t" ] && [ "$HAS_KEY" != "true" ]; then
-            echo "::warning::VM1_SSH_KEY / VM1_KNOWN_HOSTS secrets are not set, skipping deploy (see deploy/vm1/README.md)"
+            echo "::warning::secret VM1_SSH_KEY or variable VM1_KNOWN_HOSTS is not set, skipping deploy (see deploy/vm1/README.md)"
             t=""
           fi
           echo "list=$(echo $t)" >> "$GITHUB_OUTPUT"
@@ -146,7 +147,7 @@ jobs:
         if: steps.targets.outputs.list != ''
         env:
           VM1_SSH_KEY: ${{ secrets.VM1_SSH_KEY }}
-          VM1_KNOWN_HOSTS: ${{ secrets.VM1_KNOWN_HOSTS }}
+          VM1_KNOWN_HOSTS: ${{ vars.VM1_KNOWN_HOSTS || secrets.VM1_KNOWN_HOSTS }}
         run: |
           install -d -m 700 ~/.ssh
           printf '%s\n' "$VM1_SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519

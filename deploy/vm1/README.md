@@ -37,13 +37,13 @@ ssh-keygen -t ed25519 -N '' -C mezon-ci-deploy -f mezon_ci
 scp -r deploy/vm1 root@vm1.modeus.cc:/root/mezon-bootstrap
 ssh root@vm1.modeus.cc "bash /root/mezon-bootstrap/bootstrap.sh '$(cat mezon_ci.pub)'"
 
-# GitHub secrets (repo → Settings → Secrets and variables → Actions)
+# GitHub (repo → Settings → Secrets and variables → Actions): secret VM1_SSH_KEY, variable VM1_KNOWN_HOSTS
 gh secret set VM1_SSH_KEY -R Jasurito/mezon < mezon_ci
-ssh-keyscan -t ed25519,ecdsa,rsa vm1.modeus.cc | gh secret set VM1_KNOWN_HOSTS -R Jasurito/mezon
+ssh-keyscan -t ed25519,ecdsa,rsa vm1.modeus.cc 2>/dev/null | gh variable set VM1_KNOWN_HOSTS -R Jasurito/mezon
 rm mezon_ci
 ```
 
-Without these two secrets the deploy job is skipped with a warning (CI still runs).
+Without the key or the known hosts the deploy job is skipped with a warning (CI still runs). The host (`vm1.modeus.cc`) and the user (`deploy`) are set in the workflow.
 
 ## Operations
 
