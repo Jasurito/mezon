@@ -122,6 +122,8 @@ jobs:
       url: https://mezon.modeus.cc
     steps:
       - uses: actions/checkout@v7
+        with:
+          lfs: true  # legal_data/seed.sql.gz lives in Git LFS; rsync below ships it to vm1
 
       - name: Decide what to deploy
         id: targets
