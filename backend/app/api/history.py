@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import TypeAdapter
 from sqlalchemy.orm import Session
 
+from app.auth.deps import require_path_session, require_path_user
 from app.db import get_db
 from app.errors import NotFoundError
 from app.game_engine import Event as EngineEvent
@@ -33,7 +34,9 @@ def _usable(doc: dict | None, session: GameSession, n_actions: int) -> bool:
     return (doc.get("finished_at") is not None) == (session.finished_at is not None)
 
 
-@router.get("/sessions/{session_id}/history", response_model=SessionHistoryOut)
+@router.get(
+    "/sessions/{session_id}/history", response_model=SessionHistoryOut, dependencies=[Depends(require_path_session)]
+)
 def session_history(
     session_id: uuid.UUID,
     locale: Locale | None = None,
@@ -94,7 +97,7 @@ def session_history(
     )
 
 
-@router.get("/users/{user_id}/activity", response_model=ActivityOut)
+@router.get("/users/{user_id}/activity", response_model=ActivityOut, dependencies=[Depends(require_path_user)])
 def user_activity(
     user_id: uuid.UUID,
     limit: int = Query(50, ge=1, le=200),

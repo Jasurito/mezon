@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.ai.llm import LLM, get_llm
 from app.ai.mentor import MentorPlan, prepare, stream_events
 from app.config import Settings, get_settings
+from app.auth.deps import Viewer, get_viewer
 from app.db import SessionLocal, get_db
 from app.history import get_history
 from app.history.store import HistoryStore, make_activity, safely
@@ -89,8 +90,11 @@ def ask(
     open_event_db: DbFactory = Depends(get_event_db_factory),
     now: datetime = Depends(get_now),
     history: HistoryStore = Depends(get_history),
+    viewer: Viewer = Depends(get_viewer),
 ) -> StreamingResponse:
     """Ответ наставника потоком SSE: sources → block* → done (или один error)."""
+    if body.session_id is not None:
+        viewer.require_session(body.session_id)
     # Вся работа с БД до начала потока: зависимость с yield может закрыть сессию раньше генератора.
     plan = prepare(
         db,

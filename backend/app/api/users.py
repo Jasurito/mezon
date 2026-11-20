@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.auth.deps import require_path_user
 from app.db import get_db
 from app.errors import NotFoundError
 from app.game_engine import IllegalAction, LoggedAction, ScenarioError, SessionFinished, evaluate, replay
@@ -57,13 +58,13 @@ def _profile(db: Session, user: User) -> UserProfileOut:
     )
 
 
-@router.get("/users/{user_id}", response_model=UserProfileOut)
+@router.get("/users/{user_id}", response_model=UserProfileOut, dependencies=[Depends(require_path_user)])
 def get_user(user_id: uuid.UUID, db: Session = Depends(get_db)) -> UserProfileOut:
     """Профиль и статистика игрока."""
     return _profile(db, _get_user(db, user_id))
 
 
-@router.patch("/users/{user_id}", response_model=UserProfileOut)
+@router.patch("/users/{user_id}", response_model=UserProfileOut, dependencies=[Depends(require_path_user)])
 def patch_user(user_id: uuid.UUID, body: PatchUser, db: Session = Depends(get_db)) -> UserProfileOut:
     """Изменить имя и/или язык по умолчанию; переданные поля заменяются, null очищает."""
     user = _get_user(db, user_id)
@@ -85,7 +86,9 @@ def _outcome_title(loaded, log: list[SessionAction], locale: Locale) -> str | No
         return None
 
 
-@router.get("/users/{user_id}/sessions", response_model=UserSessionsOut)
+@router.get(
+    "/users/{user_id}/sessions", response_model=UserSessionsOut, dependencies=[Depends(require_path_user)]
+)
 def get_user_sessions(
     user_id: uuid.UUID,
     limit: int = Query(20, ge=1, le=100),

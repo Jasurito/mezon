@@ -1,4 +1,5 @@
 from app.models.app_tables import Event, GameSession, QuizAttempt, SessionAction, User
+from app.models.auth import AuthAttempt, AuthSession, OAuthState
 from app.models.base import Base
 from app.models.legal import (
     Article,
@@ -22,4 +23,7 @@ __all__ = [
     "ArticlePart",
     "Chunk",
     "Citation",
+    "AuthSession",
+    "AuthAttempt",
+    "OAuthState",
 ]

@@ -79,6 +79,13 @@ class MongoHistoryStore(HistoryStore):
     def get_session(self, session_id: str) -> dict[str, Any] | None:
         return self._guard("get_session", lambda: self.sessions.find_one({"_id": session_id}))
 
+    def reassign_user(self, from_user_id: str, to_user_id: str) -> None:
+        def run():
+            self.sessions.update_many({"user_id": from_user_id}, {"$set": {"user_id": to_user_id}})
+            self.activity.update_many({"user_id": from_user_id}, {"$set": {"user_id": to_user_id}})
+
+        self._guard("reassign_user", run)
+
     # --- activity
     def add_activity(self, doc: dict[str, Any]) -> None:
         self._guard("add_activity", lambda: self.activity.replace_one({"_id": doc["_id"]}, doc, upsert=True))

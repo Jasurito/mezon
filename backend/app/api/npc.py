@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.ai.llm import LLM, get_llm
 from app.ai.npc import answer_question
 from app.config import Settings, get_settings
+from app.auth.deps import require_path_session
 from app.db import get_db
 from app.history import get_history
 from app.history.store import HistoryStore, make_activity, safely
@@ -21,7 +22,11 @@ from app.services.clock import get_now
 router = APIRouter(tags=["npc"])
 
 
-@router.post("/sessions/{session_id}/npc/{character_id}/ask", response_model=NpcAnswer)
+@router.post(
+    "/sessions/{session_id}/npc/{character_id}/ask",
+    response_model=NpcAnswer,
+    dependencies=[Depends(require_path_session)],
+)
 def ask_npc(
     session_id: uuid.UUID,
     character_id: str,

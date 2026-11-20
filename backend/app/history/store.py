@@ -95,6 +95,10 @@ class HistoryStore(ABC):
         """Новые сверху; None = хранилище недоступно."""
 
 
+    def reassign_user(self, from_user_id: str, to_user_id: str) -> None:  # noqa: B027
+        """Перенос истории гостя на аккаунт (best-effort, вызывается через safely)."""
+
+
 class NullHistoryStore(HistoryStore):
     available = False
 
@@ -149,6 +153,14 @@ class InMemoryHistoryStore(HistoryStore):
 
     def add_activity(self, doc):
         self.activity[doc["_id"]] = copy.deepcopy(doc)
+
+    def reassign_user(self, from_user_id, to_user_id):
+        for d in self.sessions.values():
+            if d.get("user_id") == from_user_id:
+                d["user_id"] = to_user_id
+        for a in self.activity.values():
+            if a.get("user_id") == from_user_id:
+                a["user_id"] = to_user_id
 
     def list_activity(self, user_id, limit, before):
         rows = [a for a in self.activity.values() if a["user_id"] == user_id]

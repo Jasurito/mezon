@@ -4,6 +4,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth.deps import Viewer, get_viewer, require_path_session
 from app.db import get_db
 from app.history import get_history
 from app.history.store import HistoryStore
@@ -29,12 +30,14 @@ def create_session(
     registry: Registry = Depends(get_registry),
     now: datetime = Depends(get_now),
     history: HistoryStore = Depends(get_history),
+    viewer: Viewer = Depends(get_viewer),
 ):
     """Начать игру: создаёт сессию и возвращает начальное состояние со вступительными репликами."""
+    viewer.require_user(body.user_id)
     return game.start_session(db, registry, body.user_id, body.scenario_id, body.locale, now, history)
 
 
-@router.get("/sessions/{session_id}", response_model=GameState)
+@router.get("/sessions/{session_id}", response_model=GameState, dependencies=[Depends(require_path_session)])
 def get_session(
     session_id: uuid.UUID,
     locale: Locale | None = None,
@@ -45,7 +48,7 @@ def get_session(
     return game.get_state(db, registry, session_id, locale)
 
 
-@router.patch("/sessions/{session_id}", response_model=GameState)
+@router.patch("/sessions/{session_id}", response_model=GameState, dependencies=[Depends(require_path_session)])
 def patch_session(
     session_id: uuid.UUID,
     body: PatchSession,
@@ -57,7 +60,7 @@ def patch_session(
     return game.set_locale(db, registry, session_id, body.locale, history)
 
 
-@router.post("/sessions/{session_id}/actions", response_model=GameState)
+@router.post("/sessions/{session_id}/actions", response_model=GameState, dependencies=[Depends(require_path_session)])
 def post_action(
     session_id: uuid.UUID,
     body: ActionRequest,
@@ -71,7 +74,7 @@ def post_action(
     return game.perform_action(db, registry, session_id, body.action_id, params or None, now, history)
 
 
-@router.get("/sessions/{session_id}/result", response_model=SessionResult)
+@router.get("/sessions/{session_id}/result", response_model=SessionResult, dependencies=[Depends(require_path_session)])
 def get_result(
     session_id: uuid.UUID,
     locale: Locale | None = None,

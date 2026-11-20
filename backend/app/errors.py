@@ -20,7 +20,9 @@ class AppError(Exception):
         details: dict[str, Any] | None = None,
         code: str | None = None,
         http_status: int | None = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
+        self.headers = headers
         self.message = message or self.default_message
         self.details = details or {}
         if code is not None:
@@ -62,6 +64,48 @@ class SessionOutdatedError(AppError):
     default_message = "Сценарий обновился, это дело нужно начать заново"
 
 
+class UnauthorizedError(AppError):
+    code = "UNAUTHORIZED"
+    http_status = 401
+    default_message = "Нужно войти в аккаунт"
+
+
+class InvalidCredentialsError(AppError):
+    code = "INVALID_CREDENTIALS"
+    http_status = 401
+    default_message = "Неверный email или пароль"
+
+
+class ForbiddenError(AppError):
+    code = "FORBIDDEN"
+    http_status = 403
+    default_message = "Нет доступа к этому аккаунту"
+
+
+class CsrfError(AppError):
+    code = "CSRF_FAILED"
+    http_status = 403
+    default_message = "Запрос отклонён: недопустимый источник"
+
+
+class EmailExistsError(AppError):
+    code = "EMAIL_EXISTS"
+    http_status = 409
+    default_message = "Этот email уже зарегистрирован"
+
+
+class RateLimitedError(AppError):
+    code = "RATE_LIMITED"
+    http_status = 429
+    default_message = "Слишком много попыток, попробуйте позже"
+
+
+class AuthProviderDisabledError(AppError):
+    code = "AUTH_PROVIDER_DISABLED"
+    http_status = 503
+    default_message = "Вход через этого провайдера не настроен"
+
+
 class DbUnavailableError(AppError):
     code = "DB_UNAVAILABLE"
     http_status = 503
@@ -69,16 +113,20 @@ class DbUnavailableError(AppError):
 
 
 def error_response(
-    status: int, code: str, message: str, details: Any = None
+    status: int, code: str, message: str, details: Any = None, headers: dict[str, str] | None = None
 ) -> JSONResponse:
     body = {"error": {"code": code, "message": message, "details": details if details is not None else {}}}
-    return JSONResponse(status_code=status, content=jsonable_encoder(body))
+    return JSONResponse(status_code=status, content=jsonable_encoder(body), headers=headers)
 
 
 def _safe_error(err: dict[str, Any]) -> dict[str, Any]:
     out = {k: v for k, v in err.items() if k != "ctx"}
     if "ctx" in err:
         out["ctx"] = {k: str(v) for k, v in err["ctx"].items()}
+    if "password" in (err.get("loc") or ()):
+        out.pop("input", None)  # пароль не возвращается в ответе
+    if isinstance(out.get("input"), dict) and "password" in out["input"]:
+        out["input"] = {k: v for k, v in out["input"].items() if k != "password"}
     if "input" in out:
         try:
             jsonable_encoder(out["input"])
@@ -90,7 +138,7 @@ def _safe_error(err: dict[str, Any]) -> dict[str, Any]:
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def _app_error(_: Request, exc: AppError):
-        return error_response(exc.http_status, exc.code, exc.message, exc.details)
+        return error_response(exc.http_status, exc.code, exc.message, exc.details, exc.headers)
 
     @app.exception_handler(RequestValidationError)
     async def _validation(_: Request, exc: RequestValidationError):

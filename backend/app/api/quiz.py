@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.analytics import quiz as quiz_service
+from app.auth.deps import Viewer, get_viewer
 from app.db import get_db
 from app.history import get_history
 from app.history.store import HistoryStore
@@ -35,6 +36,8 @@ def post_attempt(
     registry: Registry = Depends(get_registry),
     now: datetime = Depends(get_now),
     history: HistoryStore = Depends(get_history),
+    viewer: Viewer = Depends(get_viewer),
 ):
     """Проверить ответы, сохранить попытку; для post считается прирост знаний."""
+    viewer.require_user(body.user_id)
     return quiz_service.submit_attempt(db, registry, scenario_id, body, locale, now, history)

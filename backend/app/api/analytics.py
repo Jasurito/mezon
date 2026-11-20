@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.analytics import events as events_service
 from app.analytics import summary as summary_service
+from app.auth.deps import Viewer, get_viewer
 from app.db import get_db
 from app.history import get_history
 from app.history.store import HistoryStore
@@ -22,8 +23,12 @@ def post_events(
     db: Session = Depends(get_db),
     now: datetime = Depends(get_now),
     history: HistoryStore = Depends(get_history),
+    viewer: Viewer = Depends(get_viewer),
 ):
     """Клиентские события пачкой; неизвестные типы считаются в rejected."""
+    viewer.require_user(body.user_id)
+    if body.session_id is not None:
+        viewer.require_session(body.session_id)
     return events_service.ingest(db, body, now, history)
 
 

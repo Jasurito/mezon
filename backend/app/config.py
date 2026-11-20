@@ -48,7 +48,20 @@ class Settings(BaseSettings):
     SEED_PATH: Path | None = None
     STRICT_CITATIONS: bool = True
 
-    @field_validator("ANTHROPIC_API_KEY", "EMBEDDER", "MONGO_URL", "SEED_PATH", "RERANK_TIMEOUT", mode="before")
+    # --- авторизация (см. app/auth)
+    COOKIE_SECURE: bool = True  # Secure у cookie сессии; false только для локальной разработки по http
+    SESSION_TTL_DAYS: int = 30
+    TRUST_PROXY_HEADERS: bool = False  # доверять X-Forwarded-For (только за своим nginx)
+    AUTH_LOGIN_MAX_FAILS: int = 5  # неудачных входов на email за окно
+    AUTH_IP_MAX_REQUESTS: int = 30  # auth-запросов с одного IP за окно
+    AUTH_WINDOW_MINUTES: int = 15
+    PUBLIC_BASE_URL: str | None = None  # внешний адрес сайта, например https://mezon.modeus.cc
+    GOOGLE_CLIENT_ID: str | None = None
+    GOOGLE_CLIENT_SECRET: str | None = None
+    GOOGLE_REDIRECT_URI: str | None = None  # по умолчанию PUBLIC_BASE_URL + /api/auth/google/callback
+
+    @field_validator("ANTHROPIC_API_KEY", "EMBEDDER", "MONGO_URL", "SEED_PATH", "RERANK_TIMEOUT",
+        "PUBLIC_BASE_URL", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI", mode="before")
     @classmethod
     def _empty_to_none(cls, v):
         if isinstance(v, str) and not v.strip():
@@ -61,6 +74,18 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return [o.strip() for o in v.split(",") if o.strip()]
         return v
+
+    @property
+    def google_redirect_uri(self) -> str | None:
+        if self.GOOGLE_REDIRECT_URI:
+            return self.GOOGLE_REDIRECT_URI
+        if self.PUBLIC_BASE_URL:
+            return self.PUBLIC_BASE_URL.rstrip("/") + "/api/auth/google/callback"
+        return None
+
+    @property
+    def google_configured(self) -> bool:
+        return bool(self.GOOGLE_CLIENT_ID and self.GOOGLE_CLIENT_SECRET and self.google_redirect_uri)
 
     @property
     def llm_configured(self) -> bool:

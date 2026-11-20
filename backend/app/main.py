@@ -2,9 +2,10 @@ import inspect
 from collections.abc import Iterator
 from contextlib import asynccontextmanager, contextmanager
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api import auth as auth_api
 from app.api import health, legal, scenarios, sessions, users
 from app.api import history as history_api
 from app.api import analytics as analytics_api
@@ -12,6 +13,7 @@ from app.api import dashboard as dashboard_api
 from app.api import mentor as mentor_api
 from app.api import npc as npc_api
 from app.api import quiz as quiz_api
+from app.auth.csrf import csrf_guard
 from app.config import get_settings
 from app.db import get_db
 from app.errors import install_error_handlers
@@ -64,7 +66,8 @@ def create_app() -> FastAPI:
     )
     install_error_handlers(app)
 
-    api = APIRouter(prefix="/api")
+    api = APIRouter(prefix="/api", dependencies=[Depends(csrf_guard)])
+    api.include_router(auth_api.router)
     api.include_router(health.router)
     api.include_router(legal.router)
     api.include_router(mentor_api.router)
