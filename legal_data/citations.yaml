@@ -121,3 +121,45 @@
   part: null
   topic: "Распределение судебных расходов между сторонами"
   verified_by: null
+- citation_id: CONST.art.55
+  document_key: CONST
+  article_number: "55"
+  part: null
+  topic: "Судебная защита прав и свобод; рассмотрение дела компетентным, независимым и беспристрастным судом в установленные законом сроки"
+  verified_by: null
+- citation_id: CONST.art.65
+  document_key: CONST
+  article_number: "65"
+  part: null
+  topic: "Свобода экономической деятельности с учётом приоритетности прав потребителей"
+  verified_by: null
+- citation_id: CPC.art.68
+  document_key: CPC
+  article_number: "68"
+  part: null
+  topic: "Оформление полномочий представителя: доверенность, нотариальное удостоверение доверенности гражданина"
+  verified_by: null
+- citation_id: CPC.art.122
+  document_key: CPC
+  article_number: "122"
+  part: null
+  topic: "Основания оставления заявления без рассмотрения (п. 2 ч. 1: заявление подано лицом, не имеющим полномочий на ведение дела)"
+  verified_by: null
+- citation_id: CPC.art.123
+  document_key: CPC
+  article_number: "123"
+  part: null
+  topic: "Порядок и последствия оставления заявления без рассмотрения; повторное обращение в суд"
+  verified_by: null
+- citation_id: CPC.art.225
+  document_key: CPC
+  article_number: "225"
+  part: null
+  topic: "Начало рассмотрения дела по существу; вопрос сторонам об окончании дела мировым соглашением"
+  verified_by: null
+- citation_id: CPC.art.226
+  document_key: CPC
+  article_number: "226"
+  part: null
+  topic: "Мировое соглашение: письменное заявление, разъяснение последствий, определение об утверждении и прекращении производства"
+  verified_by: null

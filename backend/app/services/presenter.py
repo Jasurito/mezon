@@ -182,6 +182,8 @@ def build_result(
         session_id=session_id,
         scenario_id=sc.scenario_id,
         outcome=outcome.outcome,
+        result_kind=outcome.result_kind,
+        result_label=message(f"result.kind.{outcome.result_kind}", locale),
         outcome_title=t(outcome.title_key),
         ruling_text=t(outcome.ruling_key),
         score=outcome.score,
@@ -199,6 +201,10 @@ def build_result(
                 correct=d.correct,
                 explanation=t(d.explanation_key),
                 citation_ids=list(d.citation_ids),
+                kind=d.kind,
+                counterfactual=(
+                    t(d.counterfactual_key) if d.counterfactual_key and not d.correct else None
+                ),
             )
             for d in outcome.decisions
         ],

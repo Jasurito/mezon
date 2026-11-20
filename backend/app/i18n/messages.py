@@ -24,6 +24,15 @@ MESSAGES: dict[str, dict[str, str]] = {
         "uz-Latn": "Qaror qabul qilinmadi",
         "uz-Cyrl": "Қарор қабул қилинмади",
     },
+    "result.kind.win": {"ru": "Победа", "uz-Latn": "G'alaba", "uz-Cyrl": "Ғалаба"},
+    "result.kind.partial": {"ru": "Частичная победа", "uz-Latn": "Qisman g'alaba", "uz-Cyrl": "Қисман ғалаба"},
+    "result.kind.loss": {"ru": "Поражение", "uz-Latn": "Mag'lubiyat", "uz-Cyrl": "Мағлубият"},
+    "result.kind.settlement": {"ru": "Мировое соглашение", "uz-Latn": "Kelishuv bitimi", "uz-Cyrl": "Келишув битими"},
+    "result.kind.procedural_loss": {
+        "ru": "Иск оставлен без рассмотрения",
+        "uz-Latn": "Da'vo ko'rilmasdan qoldirildi",
+        "uz-Cyrl": "Даъво кўрилмасдан қолдирилди",
+    },
     "quiz.learning_gain_note": {
         "ru": "Предварительный показатель, не доказанный эффект обучения",
         "uz-Latn": "Dastlabki ko'rsatkich, o'qitish samarasining isboti emas",

@@ -26,6 +26,7 @@ class EngineState(_Frozen):
     finished: bool = False
     outcome: str | None = None
     step: int = 0
+    visited: tuple[str, ...] = ()  # stages entered, in order
 
 
 class SayEvent(_Frozen):
@@ -111,10 +112,13 @@ class DecisionResult(_Frozen):
     correct: bool
     explanation_key: str
     citation_ids: tuple[str, ...] = ()
+    kind: str = "action"
+    counterfactual_key: str | None = None
 
 
 class Outcome(_Frozen):
     outcome: str
+    result_kind: str = "loss"
     title_key: str
     ruling_key: str
     score: int

@@ -5,7 +5,7 @@ from __future__ import annotations
 from app.game_engine.conditions import eval_condition
 from app.game_engine.errors import ScenarioError
 from app.game_engine.state import DecisionResult, EngineState, Outcome
-from app.schemas.scenario import Mistake, Recommendation, Scenario
+from app.schemas.scenario import OUTCOME_BEST, Mistake, Recommendation, Scenario
 
 
 def _chosen(scenario: Scenario, decision, state: EngineState) -> str | None:
@@ -26,16 +26,22 @@ def evaluate(scenario: Scenario, state: EngineState) -> Outcome:
 
     decisions: list[DecisionResult] = []
     for d in scenario.decisions:
+        # the case ended early (settlement, left without consideration): later decisions never came up
+        if state.visited and d.decision_id not in state.choices and d.stage not in state.visited:
+            continue
         chosen = _chosen(scenario, d, state)
+        best = rule.outcome if d.best == OUTCOME_BEST else d.best
         decisions.append(
             DecisionResult(
                 decision_id=d.decision_id,
                 stage=d.stage,
                 chosen=chosen,
-                best=d.best,
-                correct=chosen == d.best,
+                best=best,
+                correct=chosen == best,
                 explanation_key=d.explanation_key,
                 citation_ids=tuple(d.citation_ids),
+                kind=d.kind,
+                counterfactual_key=d.counterfactual_key,
             )
         )
 
@@ -60,6 +66,7 @@ def evaluate(scenario: Scenario, state: EngineState) -> Outcome:
     rate = sum(d.correct for d in decisions) / len(decisions) if decisions else 0.0
     return Outcome(
         outcome=rule.outcome,
+        result_kind=rule.result_kind or "loss",
         title_key=rule.title_key,
         ruling_key=rule.ruling_key,
         score=state.score,

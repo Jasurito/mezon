@@ -238,6 +238,8 @@ class DecisionView(BaseModel):
     correct: bool
     explanation: str
     citation_ids: list[str]
+    kind: str = "action"  # action | reasoning | prediction
+    counterfactual: str | None = None  # "what if" text; only when the choice was not the best
 
 
 class MistakeView(BaseModel):
@@ -258,6 +260,8 @@ class SessionResult(BaseModel):
     session_id: uuid.UUID
     scenario_id: str
     outcome: str
+    result_kind: str  # win | partial | loss | settlement | procedural_loss
+    result_label: str  # localized: Victory / Partial victory / Defeat / Settlement / Left without consideration
     outcome_title: str
     ruling_text: str
     score: int

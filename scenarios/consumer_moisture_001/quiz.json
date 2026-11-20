@@ -186,6 +186,29 @@
       "citation_ids": [
         "CPC.art.95"
       ]
+    },
+    {
+      "question_id": "pre9",
+      "text_key": "quiz.pre9.text",
+      "options": [
+        {
+          "id": "a",
+          "text_key": "quiz.pre9.a"
+        },
+        {
+          "id": "b",
+          "text_key": "quiz.pre9.b"
+        },
+        {
+          "id": "c",
+          "text_key": "quiz.pre9.c"
+        }
+      ],
+      "correct_option": "b",
+      "explanation_key": "quiz.pre9.expl",
+      "citation_ids": [
+        "CONST.art.55"
+      ]
     }
   ],
   "post": [
@@ -377,6 +400,29 @@
       "citation_ids": [
         "CPRL.art.13",
         "CPRL.art.29"
+      ]
+    },
+    {
+      "question_id": "post9",
+      "text_key": "quiz.post9.text",
+      "options": [
+        {
+          "id": "a",
+          "text_key": "quiz.post9.a"
+        },
+        {
+          "id": "b",
+          "text_key": "quiz.post9.b"
+        },
+        {
+          "id": "c",
+          "text_key": "quiz.post9.c"
+        }
+      ],
+      "correct_option": "c",
+      "explanation_key": "quiz.post9.expl",
+      "citation_ids": [
+        "CONST.art.65"
       ]
     }
   ]

@@ -7,7 +7,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from app.game_engine.engine import RESULTS
-from app.schemas.scenario import Condition, Effect, Scenario
+from app.schemas.scenario import OUTCOME_BEST, Condition, Effect, Scenario
 
 NARRATOR = "narrator"
 
@@ -224,8 +224,16 @@ def validate_scenario(sc: Scenario) -> list[str]:
         opts = {o.id for o in d.options}
         if d.stage not in stage_ids:
             errs.append(f"decision '{d.decision_id}': unknown stage '{d.stage}'")
-        if d.best not in opts:
+        if d.best == OUTCOME_BEST:
+            outcomes = {r.outcome for r in sc.evaluation_rules}
+            for o in sorted(opts - outcomes):
+                errs.append(f"decision '{d.decision_id}': option '{o}' is not an outcome id (best is {OUTCOME_BEST})")
+            if d.kind != "prediction":
+                errs.append(f"decision '{d.decision_id}': best {OUTCOME_BEST} requires kind 'prediction'")
+        elif d.best not in opts:
             errs.append(f"decision '{d.decision_id}': best '{d.best}' is not an option")
+        if d.outcome_score and d.best != OUTCOME_BEST:
+            errs.append(f"decision '{d.decision_id}': outcome_score needs best {OUTCOME_BEST}")
         for key in list(d.consequences) + list(d.score):
             if key not in opts:
                 errs.append(f"decision '{d.decision_id}': consequences/score key '{key}' is not an option")

@@ -93,3 +93,23 @@ def test_collectors(scenario):
     assert "act.final_claim" in keys and "card.topic1" in keys
     cites = collect_citation_ids(scenario)
     assert cites == set(scenario.citations)
+
+
+def test_outcome_best_needs_outcome_options_and_prediction_kind(scenario):
+    def m(d):
+        dp = d["decisions"][0]
+        dp["best"] = "@outcome"
+    errs = broken(scenario, m)
+    assert has(errs, "is not an outcome id") and has(errs, "requires kind 'prediction'")
+
+
+def test_outcome_score_needs_outcome_best(scenario):
+    def m(d):
+        d["decisions"][0]["outcome_score"] = 3
+    assert has(broken(scenario, m), "outcome_score needs best @outcome")
+
+
+def test_result_kind_defaults_from_outcome(scenario):
+    kinds = {r.outcome: r.result_kind for r in scenario.evaluation_rules}
+    assert kinds["claim_granted"] == "win" and kinds["claim_partially_granted"] == "partial"
+    assert kinds["claim_denied"] == "loss"

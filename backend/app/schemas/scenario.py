@@ -15,6 +15,10 @@ Reaction = Literal["nod", "object", "surprised", "think", "gavel"]
 ActionKind = Literal[
     "question", "evidence", "motion", "objection", "argument", "decision", "continue"
 ]
+ResultKind = Literal["win", "partial", "loss", "settlement", "procedural_loss"]
+DecisionKind = Literal["action", "reasoning", "prediction"]
+# `DecisionPoint.best` value: the correct option is the final outcome of the case.
+OUTCOME_BEST = "@outcome"
 
 
 class _Model(BaseModel):
@@ -246,11 +250,14 @@ class DecisionPoint(_Model):
     stage: str
     label_key: str
     options: list[Option]
-    best: str
+    best: str  # an option id, or "@outcome" (options are then outcome ids; the right one is the final outcome)
     consequences: dict[str, list[Effect]] = {}
     score: dict[str, int] = {}
     explanation_key: str
     citation_ids: list[str] = []
+    kind: DecisionKind = "action"  # for the debrief: a move, a justification or a forecast
+    counterfactual_key: str | None = None  # "what if" text shown in the debrief when chosen != best
+    outcome_score: int = 0  # only with best "@outcome": bonus added at RESULTS when the forecast is right
 
 
 class EvaluationRule(_Model):
@@ -258,6 +265,15 @@ class EvaluationRule(_Model):
     when: Condition
     title_key: str
     ruling_key: str
+    result_kind: ResultKind | None = None  # default: derived from `outcome` (see below)
+
+    @model_validator(mode="after")
+    def _default_kind(self) -> EvaluationRule:
+        if self.result_kind is None:
+            self.result_kind = {"claim_granted": "win", "claim_partially_granted": "partial"}.get(
+                self.outcome, "loss"
+            )
+        return self
 
 
 class MistakeRule(_Model):

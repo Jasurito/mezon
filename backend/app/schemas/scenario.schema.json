@@ -375,6 +375,33 @@
           },
           "title": "Citation Ids",
           "type": "array"
+        },
+        "kind": {
+          "default": "action",
+          "enum": [
+            "action",
+            "reasoning",
+            "prediction"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "counterfactual_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Counterfactual Key"
+        },
+        "outcome_score": {
+          "default": 0,
+          "title": "Outcome Score",
+          "type": "integer"
         }
       },
       "required": [
@@ -517,6 +544,25 @@
         "ruling_key": {
           "title": "Ruling Key",
           "type": "string"
+        },
+        "result_kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "win",
+                "partial",
+                "loss",
+                "settlement",
+                "procedural_loss"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result Kind"
         }
       },
       "required": [

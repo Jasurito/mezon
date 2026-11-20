@@ -42,7 +42,7 @@ def demo_db():
 def test_all_citations_resolve_on_legal_date(demo_db, locale):
     sc = load_scenario_dir(SCENARIO_DIR).scenario
     ids = collect_citation_ids(sc)
-    assert len(ids) == 20
+    assert len(ids) == 27
     assert missing_citation_ids(demo_db, ids) == set()
     for cid in sorted(ids):
         view = get_citation_view(demo_db, cid, sc.legal_date, locale)

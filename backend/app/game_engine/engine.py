@@ -19,7 +19,7 @@ from app.game_engine.state import (
     ScoreEvent,
     StageChangedEvent,
 )
-from app.schemas.scenario import Action, Effect, Scenario, Stage
+from app.schemas.scenario import OUTCOME_BEST, Action, Effect, Scenario, Stage
 
 RESULTS = "RESULTS"
 MAX_TRANSITIONS = 20
@@ -30,6 +30,9 @@ class _Work:
 
     def __init__(self, scenario: Scenario, s: EngineState | None) -> None:
         self.stages: dict[str, Stage] = {st.id: st for st in scenario.stages}
+        self.decisions = scenario.decisions
+        self.rules = scenario.evaluation_rules
+        self.visited: list[str] = list(s.visited) if s else []
         self.flags: set[str] = set(s.flags) if s else set()
         self.score = s.score if s else 0
         self.evidence = list(s.evidence) if s else []
@@ -81,11 +84,27 @@ def _enter(w: _Work, to: str) -> None:
     if stage is None:
         raise ScenarioError(f"unknown stage '{to}'")
     w.stage = to
+    w.visited.append(to)
     w.events.append(StageChangedEvent(stage=to, title_key=stage.title_key))
     if to == RESULTS:
+        _award_forecasts(w)
         w.finished = True
         return
     _run_effects(w, stage.on_enter)
+
+
+def _award_forecasts(w: _Work) -> None:
+    """Bonus for forecast decisions (best "@outcome") whose choice equals the final outcome.
+
+    The outcome rule is picked with the same conditions as in evaluate(), before the bonus is added.
+    """
+    targets = [d for d in w.decisions if d.best == OUTCOME_BEST and d.outcome_score]
+    rule = next((r for r in w.rules if eval_condition(r.when, w)), None) if targets else None
+    if rule is None:
+        return
+    for d in targets:
+        if w.choices.get(d.decision_id) == rule.outcome:
+            _add_score(w, d.outcome_score)
 
 
 def _settle(w: _Work) -> None:
@@ -112,6 +131,7 @@ def _freeze(scenario: Scenario, w: _Work, prev: EngineState | None, action_id: s
         finished=w.finished,
         outcome=None,
         step=(prev.step + 1) if prev else 0,
+        visited=tuple(w.visited),
     )
     if state.finished:
         state = state.model_copy(update={"outcome": evaluate(scenario, state).outcome})
@@ -122,6 +142,7 @@ def initial_state(scenario: Scenario) -> tuple[EngineState, list[Event]]:
     """First stage of the scenario plus its on_enter effects."""
     w = _Work(scenario, None)
     first = w.stages[w.stage]
+    w.visited.append(first.id)
     w.events.append(StageChangedEvent(stage=first.id, title_key=first.title_key))
     _run_effects(w, first.on_enter)
     _settle(w)

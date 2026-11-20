@@ -1,11 +1,11 @@
 {
   "scenario_id": "consumer_moisture_001",
   "schema_version": 1,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "legal_date": "2026-10-01",
   "fictional_notice_key": "fictional",
   "reveal_mistakes": false,
-  "max_score": 100,
+  "max_score": 117,
   "card": {
     "title_key": "card.title",
     "category_key": "card.category",
@@ -61,7 +61,14 @@
     "CPC.art.97",
     "CPC.art.98",
     "CPC.art.135",
-    "CPC.art.138"
+    "CPC.art.138",
+    "CONST.art.55",
+    "CONST.art.65",
+    "CPC.art.68",
+    "CPC.art.122",
+    "CPC.art.123",
+    "CPC.art.225",
+    "CPC.art.226"
   ],
   "characters": [
     {
@@ -313,6 +320,18 @@
             "line.intro.plaintiff",
             "worried"
           ]
+        },
+        {
+          "legal_note": {
+            "citation_id": "CONST.art.55",
+            "text_key": "note.const55"
+          }
+        },
+        {
+          "legal_note": {
+            "citation_id": "CONST.art.65",
+            "text_key": "note.const65"
+          }
         }
       ],
       "actions": [
@@ -520,6 +539,40 @@
           ]
         },
         {
+          "id": "file_committee_complaint",
+          "kind": "motion",
+          "label_key": "act.file_committee_complaint",
+          "hint_citation_ids": [],
+          "effects": [
+            {
+              "set": "committee_complaint"
+            },
+            {
+              "say": [
+                "plaintiff_rep",
+                "line.committee.filed"
+              ]
+            },
+            {
+              "say": [
+                "narrator",
+                "line.committee.note"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "choose_poa",
+          "kind": "decision",
+          "label_key": "act.choose_poa",
+          "decision_id": "poa",
+          "hint_citation_ids": [
+            "CPC.art.68",
+            "CPC.art.122"
+          ],
+          "effects": []
+        },
+        {
           "id": "to_hearing",
           "kind": "continue",
           "label_key": "act.to_hearing",
@@ -527,7 +580,10 @@
             {
               "set": "preparation_done"
             }
-          ]
+          ],
+          "requires": {
+            "flag": "poa_ready"
+          }
         }
       ],
       "transitions": [
@@ -554,6 +610,18 @@
             "judge",
             "gavel"
           ]
+        },
+        {
+          "say": [
+            "judge",
+            "line.hearing.settlement_right"
+          ]
+        },
+        {
+          "legal_note": {
+            "citation_id": "CPC.art.225",
+            "text_key": "note.settlement_right"
+          }
         }
       ],
       "actions": [
@@ -572,11 +640,83 @@
           ]
         },
         {
+          "id": "explain_defendant",
+          "kind": "decision",
+          "label_key": "act.explain_defendant",
+          "decision_id": "why_defendant",
+          "requires": {
+            "flag": "defendant_chosen"
+          },
+          "hint_citation_ids": [
+            "CPRL.art.13"
+          ],
+          "effects": [
+            {
+              "set": "why_defendant_done"
+            },
+            {
+              "say": [
+                "judge",
+                "line.reasoning.noted"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "hear_settlement_offer",
+          "kind": "continue",
+          "label_key": "act.hear_settlement_offer",
+          "requires": {
+            "flag": "why_defendant_done"
+          },
+          "hint_citation_ids": [
+            "CPC.art.225",
+            "CPC.art.226"
+          ],
+          "effects": [
+            {
+              "set": "offer_heard"
+            },
+            {
+              "say": [
+                "defendant_rep",
+                "line.settlement.offer"
+              ]
+            },
+            {
+              "say": [
+                "judge",
+                "line.settlement.explain"
+              ]
+            },
+            {
+              "legal_note": {
+                "citation_id": "CPC.art.226",
+                "text_key": "note.settlement"
+              }
+            }
+          ]
+        },
+        {
+          "id": "settlement",
+          "kind": "decision",
+          "label_key": "act.settlement",
+          "decision_id": "settlement",
+          "requires": {
+            "flag": "offer_heard"
+          },
+          "hint_citation_ids": [
+            "CPC.art.225",
+            "CPC.art.226"
+          ],
+          "effects": []
+        },
+        {
           "id": "to_explanations",
           "kind": "continue",
           "label_key": "act.to_explanations",
           "requires": {
-            "flag": "defendant_chosen"
+            "flag": "settlement_rejected"
           },
           "effects": [
             {
@@ -966,6 +1106,30 @@
           ]
         },
         {
+          "id": "explain_expertise",
+          "kind": "decision",
+          "label_key": "act.explain_expertise",
+          "decision_id": "why_expertise",
+          "requires": {
+            "flag": "expertise_requested"
+          },
+          "hint_citation_ids": [
+            "CC2.art.409",
+            "CPC.art.95"
+          ],
+          "effects": [
+            {
+              "set": "why_expertise_done"
+            },
+            {
+              "say": [
+                "judge",
+                "line.reasoning.noted"
+              ]
+            }
+          ]
+        },
+        {
           "id": "request_inspection",
           "kind": "motion",
           "label_key": "act.request_inspection",
@@ -1014,6 +1178,9 @@
             "all": [
               {
                 "flag": "expertise_ordered"
+              },
+              {
+                "flag": "why_expertise_done"
               },
               {
                 "not": {
@@ -1069,6 +1236,9 @@
             "all": [
               {
                 "flag": "expertise_ordered"
+              },
+              {
+                "flag": "why_expertise_done"
               },
               {
                 "not": {
@@ -1273,6 +1443,24 @@
       ],
       "actions": [
         {
+          "id": "forecast",
+          "kind": "decision",
+          "label_key": "act.forecast",
+          "decision_id": "outcome_forecast",
+          "hint_citation_ids": [],
+          "effects": [
+            {
+              "set": "forecast_done"
+            },
+            {
+              "say": [
+                "narrator",
+                "line.forecast.noted"
+              ]
+            }
+          ]
+        },
+        {
           "id": "final_claim",
           "kind": "decision",
           "label_key": "act.final_claim",
@@ -1285,6 +1473,40 @@
             {
               "set": "final_chosen"
             }
+          ],
+          "requires": {
+            "flag": "forecast_done"
+          }
+        },
+        {
+          "id": "explain_remedy",
+          "kind": "decision",
+          "label_key": "act.explain_remedy",
+          "decision_id": "why_remedy",
+          "requires": {
+            "flag": "final_chosen"
+          },
+          "hint_citation_ids": [
+            "CPRL.art.14",
+            "CPRL.art.16",
+            "CPRL.art.17"
+          ],
+          "effects": [
+            {
+              "set": "remedy_why_done"
+            },
+            {
+              "say": [
+                "judge",
+                "line.reasoning.noted"
+              ]
+            },
+            {
+              "say": [
+                "judge",
+                "line.retire"
+              ]
+            }
           ]
         }
       ],
@@ -1292,7 +1514,7 @@
         {
           "to": "RESULTS",
           "when": {
-            "flag": "final_chosen"
+            "flag": "remedy_why_done"
           }
         }
       ]
@@ -1368,7 +1590,8 @@
       "explanation_key": "expl.defendant",
       "citation_ids": [
         "CPRL.art.13"
-      ]
+      ],
+      "counterfactual_key": "cf.defendant"
     },
     {
       "decision_id": "motion_expertise",
@@ -1396,7 +1619,8 @@
         "CPC.art.95",
         "CPC.art.97",
         "CPC.art.80"
-      ]
+      ],
+      "counterfactual_key": "cf.motion_expertise"
     },
     {
       "decision_id": "closing_argument",
@@ -1493,7 +1717,8 @@
         "CPC.art.80",
         "CPC.art.95",
         "CC2.art.409"
-      ]
+      ],
+      "counterfactual_key": "cf.closing_argument"
     },
     {
       "decision_id": "final_claim",
@@ -1625,10 +1850,370 @@
         "CPRL.art.20",
         "CPRL.art.22",
         "CPC.art.138"
-      ]
+      ],
+      "counterfactual_key": "cf.final_claim"
+    },
+    {
+      "decision_id": "poa",
+      "stage": "PREPARATION",
+      "label_key": "dec.poa",
+      "options": [
+        {
+          "id": "poa_notary",
+          "label_key": "opt.poa_notary"
+        },
+        {
+          "id": "poa_verbal",
+          "label_key": "opt.poa_verbal"
+        },
+        {
+          "id": "poa_passport",
+          "label_key": "opt.poa_passport"
+        }
+      ],
+      "best": "poa_notary",
+      "consequences": {
+        "poa_notary": [
+          {
+            "set": "poa_ready"
+          },
+          {
+            "say": [
+              "plaintiff_rep",
+              "line.poa.notary",
+              "confident"
+            ]
+          },
+          {
+            "legal_note": {
+              "citation_id": "CPC.art.68",
+              "text_key": "note.poa"
+            }
+          }
+        ],
+        "poa_verbal": [
+          {
+            "set": "poa_missing"
+          },
+          {
+            "set": "ended_early"
+          },
+          {
+            "say": [
+              "plaintiff_rep",
+              "line.poa.verbal"
+            ]
+          },
+          {
+            "react": [
+              "judge",
+              "surprised"
+            ]
+          },
+          {
+            "say": [
+              "judge",
+              "line.poa.left"
+            ]
+          },
+          {
+            "legal_note": {
+              "citation_id": "CPC.art.122",
+              "text_key": "note.poa_left"
+            }
+          },
+          {
+            "legal_note": {
+              "citation_id": "CPC.art.123",
+              "text_key": "note.poa_refile"
+            }
+          },
+          {
+            "goto": "RESULTS"
+          }
+        ],
+        "poa_passport": [
+          {
+            "set": "poa_missing"
+          },
+          {
+            "set": "ended_early"
+          },
+          {
+            "say": [
+              "plaintiff_rep",
+              "line.poa.passport"
+            ]
+          },
+          {
+            "react": [
+              "judge",
+              "surprised"
+            ]
+          },
+          {
+            "say": [
+              "judge",
+              "line.poa.left"
+            ]
+          },
+          {
+            "legal_note": {
+              "citation_id": "CPC.art.122",
+              "text_key": "note.poa_left"
+            }
+          },
+          {
+            "legal_note": {
+              "citation_id": "CPC.art.123",
+              "text_key": "note.poa_refile"
+            }
+          },
+          {
+            "goto": "RESULTS"
+          }
+        ]
+      },
+      "score": {
+        "poa_notary": 4,
+        "poa_verbal": 0,
+        "poa_passport": 0
+      },
+      "explanation_key": "expl.poa",
+      "citation_ids": [
+        "CPC.art.68",
+        "CPC.art.122",
+        "CPC.art.123"
+      ],
+      "kind": "action",
+      "counterfactual_key": "cf.poa"
+    },
+    {
+      "decision_id": "why_defendant",
+      "stage": "HEARING_OPENING",
+      "label_key": "dec.why_defendant",
+      "options": [
+        {
+          "id": "contract",
+          "label_key": "opt.why_def_contract"
+        },
+        {
+          "id": "act",
+          "label_key": "opt.why_def_act"
+        },
+        {
+          "id": "either",
+          "label_key": "opt.why_def_either"
+        }
+      ],
+      "best": "contract",
+      "score": {
+        "contract": 3,
+        "act": -2,
+        "either": -2
+      },
+      "explanation_key": "expl.why_defendant",
+      "citation_ids": [
+        "CPRL.art.13"
+      ],
+      "kind": "reasoning",
+      "counterfactual_key": "cf.why_defendant"
+    },
+    {
+      "decision_id": "settlement",
+      "stage": "HEARING_OPENING",
+      "label_key": "dec.settlement",
+      "options": [
+        {
+          "id": "accept",
+          "label_key": "opt.settle_accept"
+        },
+        {
+          "id": "reject",
+          "label_key": "opt.settle_reject"
+        }
+      ],
+      "best": "reject",
+      "consequences": {
+        "accept": [
+          {
+            "set": "settlement_accepted"
+          },
+          {
+            "set": "ended_early"
+          },
+          {
+            "say": [
+              "plaintiff_rep",
+              "line.settlement.accept"
+            ]
+          },
+          {
+            "react": [
+              "judge",
+              "gavel"
+            ]
+          },
+          {
+            "say": [
+              "judge",
+              "line.settlement.approved"
+            ]
+          },
+          {
+            "goto": "RESULTS"
+          }
+        ],
+        "reject": [
+          {
+            "set": "settlement_rejected"
+          },
+          {
+            "say": [
+              "plaintiff_rep",
+              "line.settlement.reject",
+              "confident"
+            ]
+          },
+          {
+            "say": [
+              "judge",
+              "line.settlement.continue"
+            ]
+          }
+        ]
+      },
+      "explanation_key": "expl.settlement",
+      "citation_ids": [
+        "CPC.art.225",
+        "CPC.art.226"
+      ],
+      "kind": "action",
+      "counterfactual_key": "cf.settlement"
+    },
+    {
+      "decision_id": "why_expertise",
+      "stage": "MOTIONS",
+      "label_key": "dec.why_expertise",
+      "options": [
+        {
+          "id": "burden",
+          "label_key": "opt.why_exp_burden"
+        },
+        {
+          "id": "always",
+          "label_key": "opt.why_exp_always"
+        },
+        {
+          "id": "judge",
+          "label_key": "opt.why_exp_judge"
+        }
+      ],
+      "best": "burden",
+      "score": {
+        "burden": 3,
+        "always": -2,
+        "judge": -2
+      },
+      "explanation_key": "expl.why_expertise",
+      "citation_ids": [
+        "CC2.art.409",
+        "CPC.art.95",
+        "CPC.art.80"
+      ],
+      "kind": "reasoning",
+      "counterfactual_key": "cf.why_expertise"
+    },
+    {
+      "decision_id": "outcome_forecast",
+      "stage": "DECISION",
+      "label_key": "dec.forecast",
+      "options": [
+        {
+          "id": "claim_granted",
+          "label_key": "out.granted.title"
+        },
+        {
+          "id": "claim_partially_granted",
+          "label_key": "out.partial.title"
+        },
+        {
+          "id": "claim_denied",
+          "label_key": "out.denied.title"
+        },
+        {
+          "id": "settlement",
+          "label_key": "out.settlement.title"
+        },
+        {
+          "id": "procedural_loss",
+          "label_key": "out.procedural.title"
+        }
+      ],
+      "best": "@outcome",
+      "outcome_score": 4,
+      "explanation_key": "expl.forecast",
+      "citation_ids": [
+        "CPRL.art.14",
+        "CC2.art.409",
+        "CPC.art.95"
+      ],
+      "kind": "prediction",
+      "counterfactual_key": "cf.forecast"
+    },
+    {
+      "decision_id": "why_remedy",
+      "stage": "DECISION",
+      "label_key": "dec.why_remedy",
+      "options": [
+        {
+          "id": "penalty",
+          "label_key": "opt.why_rem_penalty"
+        },
+        {
+          "id": "equal",
+          "label_key": "opt.why_rem_equal"
+        },
+        {
+          "id": "only",
+          "label_key": "opt.why_rem_only"
+        }
+      ],
+      "best": "penalty",
+      "score": {
+        "penalty": 3,
+        "equal": -2,
+        "only": -2
+      },
+      "explanation_key": "expl.why_remedy",
+      "citation_ids": [
+        "CPRL.art.14",
+        "CPRL.art.16",
+        "CPRL.art.17"
+      ],
+      "kind": "reasoning",
+      "counterfactual_key": "cf.why_remedy"
     }
   ],
   "evaluation_rules": [
+    {
+      "outcome": "procedural_loss",
+      "when": {
+        "flag": "poa_missing"
+      },
+      "title_key": "out.procedural.title",
+      "ruling_key": "out.procedural.ruling",
+      "result_kind": "procedural_loss"
+    },
+    {
+      "outcome": "settlement",
+      "when": {
+        "flag": "settlement_accepted"
+      },
+      "title_key": "out.settlement.title",
+      "ruling_key": "out.settlement.ruling",
+      "result_kind": "settlement"
+    },
     {
       "outcome": "claim_granted",
       "when": {
@@ -1658,7 +2243,8 @@
         ]
       },
       "title_key": "out.granted.title",
-      "ruling_key": "out.granted.ruling"
+      "ruling_key": "out.granted.ruling",
+      "result_kind": "win"
     },
     {
       "outcome": "claim_partially_granted",
@@ -1695,7 +2281,8 @@
         ]
       },
       "title_key": "out.partial.title",
-      "ruling_key": "out.partial.ruling"
+      "ruling_key": "out.partial.ruling",
+      "result_kind": "partial"
     },
     {
       "outcome": "claim_denied",
@@ -1703,7 +2290,8 @@
         "always": true
       },
       "title_key": "out.denied.title",
-      "ruling_key": "out.denied.ruling"
+      "ruling_key": "out.denied.ruling",
+      "result_kind": "loss"
     }
   ],
   "mistake_rules": [
@@ -1726,9 +2314,18 @@
     },
     {
       "when": {
-        "not": {
-          "flag": "expertise_requested"
-        }
+        "all": [
+          {
+            "not": {
+              "flag": "ended_early"
+            }
+          },
+          {
+            "not": {
+              "flag": "expertise_requested"
+            }
+          }
+        ]
       },
       "mistake": {
         "category": "procedure",
@@ -1794,9 +2391,18 @@
     },
     {
       "when": {
-        "not": {
-          "flag": "claim_letter_presented"
-        }
+        "all": [
+          {
+            "not": {
+              "flag": "ended_early"
+            }
+          },
+          {
+            "not": {
+              "flag": "claim_letter_presented"
+            }
+          }
+        ]
       },
       "mistake": {
         "category": "evidence",
@@ -1855,6 +2461,106 @@
           "CPC.art.72"
         ]
       }
+    },
+    {
+      "when": {
+        "flag": "poa_missing"
+      },
+      "mistake": {
+        "category": "procedure",
+        "title_key": "mistake.no_poa.title",
+        "explanation_key": "mistake.no_poa.expl",
+        "correct_action_key": "mistake.no_poa.fix",
+        "citation_ids": [
+          "CPC.art.68",
+          "CPC.art.122"
+        ]
+      }
+    },
+    {
+      "when": {
+        "any": [
+          {
+            "chose": {
+              "decision_id": "why_defendant",
+              "option": "act"
+            }
+          },
+          {
+            "chose": {
+              "decision_id": "why_defendant",
+              "option": "either"
+            }
+          }
+        ]
+      },
+      "mistake": {
+        "category": "substantive_law",
+        "title_key": "mistake.why_defendant.title",
+        "explanation_key": "mistake.why_defendant.expl",
+        "correct_action_key": "mistake.why_defendant.fix",
+        "citation_ids": [
+          "CPRL.art.13"
+        ]
+      }
+    },
+    {
+      "when": {
+        "any": [
+          {
+            "chose": {
+              "decision_id": "why_expertise",
+              "option": "always"
+            }
+          },
+          {
+            "chose": {
+              "decision_id": "why_expertise",
+              "option": "judge"
+            }
+          }
+        ]
+      },
+      "mistake": {
+        "category": "procedure",
+        "title_key": "mistake.why_expertise.title",
+        "explanation_key": "mistake.why_expertise.expl",
+        "correct_action_key": "mistake.why_expertise.fix",
+        "citation_ids": [
+          "CC2.art.409",
+          "CPC.art.95",
+          "CPC.art.80"
+        ]
+      }
+    },
+    {
+      "when": {
+        "any": [
+          {
+            "chose": {
+              "decision_id": "why_remedy",
+              "option": "equal"
+            }
+          },
+          {
+            "chose": {
+              "decision_id": "why_remedy",
+              "option": "only"
+            }
+          }
+        ]
+      },
+      "mistake": {
+        "category": "remedy_choice",
+        "title_key": "mistake.why_remedy.title",
+        "explanation_key": "mistake.why_remedy.expl",
+        "correct_action_key": "mistake.why_remedy.fix",
+        "citation_ids": [
+          "CPRL.art.14",
+          "CPRL.art.16",
+          "CPRL.art.17"
+        ]
+      }
     }
   ],
   "mistake_categories": [
@@ -1872,7 +2578,11 @@
         "CPC.art.97",
         "CPC.art.98",
         "CPC.art.135",
-        "CPRL.art.29"
+        "CPRL.art.29",
+        "CPC.art.68",
+        "CPC.art.122",
+        "CPC.art.225",
+        "CPC.art.226"
       ]
     },
     "evidence": {
@@ -1890,7 +2600,9 @@
         "CC2.art.409",
         "CPRL.art.8",
         "CPRL.art.11",
-        "CPRL.art.13"
+        "CPRL.art.13",
+        "CONST.art.55",
+        "CONST.art.65"
       ]
     },
     "remedy_choice": {

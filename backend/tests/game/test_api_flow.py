@@ -9,6 +9,10 @@ from tests.game.conftest import BEST, LOSS, PARTIAL, SCENARIO_ID
 
 pytestmark = pytest.mark.db
 
+KINDS = {"claim_granted": "win", "claim_partially_granted": "partial", "claim_denied": "loss"}
+LABELS_RU = {"win": "Победа", "partial": "Частичная победа", "loss": "Поражение"}
+LABELS_UZ = {"win": "G'alaba", "partial": "Qisman g'alaba", "loss": "Mag'lubiyat"}
+
 CASES = [
     ("best", BEST, "claim_granted", 100),
     ("partial", PARTIAL, "claim_partially_granted", 40),
@@ -35,6 +39,9 @@ def test_golden_path_via_api(api, seeded_db, name, path, outcome, score):
     res = r.json()
     assert res["outcome"] == outcome and res["score"] == score and res["max_score"] == 100
     assert res["outcome_title"] and res["ruling_text"] and res["disclaimer"]
+    # старый сценарий без новых полей: вид исхода выводится из id исхода, разбор остаётся прежним
+    assert res["result_kind"] == KINDS[outcome] and res["result_label"] == LABELS_RU[KINDS[outcome]]
+    assert all(d["kind"] == "action" and d["counterfactual"] is None for d in res["decisions"])
     assert res["time_spent_sec"] > 0
     assert res["citations"], "citations must not be empty"
     assert all(c["source_url"] for c in res["citations"])
@@ -114,3 +121,12 @@ def test_openapi_has_game_endpoints(api):
         assert m in paths[p], (p, m)
         ok = next(c for c in paths[p][m]["responses"] if c.startswith("2"))
         assert paths[p][m]["responses"][ok]["content"]["application/json"]["schema"]
+
+
+@pytest.mark.parametrize("locale", ["ru", "uz-Latn"])
+def test_result_label_is_localized(api, seeded_db, locale):
+    start = api.start(api.user(), locale)
+    api.play(start["session_id"], BEST)
+    res = api.c.get(f"/api/sessions/{start['session_id']}/result").json()
+    expected = (LABELS_RU if locale == "ru" else LABELS_UZ)["win"]
+    assert res["result_kind"] == "win" and res["result_label"] == expected
