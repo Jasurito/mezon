@@ -58,6 +58,7 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=True,  # фронт шлёт fetch(..., credentials: "include")
         allow_methods=["*"],
         allow_headers=["*"],
     )
