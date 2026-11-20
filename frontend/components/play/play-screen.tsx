@@ -1,7 +1,7 @@
 "use client";
 import { ChevronLeft, FileText, Scale } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, Loading } from "@/components/common/state";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,8 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
   const [decision, setDecision] = useState<ActionView | null>(null);
   const [names, setNames] = useState<Record<string, { name: string; role: string }>>({});
   const actionsRef = useRef<HTMLDivElement>(null);
+  const secretary = t("play.secretary");
+  const tagNames = useMemo(() => ({ secretary, ...Object.fromEntries(Object.entries(names).map(([id, n]) => [id, n.name])) }), [names, secretary]);
   const lastLocale = useRef(locale);
 
   // load / reload on locale switch (PATCH session, then GET: spec §4.5)
@@ -104,7 +106,7 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
 
       <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-2 pb-24 pt-4 sm:px-6">
         <div className="frame">
-          <Court theme="night" mode="play" className="frame__scene" onClick={onSceneClick} onReady={g.setCourt} label={t("play.evidenceTable")} />
+          <Court theme="night" mode="play" className="frame__scene" onClick={onSceneClick} onReady={g.setCourt} names={tagNames} label={t("play.evidenceTable")} />
           <Button variant="outline" className={cn("frame__btn frame__btn--left bg-navy/85", g.newEvidence.length > 0 && "has-new")} onClick={() => setDrawer(true)} aria-expanded={drawer}>
             <FileText />{t("play.evidence")}
           </Button>
@@ -115,15 +117,16 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
             </div>
           )}
           {g.toast && <div key={g.toast.key} className="stage-toast is-on" aria-live="polite">{g.toast.title}</div>}
-          <div className="dialogue" onClick={() => g.advance()} aria-live="polite">
-            {g.current && (
-              <>
-                {who?.name && <p className="mb-1 font-bold text-gold">{who.name} <span className="text-sm font-normal text-ink-muted">{who.role}</span></p>}
-                <p className="max-w-[70ch] text-[1.1em]">{g.typed}</p>
-                {g.waiting && <span className="dialogue__next">{t("play.continueHint")}</span>}
-              </>
-            )}
-          </div>
+        </div>
+        {/* below the scene, never over it: nametags, speech bubbles and the evidence table stay visible */}
+        <div className="dialogue" onClick={() => g.advance()} aria-live="polite">
+          {g.current && (
+            <>
+              {who?.name && <p className="mb-1 font-bold text-gold">{who.name} <span className="text-sm font-normal text-ink-muted">{who.role}</span></p>}
+              <p className="max-w-[70ch] text-[1.1em]">{g.typed}</p>
+              {g.waiting && <span className="dialogue__next">{t("play.continueHint")}</span>}
+            </>
+          )}
         </div>
 
         <div ref={actionsRef} aria-busy={g.busy} aria-label={t("common.kind_continue")}
@@ -170,9 +173,10 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
       </Sheet>
 
       <Dialog open={!!doc} onOpenChange={(o) => !o && setDoc(null)}>
-        <DialogContent className="paper-doc border-0" data-kind={doc?.id === "receipt" ? "receipt" : undefined}>
-          <DialogHeader><DialogTitle className="border-b border-[#d8cfb8] pb-2 text-navy">{doc?.title}</DialogTitle><DialogDescription className="sr-only">{t("play.docTitle")}</DialogDescription></DialogHeader>
-          <div className="space-y-1.5">{doc?.lines.map((l, i) => <p key={i}>{l}</p>)}</div>
+        {/* one document style for every piece of evidence: same font (the user's UI font), left-aligned title */}
+        <DialogContent className="paper-doc border-0">
+          <DialogHeader className="text-left"><DialogTitle className="border-b border-[#d8cfb8] pb-2 text-navy">{doc?.title}</DialogTitle><DialogDescription className="sr-only">{t("play.docTitle")}</DialogDescription></DialogHeader>
+          <div className="doc-body space-y-1.5">{doc?.lines.map((l, i) => <p key={i}>{l}</p>)}</div>
         </DialogContent>
       </Dialog>
 

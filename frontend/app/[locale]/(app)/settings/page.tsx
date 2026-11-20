@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
-import { FONT_FAMILIES, LINE_HEIGHTS, SIZE_MAX, SIZE_MIN, SIZE_STEP } from "@/lib/settings";
+import { FONT_FAMILIES, LINE_HEIGHTS, MOTIONS, SIZE_MAX, SIZE_MIN, SIZE_STEP } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/store/settings";
 import { useMounted } from "@/hooks/use-load";
@@ -59,6 +59,17 @@ export default function SettingsPage() {
                   className="min-h-10 rounded px-4 text-sm aria-checked:bg-gold aria-checked:font-semibold aria-checked:text-navy">{t(`lh_${lh}`)}</button>
               ))}
             </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="mb-3 font-semibold">{t("motion")}</legend>
+            <div className="inline-flex rounded-md border border-paper/15 p-1" role="radiogroup">
+              {MOTIONS.map((m) => (
+                <button key={m} type="button" role="radio" aria-checked={s.motion === m} onClick={() => s.set({ motion: m })}
+                  className="min-h-10 rounded px-4 text-sm aria-checked:bg-gold aria-checked:font-semibold aria-checked:text-navy">{t(`motion_${m}`)}</button>
+              ))}
+            </div>
+            <p className="mt-2 text-sm text-ink-muted">{t("motionHint")}</p>
           </fieldset>
 
           <p className="text-sm text-ink-muted">{t("scope")}</p>

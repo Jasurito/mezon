@@ -133,6 +133,7 @@
     "offline": "Server bilan aloqa yöq",
     "loadError": "Öyinni yuklab bölmadi",
     "evidenceTable": "Dalillar stoli",
+    "secretary": "Kotib",
     "docTitle": "Hujjat"
   },
   "legal": {
@@ -220,7 +221,11 @@
     "reset": "Standart sozlamalar",
     "saved": "Saqlandi",
     "language": "Interfeys tili",
-    "scope": "Şrift interfeys va öyin dialoglariga qöllanadi."
+    "scope": "Şrift interfeys va öyin dialoglariga qöllanadi.",
+    "motion": "Animatsiya",
+    "motion_full": "Töliq",
+    "motion_reduced": "Kamaytirilgan",
+    "motionHint": "Kamaytirilgan rejimda kamera harakati, silkiniş va yozuv effekti öçiriladi."
   },
   "auth": {
     "signInTitle": "Hisobga kiriş",

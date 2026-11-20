@@ -1,7 +1,7 @@
 /* Play screen = sketch 1 "Kechki sud zali". Phaser canvas + React overlay (text stays in the DOM). */
 .court-canvas canvas { image-rendering: pixelated; display: block; }
 
-.frame { position: relative; width: 100%; max-width: calc((100svh - 230px) * 16 / 9); min-width: min(100%, 640px); margin: 0 auto; border-radius: 10px; overflow: hidden; border: 1px solid var(--hairline); background: #000; }
+.frame { position: relative; width: 100%; max-width: calc((100svh - 360px) * 16 / 9); min-width: min(100%, 640px); margin: 0 auto; border-radius: 10px; overflow: hidden; border: 1px solid var(--hairline); background: #000; }
 .frame__scene { aspect-ratio: 16 / 9; }
 .frame__btn { position: absolute; top: 0.8rem; z-index: 3; }
 .frame__btn--left { left: 0.8rem; }
@@ -14,7 +14,7 @@
 .stage-toast.is-on { animation: toast 1.6s ease; }
 @keyframes toast { 0%, 100% { opacity: 0; } 12%, 80% { opacity: 1; } }
 
-.dialogue { position: absolute; left: 1rem; right: 1rem; bottom: 1rem; z-index: 2; min-height: 7.2rem; padding: 1rem 1.2rem 1.4rem; border-radius: 8px; background: rgb(15 27 45 / 0.93); border: 1px solid var(--hairline); cursor: pointer; text-align: left; }
+.dialogue { position: relative; width: 100%; max-width: calc((100svh - 360px) * 16 / 9); min-width: min(100%, 640px); margin: 0.75rem auto 0; min-height: 6.6rem; padding: 1rem 1.2rem 1.4rem; border-radius: 8px; background: rgb(15 27 45 / 0.93); border: 1px solid var(--hairline); cursor: pointer; text-align: left; }
 .dialogue__next { position: absolute; right: 1rem; bottom: 0.55rem; font-size: 0.8rem; color: var(--muted-ink); animation: blink 1.2s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0.2; } }
 
@@ -27,7 +27,9 @@
 .stage-track > span { display: block; height: 100%; background: var(--gold); transition: width 0.4s ease; }
 
 .paper-doc { background: var(--paper); color: var(--navy); }
-.paper-doc[data-kind="receipt"] { font-family: var(--font-tiny5), monospace; text-align: center; }
+/* all evidence documents share the UI font (incl. the user's font setting); tabular digits keep amounts and dates aligned */
+.paper-doc, .paper-doc .doc-body { font-family: var(--font-ui), system-ui, sans-serif; }
+.paper-doc .doc-body { font-variant-numeric: tabular-nums; }
 
 .cinema { position: relative; aspect-ratio: 2.39 / 1; overflow: hidden; background: #000; }
 .cinema__scene { position: absolute; left: 0; right: 0; top: -8%; aspect-ratio: 16 / 9; }
@@ -35,6 +37,5 @@
 @media (max-width: 760px) {
   .frame { overflow: visible; border: 0; background: none; min-width: 0; }
   .frame__scene { border-radius: 8px; overflow: hidden; }
-  .dialogue { position: relative; inset: auto; margin-top: 0.8rem; }
   .note-card { position: relative; inset: auto; max-width: none; margin-top: 0.8rem; }
 }

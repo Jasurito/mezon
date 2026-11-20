@@ -1,6 +1,7 @@
 "use client";
 import { create } from "zustand";
 import { api, ApiError, type GameEvent, type GameState, type Locale } from "@/lib/api";
+import { useSettings } from "@/store/settings";
 
 export interface CourtApi {
   talk(id: string, on: boolean): void;
@@ -40,7 +41,7 @@ interface GameStore {
 }
 
 let timer: ReturnType<typeof setInterval> | null = null;
-const reduce = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduce = () => useSettings.getState().motion === "reduced";
 const later = (fn: () => void, ms: number) => setTimeout(fn, reduce() ? 0 : ms);
 
 export const useGame = create<GameStore>()((set, get) => {

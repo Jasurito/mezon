@@ -5,7 +5,9 @@
  */
 import type { CourtApi } from "@/store/game";
 
-const W = 320, H = 180;
+const W = 320, H = 180;          // world size in art pixels
+const ZOOM = 4;                   // rendered at 1280x720: crisp pixel art, smooth text, bubbles and camera moves
+const FOCUS_ZOOM = ZOOM * 1.35;   // camera zoom on the current speaker
 const hex = (s: string) => parseInt(s.slice(1), 16);
 
 type Theme = Record<string, string>;
@@ -92,17 +94,35 @@ function bubble(scene: any, key: string, t: Theme, symbol: string) {
   g.generateTexture(key, 9, 11); g.destroy();
 }
 
-export interface MountOptions { theme: keyof typeof THEMES; mode: "hero" | "play"; onClick?: (id: string) => void }
+/** Where each nametag sits (just under the visible part of the person, on the furniture in front). */
+const TAG_Y: Record<string, number> = { judge: 80, plaintiff: 140, plaintiff_rep: 140, defendant_rep: 140, expert: 105, secretary: 106 };
 
-/** Mounts the courtroom into `el`. Returns a CourtApi plus destroy(). */
-export function mountCourt(Phaser: any, el: HTMLElement, opts: MountOptions): CourtApi & { destroy(): void } {
+export interface MountOptions {
+  theme: keyof typeof THEMES;
+  mode: "hero" | "play";
+  onClick?: (id: string) => void;
+  /** "reduced": no camera moves, shake or idle motion (user setting) */
+  motion?: "full" | "reduced";
+  /** CSS font stack for nametags (the user's UI font) */
+  fontFamily?: string;
+}
+
+export type CourtHandle = CourtApi & { setNames(names: Record<string, string>): void; destroy(): void };
+
+/** Mounts the courtroom into `el`. Returns a CourtApi plus setNames() and destroy(). */
+export function mountCourt(Phaser: any, el: HTMLElement, opts: MountOptions): CourtHandle {
   const t = THEMES[opts.theme];
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduce = opts.motion === "reduced";
+  const font = opts.fontFamily || "system-ui, sans-serif";
   let scene: any = null;
   const queue: [string, unknown[]][] = [];
 
   class CourtScene extends Phaser.Scene {
     sprites: Record<string, any> = {};
+    tags: Record<string, { box: any; text: any }> = {};
+    names: Record<string, string> = {};
+    speaker: string | null = null;
+    speech: any; speechDots: any[] = [];
     gavelImg: any; bubbleImg: any;
     constructor() { super({ key: "court" }); }
     create() {
@@ -134,11 +154,57 @@ export function mountCourt(Phaser: any, el: HTMLElement, opts: MountOptions): Co
       zone.on("pointerdown", () => opts.onClick?.("evidence_table"));
       const marker = this.add.triangle(160, 136, 0, 0, 8, 0, 4, 5, hex(t.highlight)).setDepth(5).setAlpha(0);
       zone.on("pointerover", () => marker.setAlpha(1)); zone.on("pointerout", () => marker.setAlpha(0));
-      this.bubbleImg = this.add.image(0, 0, "bubble0").setOrigin(0.5, 1).setDepth(6).setVisible(false);
+      this.bubbleImg = this.add.image(0, 0, "bubble0").setOrigin(0.5, 1).setDepth(8).setVisible(false);
+      this.cameras.main.setZoom(ZOOM).centerOn(W / 2, H / 2);
+      this.buildSpeech();
       if (!reduce) Object.values(this.sprites).forEach((s: any, i) => this.tweens.add({ targets: s, y: s.baseY - 1, duration: 1400 + i * 170, yoyo: true, repeat: -1, ease: "Sine.easeInOut", delay: i * 230 }));
       if (opts.mode === "hero" && !reduce) this.ambient();
       // eslint-disable-next-line @typescript-eslint/no-this-alias -- the outer API forwards calls to the live scene
       scene = this; queue.splice(0).forEach(([fn, a]) => (this as any)[fn](...a));
+    }
+    /** Rounded speech bubble with a tail and three "typing" dots (no text: the line is shown in the DOM dialogue). */
+    buildSpeech() {
+      const g = this.add.graphics();
+      const w = 17, h = 9, r = 3.2;
+      g.fillStyle(hex(t.bubble), 1); g.lineStyle(0.6, hex(t.bubbleInk), 0.9);
+      g.fillRoundedRect(-w / 2, -h, w, h, r); g.strokeRoundedRect(-w / 2, -h, w, h, r);
+      // tail pointing down-left to the speaker's head
+      g.fillTriangle(-5.5, -0.6, -1.8, -0.6, -7.5, 3.6);
+      g.lineBetween(-5.5, -0.3, -7.5, 3.6); g.lineBetween(-7.5, 3.6, -1.8, -0.3);
+      const dots = [-4, 0, 4].map((x) => this.add.circle(x, -h / 2, 1.05, hex(t.bubbleInk)));
+      this.speechDots = dots;
+      this.speech = this.add.container(0, 0, [g, ...dots]).setDepth(7).setVisible(false);
+      dots.forEach((d, i) => this.tweens.add({ targets: d, alpha: { from: 0.25, to: 1 }, y: { from: -h / 2, to: -h / 2 - 1 },
+        duration: 360, yoyo: true, repeat: -1, delay: i * 140, ease: "Sine.easeInOut" }));
+    }
+    showSpeech(id: string | null) {
+      const s = id && this.sprites[id];
+      if (!s) { this.speech.setVisible(false); return; }
+      this.speech.setPosition(s.x + 12, s.baseY - 22).setVisible(true);
+      if (!reduce) this.tweens.add({ targets: this.speech, scale: { from: 0.55, to: 1 }, duration: 180, ease: "Back.easeOut" });
+    }
+    setNames(names: Record<string, string>) {
+      this.names = names;
+      for (const [id, tag] of Object.entries(this.tags)) { tag.box.destroy(); tag.text.destroy(); delete this.tags[id]; }
+      for (const [id, name] of Object.entries(names)) {
+        const s = this.sprites[id]; if (!s || !name || TAG_Y[id] === undefined) continue;
+        // text is drawn at 8x so it stays sharp at zoom 4 (and on the closer focus zoom)
+        const text = this.add.text(s.x, TAG_Y[id], name, { fontFamily: font, fontSize: "4.2px", fontStyle: "600", color: t.paper, resolution: 8 })
+          .setOrigin(0.5, 0.5).setDepth(6);
+        const box = this.add.graphics().setDepth(5);
+        this.tags[id] = { box, text };
+      }
+      this.paintTags();
+    }
+    paintTags() {
+      for (const [id, { box, text }] of Object.entries(this.tags)) {
+        const active = id === this.speaker;
+        const w = text.width + 4, h = 6.2;
+        box.clear();
+        box.fillStyle(hex(active ? t.highlight : t.bubbleInk), active ? 1 : 0.82);
+        box.fillRoundedRect(text.x - w / 2, text.y - h / 2, w, h, 1.8);
+        text.setColor(active ? t.bubbleInk : t.bubble);
+      }
     }
     talk(id: string, on: boolean) {
       const s = this.sprites[id]; if (!s) return;
@@ -147,12 +213,22 @@ export function mountCourt(Phaser: any, el: HTMLElement, opts: MountOptions): Co
       let open = false;
       s.talkTimer = this.time.addEvent({ delay: 120, loop: true, callback: () => { open = !open; s.setTexture(id + (open ? "_talk" : "_idle")); } });
     }
+    /** Current speaker: highlight the nametag, show the speech bubble, ease the camera onto them (null = wide shot). */
     focus(id: string | null) {
+      const s = id ? this.sprites[id] : null;
+      const next = s ? id : null;
+      if (next === this.speaker) return;
+      this.speaker = next;
+      this.paintTags();
+      this.showSpeech(next);
       if (reduce) return;
-      const cam = this.cameras.main; const s = id && this.sprites[id];
-      if (!s) { cam.pan(W / 2, H / 2, 300, "Sine.easeInOut"); cam.zoomTo(1, 300); return; }
-      cam.pan(Phaser.Math.Clamp(s.x, 130, 190), Phaser.Math.Clamp(s.baseY - 20, 70, 110), 300, "Sine.easeInOut");
-      cam.zoomTo(1.18, 300);
+      const cam = this.cameras.main;
+      if (!s) { cam.pan(W / 2, H / 2, 650, "Sine.easeInOut", true); cam.zoomTo(ZOOM, 650, "Sine.easeInOut", true); return; }
+      // keep the zoomed view inside the room
+      const halfW = (W * ZOOM) / FOCUS_ZOOM / 2, halfH = (H * ZOOM) / FOCUS_ZOOM / 2;
+      const x = Phaser.Math.Clamp(s.x, halfW, W - halfW), y = Phaser.Math.Clamp(s.baseY - 12, halfH, H - halfH);
+      cam.pan(x, y, 650, "Sine.easeInOut", true);
+      cam.zoomTo(FOCUS_ZOOM, 650, "Sine.easeInOut", true);
     }
     react(id: string, kind: string) {
       const s = this.sprites[id]; if (!s) return;
@@ -169,8 +245,8 @@ export function mountCourt(Phaser: any, el: HTMLElement, opts: MountOptions): Co
     ambient() {
       const ids = ["judge", "plaintiff_rep", "defendant_rep", "plaintiff", "expert"]; let i = 0;
       this.time.addEvent({ delay: 2600, loop: true, callback: () => {
-        const id = ids[i++ % ids.length]; this.talk(id, true);
-        this.time.delayedCall(1300, () => this.talk(id, false));
+        const id = ids[i++ % ids.length]; this.talk(id, true); this.showSpeech(id);
+        this.time.delayedCall(1300, () => { this.talk(id, false); this.showSpeech(null); });
         if (i % 5 === 0) this.time.delayedCall(1500, () => this.gavel());
         if (i % 4 === 2) this.react("defendant_rep", "object");
       } });
@@ -178,11 +254,13 @@ export function mountCourt(Phaser: any, el: HTMLElement, opts: MountOptions): Co
   }
 
   const game = new Phaser.Game({
-    type: Phaser.AUTO, parent: el, width: W, height: H, pixelArt: true, backgroundColor: t.bg, banner: false,
+    // smoothPixelArt: blocky pixels with smooth edges, so non-integer camera zooms and pans don't shimmer
+    type: Phaser.AUTO, parent: el, width: W * ZOOM, height: H * ZOOM, smoothPixelArt: true, backgroundColor: t.bg, banner: false,
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, scene: CourtScene,
   });
   const call = (fn: string, ...a: unknown[]) => (scene ? scene[fn](...a) : queue.push([fn, a]));
   return {
+    setNames: (names) => call("setNames", names),
     talk: (id, on) => call("talk", id, on),
     focus: (id) => call("focus", id),
     react: (id, k) => call("react", id, k),

@@ -1,28 +1,46 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { useSettings } from "@/store/settings";
 import type { CourtApi } from "@/store/game";
-import type { MountOptions } from "./courtroom";
+import type { CourtHandle, MountOptions } from "./courtroom";
+
+type Props = Omit<MountOptions, "motion" | "fontFamily"> & {
+  onReady?: (api: CourtApi | null) => void;
+  /** nametags: character id -> display name (localized) */
+  names?: Record<string, string>;
+  className?: string;
+  label?: string;
+};
 
 /**
  * Client-only Phaser mount. Phaser is imported inside the effect, so it never runs on the server
  * and is code-split away from pages without a courtroom. The game is destroyed on unmount (spec §5).
  */
-export function Court({ theme, mode, onClick, onReady, className, label }: MountOptions & { onReady?: (api: CourtApi | null) => void; className?: string; label?: string }) {
+export function Court({ theme, mode, onClick, onReady, names, className, label }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<CourtHandle | null>(null);
   const clickRef = useRef(onClick);
   const readyRef = useRef(onReady);
-  useEffect(() => { clickRef.current = onClick; readyRef.current = onReady; });
+  const namesRef = useRef(names);
+  const motion = useSettings((s) => s.motion);
+  const family = useSettings((s) => s.family);
+  useEffect(() => { clickRef.current = onClick; readyRef.current = onReady; namesRef.current = names; });
 
   useEffect(() => {
     let destroyed = false;
-    let handle: (CourtApi & { destroy(): void }) | null = null;
-    Promise.all([import("phaser"), import("./courtroom")]).then(([Phaser, { mountCourt }]) => {
+    Promise.all([import("phaser"), import("./courtroom"), document.fonts?.ready]).then(([Phaser, { mountCourt }]) => {
       if (destroyed || !ref.current) return;
-      handle = mountCourt(Phaser.default ?? Phaser, ref.current, { theme, mode, onClick: (id) => clickRef.current?.(id) });
+      const fontFamily = getComputedStyle(document.body).fontFamily;
+      const handle = mountCourt(Phaser.default ?? Phaser, ref.current, { theme, mode, motion, fontFamily, onClick: (id) => clickRef.current?.(id) });
+      handleRef.current = handle;
+      if (namesRef.current) handle.setNames(namesRef.current);
       readyRef.current?.(handle);
     });
-    return () => { destroyed = true; readyRef.current?.(null); handle?.destroy(); };
-  }, [theme, mode]);
+    return () => { destroyed = true; readyRef.current?.(null); handleRef.current?.destroy(); handleRef.current = null; };
+    // the font family is read at mount; remount when the user changes it
+  }, [theme, mode, motion, family]);
+
+  useEffect(() => { if (names) handleRef.current?.setNames(names); }, [names]);
 
   return <div ref={ref} className={"court-canvas " + (className ?? "")} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true} />;
 }
