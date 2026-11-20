@@ -26,22 +26,21 @@ documents:
       - language: "ru"
         file: "raw/CONST_ru_2026-11-20.html"
         source_url: "https://lex.uz/docs/6445147"
-        effective_from: 2026-07-25  # предложено автоматически, проверить на lex.uz
+        effective_from: 2026-07-25  # сверено 21.11.2026: редакция, открытая на lex.uz на дату скачивания
         # на странице открыта редакция «25.07.2026»
         effective_to: null
-        is_official_text: null
+        is_official_text: false  # lex.uz помечает русский текст как «Неофициальный перевод»
         retrieved_at: 2026-11-20
-        verified_by: null
+        verified_by: "A.M."
       - language: "uz-Latn"
         file: "raw/CONST_uz-Latn_2026-11-20.html"
         source_url: "https://lex.uz/docs/-6445145"
-        effective_from: 2026-07-25  # предложено автоматически, проверить на lex.uz
+        effective_from: 2026-07-25  # сверено 21.11.2026: редакция, открытая на lex.uz на дату скачивания
         # на странице открыта редакция «25.07.2026»
         effective_to: null
-        is_official_text: null
+        is_official_text: false  # официальный текст — узбекская кириллица; латиница не подтверждена как официальная
         retrieved_at: 2026-11-20
-        verified_by: null
-
+        verified_by: "A.M."
   - document_key: "CC1"
     title:
       ru: "Гражданский кодекс Республики Узбекистан (часть первая)"
@@ -59,22 +58,21 @@ documents:
       - language: "ru"
         file: "raw/CC1_ru_2026-11-20.html"
         source_url: "https://lex.uz/docs/111181"
-        effective_from: 2026-09-12  # предложено автоматически, проверить на lex.uz
+        effective_from: 2026-09-12  # сверено 21.11.2026: редакция, открытая на lex.uz на дату скачивания
         # на странице открыта редакция «12.09.2026»; в списке есть более поздние (ещё не действуют): 28.01.2027
         effective_to: null
-        is_official_text: null
+        is_official_text: false  # lex.uz помечает русский текст как «Неофициальный перевод»
         retrieved_at: 2026-11-20
-        verified_by: null
+        verified_by: "A.M."
       - language: "uz-Latn"
         file: "raw/CC1_uz-Latn_2026-11-20.html"
         source_url: "https://lex.uz/docs/-111189"
-        effective_from: 2026-09-12  # предложено автоматически, проверить на lex.uz
+        effective_from: 2026-09-12  # сверено 21.11.2026: редакция, открытая на lex.uz на дату скачивания
         # на странице открыта редакция «12.09.2026 01»; в списке есть более поздние (ещё не действуют): 28.01.2027
         effective_to: null
-        is_official_text: null
+        is_official_text: false  # официальный текст — узбекская кириллица; латиница не подтверждена как официальная
         retrieved_at: 2026-11-20
-        verified_by: null
-
+        verified_by: "A.M."
   - document_key: "CC2"
     title:
       ru: "Гражданский кодекс Республики Узбекистан (часть вторая)"
@@ -92,22 +90,21 @@ documents:
       - language: "ru"
         file: "raw/CC2_ru_2026-11-20.html"
         source_url: "https://lex.uz/docs/180550"
-        effective_from: 2026-08-08  # предложено автоматически, проверить на lex.uz
+        effective_from: 2026-08-08  # сверено 21.11.2026: редакция, открытая на lex.uz на дату скачивания
         # на странице открыта редакция «08.08.2026»
         effective_to: null
-        is_official_text: null
+        is_official_text: false  # lex.uz помечает русский текст как «Неофициальный перевод»
         retrieved_at: 2026-11-20
-        verified_by: null
+        verified_by: "A.M."
       - language: "uz-Latn"
         file: "raw/CC2_uz-Latn_2026-11-20.html"
         source_url: "https://lex.uz/docs/-180552"
-        effective_from: 2026-07-19  # предложено автоматически, проверить на lex.uz
+        effective_from: 2026-07-19  # сверено 21.11.2026: редакция, открытая на lex.uz на дату скачивания
         # на странице открыта редакция «19.07.2026»
         effective_to: null
-        is_official_text: null
+        is_official_text: false  # официальный текст — узбекская кириллица; латиница не подтверждена как официальная
         retrieved_at: 2026-11-20
-        verified_by: null
-
+        verified_by: "A.M."
   - document_key: "CPC"
     title:
       ru: "Гражданский процессуальный кодекс Республики Узбекистан"
@@ -125,22 +122,21 @@ documents:
       - language: "ru"
         file: "raw/CPC_ru_2026-11-20.html"
         source_url: "https://lex.uz/docs/3517334"
-        effective_from: 2026-09-12  # предложено автоматически, проверить на lex.uz
+        effective_from: 2026-09-12  # сверено 21.11.2026: редакция, открытая на lex.uz на дату скачивания
         # на странице открыта редакция «12.09.2026 02»; в списке есть более поздние (ещё не действуют): 28.01.2027
         effective_to: null
-        is_official_text: null
+        is_official_text: false  # lex.uz помечает русский текст как «Неофициальный перевод»
         retrieved_at: 2026-11-20
-        verified_by: null
+        verified_by: "A.M."
       - language: "uz-Latn"
         file: "raw/CPC_uz-Latn_2026-11-20.html"
         source_url: "https://lex.uz/docs/-3517337"
-        effective_from: 2026-09-12  # предложено автоматически, проверить на lex.uz
+        effective_from: 2026-09-12  # сверено 21.11.2026: редакция, открытая на lex.uz на дату скачивания
         # на странице открыта редакция «12.09.2026 02»; в списке есть более поздние (ещё не действуют): 28.01.2027
         effective_to: null
-        is_official_text: null
+        is_official_text: false  # официальный текст — узбекская кириллица; латиница не подтверждена как официальная
         retrieved_at: 2026-11-20
-        verified_by: null
-
+        verified_by: "A.M."
   - document_key: "CPRL"
     title:
       ru: "О защите прав потребителей"
@@ -156,18 +152,18 @@ documents:
       - language: "ru"
         file: "raw/CPRL_ru_2026-11-20.html"
         source_url: "https://lex.uz/docs/14643"
-        effective_from: 2026-01-19  # предложено автоматически, проверить на lex.uz
+        effective_from: 2026-01-19  # сверено 21.11.2026: редакция, открытая на lex.uz на дату скачивания
         # на странице открыта редакция «19.01.2026»
         effective_to: null
-        is_official_text: null
+        is_official_text: false  # lex.uz помечает русский текст как «Неофициальный перевод»
         retrieved_at: 2026-11-20
-        verified_by: null
+        verified_by: "A.M."
       - language: "uz-Latn"
         file: "raw/CPRL_uz-Latn_2026-11-20.html"
         source_url: "https://lex.uz/docs/-4704"
-        effective_from: 2026-02-02  # предложено автоматически, проверить на lex.uz
+        effective_from: 2026-02-02  # сверено 21.11.2026: редакция, открытая на lex.uz на дату скачивания
         # на странице открыта редакция «02.02.2026»
         effective_to: null
-        is_official_text: null
+        is_official_text: false  # официальный текст — узбекская кириллица; латиница не подтверждена как официальная
         retrieved_at: 2026-11-20
-        verified_by: null
+        verified_by: "A.M."
