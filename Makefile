@@ -1,7 +1,9 @@
 PY ?= backend/.venv/bin/python
 BACKEND_PORT ?= 8001
+DEMO_PORT ?= 8002
+DEMO_DB_URL ?= postgresql+psycopg://adolat:adolat@localhost:5433/adolat_demo
 
-.PHONY: db-up migrate dev test api-client
+.PHONY: db-up migrate dev test api-client demo demo-reset
 
 db-up:
 	docker compose up -d db
@@ -20,6 +22,17 @@ dev:
 
 test: db-up
 	cd backend && .venv/bin/pytest -q
+
+# Local demo: separate DB adolat_demo with TEST legal data + the test case scenario.
+# LLM settings (LLM_PROVIDER=ollama etc.) come from .env. Swagger: http://localhost:$(DEMO_PORT)/docs
+demo: db-up
+	cd backend && DATABASE_URL=$(DEMO_DB_URL) .venv/bin/python scripts/demo_seed.py
+	@echo "Swagger: http://localhost:$(DEMO_PORT)/docs   (Ctrl+C to stop)"
+	cd backend && DATABASE_URL=$(DEMO_DB_URL) SCENARIOS_DIR=tests/fixtures/scenarios \
+		.venv/bin/uvicorn app.main:app --reload --port $(DEMO_PORT)
+
+demo-reset:
+	docker compose exec -T db psql -U adolat -d postgres -c "DROP DATABASE IF EXISTS adolat_demo"
 
 api-client:
 	@command -v npx >/dev/null 2>&1 || { echo "npx не найден: установите Node.js, чтобы сгенерировать TS-клиент" >&2; exit 1; }
