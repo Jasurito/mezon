@@ -86,3 +86,25 @@ VM_SRC ?= /opt/mezon/src
 scenarios-upload:
 	rsync -az --exclude '.DS_Store' --exclude 'README.md' --exclude 'uz_review.json' scenarios/ $(VM_HOST):$(VM_SRC)/scenarios/
 	@echo "Дела залиты в $(VM_HOST):$(VM_SRC)/scenarios. Перезапустите бэкенд на сервере: systemctl restart mezon-backend"
+
+# Озвучка реплик (docs/TTS.md). Нужен extra: cd backend && pip install -e ".[tts]".
+# tts-voices: кто каким голосом говорит; tts-build: синтез изменённых реплик в backend/.tts-out;
+# tts-upload: туннель к RustFS на vm1 (ключи из /etc/mezon/storage.env, нужен root по SSH), заливка, рестарт бэкенда.
+TTS_VM_ROOT ?= root@vm1.modeus.cc
+TTS_TUNNEL_PORT ?= 19000
+TTS_SCENARIOS ?= ../scenarios
+.PHONY: tts-voices tts-build tts-upload
+tts-voices:
+	cd backend && .venv/bin/python -m app.tts voices --scenarios $(TTS_SCENARIOS)
+
+tts-build:
+	cd backend && .venv/bin/python -m app.tts build --scenarios $(TTS_SCENARIOS) $(ARGS)
+
+tts-upload:
+	@ssh -f -o ExitOnForwardFailure=yes -L $(TTS_TUNNEL_PORT):127.0.0.1:9000 $(TTS_VM_ROOT) sleep 30
+	@cd backend && creds="$$(ssh $(TTS_VM_ROOT) cat /etc/mezon/storage.env)" && \
+		export TTS_S3_ENDPOINT=http://127.0.0.1:$(TTS_TUNNEL_PORT) \
+			TTS_S3_ACCESS_KEY="$$(printf '%s\n' "$$creds" | sed -n 's/^RUSTFS_ACCESS_KEY=//p')" \
+			TTS_S3_SECRET_KEY="$$(printf '%s\n' "$$creds" | sed -n 's/^RUSTFS_SECRET_KEY=//p')" && \
+		.venv/bin/python -m app.tts init-bucket && .venv/bin/python -m app.tts upload $(ARGS)
+	ssh $(TTS_VM_ROOT) systemctl restart mezon-backend

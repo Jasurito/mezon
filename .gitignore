@@ -20,6 +20,10 @@ legal_data/processed/embeddings_cache/
 # Ingestion: промежуточные JSONL (пересобираются командой make ingest ARGS="run"); отчёты остаются в git
 legal_data/processed/*.jsonl
 
+# Озвучка: веса моделей и собранные MP3 (заливаются в хранилище make tts-upload, docs/TTS.md)
+backend/.tts-out/
+backend/.tts-models/
+
 # Дела хранятся вне git, на сервер заливаются make scenarios-upload
 scenarios/*
 !scenarios/README.md

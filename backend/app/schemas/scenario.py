@@ -16,6 +16,8 @@ ActionKind = Literal[
     "question", "evidence", "motion", "objection", "argument", "decision", "continue"
 ]
 ResultKind = Literal["win", "partial", "loss", "settlement", "procedural_loss"]
+# voice of a character in the pre-generated speech (app/tts); usually inferred from the name, see app/tts/voices.py
+VoiceGender = Literal["male", "female"]
 DecisionKind = Literal["action", "reasoning", "prediction"]
 Skill = Literal["procedure", "evidence", "substantive_law", "remedy_choice"]
 SKILLS: tuple[str, ...] = ("procedure", "evidence", "substantive_law", "remedy_choice")
@@ -196,6 +198,7 @@ class Character(_Model):
     sprite: str
     name_key: str
     role_key: str
+    voice: VoiceGender | None = None  # override; empty = inferred from the name / role text
 
 
 class Evidence(_Model):
@@ -324,6 +327,7 @@ class Scenario(_Model):
     intro: Intro
     citations: list[str]
     characters: list[Character]
+    narrator_voice: VoiceGender = "female"  # speaker "narrator" is not a character
     evidence: list[Evidence]
     facts: list[Fact]
     npc_questions: list[NpcQuestion] = []

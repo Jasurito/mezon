@@ -18,6 +18,7 @@ from app.scenarios.registry import Registry, get_registry
 from app.schemas.npc import NpcAnswer, NpcAskRequest
 from app.services import game
 from app.services.clock import get_now
+from app.tts.catalog import audio_for
 
 router = APIRouter(tags=["npc"])
 
@@ -77,6 +78,12 @@ def ask_npc(
         history.add_activity,
         make_activity(r.session.user_id, "npc_question", now, r.session.id, npc_payload),
     )
+    question = next((q for q in sc.npc_questions if q.question_id == res.question_id), None)
+    audio = (
+        audio_for(r.loaded, character_id, question.answer_key, locale)
+        if question is not None and not res.ai_generated
+        else None
+    )
     return NpcAnswer(
         speaker=character_id,
         text=res.text,
@@ -84,4 +91,6 @@ def ask_npc(
         fact_ids=res.fact_ids,
         ai_generated=res.ai_generated,
         suggested_action_id=suggested if suggested in available else None,
+        audio_url=audio.url if audio else None,
+        audio_duration_ms=audio.duration_ms if audio else None,
     )

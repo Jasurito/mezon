@@ -27,6 +27,26 @@ services:
       timeout: 5s
       retries: 20
 
+  # S3 storage for the pre-generated speech (same image as vm1, deploy/vm1/storage). Console: http://localhost:9001
+  storage:
+    image: rustfs/rustfs:1.0.6
+    environment:
+      RUSTFS_ACCESS_KEY: adolat
+      RUSTFS_SECRET_KEY: adolat-dev-secret
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - storagedata:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health/ready"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
   backend:
     build: ./backend
     env_file:
@@ -37,6 +57,9 @@ services:
       MONGO_URL: mongodb://mongo:27017
       SCENARIOS_DIR: /app/scenarios
       SEED_PATH: /seed/seed.sql.gz
+      # speech: fill the bucket with TTS_S3_ENDPOINT=http://localhost:9000 python -m app.tts init-bucket / upload
+      AUDIO_PUBLIC_BASE_URL: http://localhost:9000/mezon-audio
+      AUDIO_MANIFEST_BASE_URL: http://storage:9000/mezon-audio
     volumes:
       - ./scenarios:/app/scenarios:ro
       - ./legal_data:/seed:ro
@@ -63,3 +86,4 @@ services:
 volumes:
   pgdata:
   mongodata:
+  storagedata:

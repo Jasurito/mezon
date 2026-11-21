@@ -48,6 +48,11 @@ class Settings(BaseSettings):
     SEED_PATH: Path | None = None
     STRICT_CITATIONS: bool = True
 
+    # --- pre-generated character speech (app/tts, docs/TTS.md). Empty AUDIO_PUBLIC_BASE_URL = text only.
+    AUDIO_PUBLIC_BASE_URL: str | None = None  # what browsers load, e.g. https://mezon.modeus.cc/audio
+    AUDIO_MANIFEST_BASE_URL: str | None = None  # bucket as the backend sees it, e.g. http://mezon-storage:9000/mezon-audio
+    AUDIO_MANIFEST_TIMEOUT: float = 3
+
     # --- авторизация (см. app/auth)
     COOKIE_SECURE: bool = True  # Secure у cookie сессии; false только для локальной разработки по http
     SESSION_TTL_DAYS: int = 30
@@ -61,7 +66,8 @@ class Settings(BaseSettings):
     GOOGLE_REDIRECT_URI: str | None = None  # по умолчанию PUBLIC_BASE_URL + /api/auth/google/callback
 
     @field_validator("ANTHROPIC_API_KEY", "EMBEDDER", "MONGO_URL", "SEED_PATH", "RERANK_TIMEOUT",
-        "PUBLIC_BASE_URL", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI", mode="before")
+        "PUBLIC_BASE_URL", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI",
+        "AUDIO_PUBLIC_BASE_URL", "AUDIO_MANIFEST_BASE_URL", mode="before")
     @classmethod
     def _empty_to_none(cls, v):
         if isinstance(v, str) and not v.strip():

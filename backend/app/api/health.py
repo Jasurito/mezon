@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
 from app.db import get_db
+from app.tts.catalog import audio_lines
 
 router = APIRouter(tags=["service"])
 
@@ -17,6 +18,7 @@ class HealthResponse(BaseModel):
     scenarios: int
     llm_configured: bool
     embedder: str | None
+    audio_lines: int = 0  # pre-generated speech lines loaded from storage (0 = text only)
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -50,4 +52,5 @@ def health(
         scenarios=len(getattr(request.app.state, "scenarios", {})),
         llm_configured=settings.llm_configured,
         embedder=settings.EMBEDDER,
+        audio_lines=sum(audio_lines(s) for s in getattr(request.app.state, "scenarios", {}).values()),
     )

@@ -179,6 +179,22 @@
         "role_key": {
           "title": "Role Key",
           "type": "string"
+        },
+        "voice": {
+          "anyOf": [
+            {
+              "enum": [
+                "male",
+                "female"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Voice"
         }
       },
       "required": [
@@ -1195,6 +1211,15 @@
       },
       "title": "Characters",
       "type": "array"
+    },
+    "narrator_voice": {
+      "default": "female",
+      "enum": [
+        "male",
+        "female"
+      ],
+      "title": "Narrator Voice",
+      "type": "string"
     },
     "evidence": {
       "items": {

@@ -25,6 +25,13 @@ dependencies = [
 dev = [
     "pytest>=8.2",
 ]
+# speech build tool only (python -m app.tts build/upload); never installed in the backend image
+tts = [
+    "torch>=2.4",
+    "numpy>=1.26",
+    "lameenc>=1.7",
+    "boto3>=1.34",
+]
 
 [build-system]
 requires = ["setuptools>=69"]

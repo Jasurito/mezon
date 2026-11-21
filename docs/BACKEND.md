@@ -102,7 +102,9 @@ make api-client                     # регенерировать TS-клиен
 }
 
 // GameEvent: что произошло после действия, фронт проигрывает это по очереди
-{ "type": "say",            "speaker": "judge", "text": "...", "emotion": "neutral" }
+{ "type": "say",            "speaker": "judge", "text": "...", "emotion": "neutral",
+  "audio_url": "https://mezon.modeus.cc/audio/scenarios/<id>/ru/judge/<text_key>.mp3?v=<hash>", "audio_duration_ms": 4210 }
+                            // audio_url: заранее озвученная реплика, null = только текст (docs/TTS.md)
 { "type": "react",          "character": "defendant", "reaction": "object" }      // nod | object | surprised | think
 { "type": "stage_changed",  "stage": "DEBATE", "title": "Судебные прения" }
 { "type": "evidence_added", "evidence_id": "expert_report" }
@@ -241,6 +243,13 @@ make api-client                     # регенерировать TS-клиен
     { "document_key": "CPC",  "title": "Гражданский процессуальный кодекс Республики Узбекистан", "source_url": "https://lex.uz/docs/<id>" }
   ]
 }
+```
+
+#### `GET /api/scenarios/{scenario_id}/audio?locale=`
+Заранее озвученные реплики дела, чтобы фронт мог предзагрузить их при открытии дела (docs/TTS.md). Пустой список — дело без звука.
+```jsonc
+// 200 OK
+[ { "speaker": "judge", "text_key": "line.case_review", "url": "https://mezon.modeus.cc/audio/scenarios/<id>/ru/judge/line.case_review.mp3?v=3f9a1c2e4b5d", "duration_ms": 4210 } ]
 ```
 
 ### 5.4 Тесты (до и после игры)
@@ -558,7 +567,12 @@ make api-client                     # регенерировать TS-клиен
 // 200 OK (LLM недоступен или вопрос не распознан → заготовленная реплика)
 { "speaker": "plaintiff", "text": "Извините, я не понял вопрос. Спросите, пожалуйста, иначе.",
   "question_id": "unknown", "fact_ids": [], "ai_generated": false }
+
+// 200 OK (без LLM: заготовленный ответ на вопрос из списка — у него есть озвучка, docs/TTS.md)
+{ "speaker": "plaintiff", "text": "...", "question_id": "q_defect_date", "fact_ids": ["F_DEFECT_DATE"], "ai_generated": false,
+  "audio_url": "https://mezon.modeus.cc/audio/scenarios/<id>/ru/plaintiff/<answer_key>.mp3?v=<hash>", "audio_duration_ms": 5120 }
 ```
+`audio_url` есть только у заготовленного ответа (`ai_generated: false`, вопрос распознан); у ответа LLM и «спросите иначе» — `null`.
 
 ### 5.7 Правовая база
 

@@ -20,6 +20,7 @@ from app.db import get_db
 from app.errors import install_error_handlers
 from app.history import build_store
 from app.scenarios.registry import load_registry
+from app.tts.catalog import attach_audio
 
 
 def _db_opener(app: FastAPI):
@@ -46,6 +47,8 @@ async def lifespan(app: FastAPI):
     settings = app.dependency_overrides.get(get_settings, get_settings)()
     # Ошибки схемы и отсутствующие ссылки на закон: исключение, сервер не стартует.
     app.state.scenarios = load_registry(settings, _db_opener(app))
+    # pre-generated speech; storage down = text only, never a startup failure
+    attach_audio(app.state.scenarios, settings)
     history = build_store(settings)
     history.ensure_indexes()  # create_index идемпотентен; недоступная Mongo только логируется
     app.state.history = history

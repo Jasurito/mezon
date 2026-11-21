@@ -11,7 +11,8 @@ vm1
   /usr/local/sbin/mezon-deploy   build image on the host, keep :previous, systemctl restart, health check, rollback
   systemd: mezon-db.service (Postgres) ─┐
            mezon-mongo.service (history) ┴> mezon-backend.service (127.0.0.1:8000)    mezon-frontend.service (127.0.0.1:3000)
-  nginx:   https://mezon.modeus.cc  /api/* -> :8000, everything else -> :3000
+  docker compose: /opt/mezon/storage (RustFS S3, container mezon-storage, 127.0.0.1:9000 API / :9001 console)
+  nginx:   https://mezon.modeus.cc  /api/* -> :8000, /audio/*.mp3 -> bucket mezon-audio, everything else -> :3000
 ```
 
 Only the parts that changed are deployed: `frontend/**` → frontend, `backend/**`, `scenarios/**` and `legal_data/**` → backend, `deploy/**` → both.
@@ -26,6 +27,7 @@ To deploy by hand: Actions → **CI/CD** → **Run workflow**, then pick all, fr
 | `env/backend.env.example` | appended to `/etc/mezon/backend.env` (secrets, `chmod 600`, never in git) |
 | `env/frontend.build.env.example` | `/etc/mezon/frontend.build.env` (`NEXT_PUBLIC_API_MODE=mock\|live`, `NEXT_PUBLIC_GOOGLE_AUTH`); missing keys are appended |
 | `nginx/mezon.modeus.cc.conf` | reference for `/etc/nginx/sites-available/mezon.modeus.cc` (certbot adds TLS) |
+| `storage/docker-compose.yml`, `storage/mezon-audio.policy.json` | `/opt/mezon/storage/` (RustFS; root credentials in `/etc/mezon/storage.env`). Official MinIO images are no longer published, RustFS is S3-compatible |
 | `bootstrap.sh` | one-time setup, idempotent |
 
 CI only syncs source code. **Changes to units or `mezon-deploy` need a root re-run of `bootstrap.sh`** on vm1. That is on purpose: CI can't change what runs as root.

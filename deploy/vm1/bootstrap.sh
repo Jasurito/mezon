@@ -5,7 +5,8 @@
 #
 # Creates: user "deploy" (SSH key restricted, can only sudo /usr/local/sbin/mezon-deploy),
 # /opt/mezon/src (rsync target), /etc/mezon/*.env (secrets, generated once, never in git),
-# systemd units mezon-db / mezon-mongo / mezon-backend / mezon-frontend.
+# systemd units mezon-db / mezon-mongo / mezon-backend / mezon-frontend,
+# /opt/mezon/storage (RustFS object storage for TTS audio, docker compose).
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PUBKEY="${1:-}"
@@ -66,5 +67,15 @@ install -m 644 "$HERE"/systemd/mezon-*.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable mezon-db.service mezon-mongo.service mezon-backend.service mezon-frontend.service >/dev/null
 systemctl start mezon-db.service mezon-mongo.service
+
+# 6. object storage for the TTS audio (RustFS, docker compose project "mezon-storage", restart: unless-stopped)
+if [ ! -f /etc/mezon/storage.env ]; then
+  printf 'RUSTFS_ACCESS_KEY=mezon\nRUSTFS_SECRET_KEY=%s\n' "$(openssl rand -hex 24)" > /etc/mezon/storage.env
+  chmod 600 /etc/mezon/storage.env
+fi
+install -d -m 755 /opt/mezon/storage
+install -m 644 "$HERE/storage/docker-compose.yml" "$HERE/storage/mezon-audio.policy.json" /opt/mezon/storage/
+docker network create mezon >/dev/null 2>&1 || true
+(cd /opt/mezon/storage && docker compose up -d)
 
 echo "bootstrap done. Next: CI rsyncs the repo to /opt/mezon/src and runs 'sudo mezon-deploy all'."

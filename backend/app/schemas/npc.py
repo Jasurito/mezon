@@ -16,6 +16,9 @@ class NpcAnswer(BaseModel):
     fact_ids: list[str]
     ai_generated: bool
     suggested_action_id: str | None = None
+    # pre-generated speech of the scripted answer; null for AI-written answers and "please rephrase"
+    audio_url: str | None = None
+    audio_duration_ms: int | None = None
 
 
 class NpcReply(BaseModel):

@@ -17,6 +17,9 @@ from app.i18n.translit import lat_to_cyr_display as t
         ("«Nur Elektroniks» doʻkoni", "«Нур Электроникс» дўкони"),
         ("Yer, yosh, yuz, ming, choy, Shahar, gʻoya, SHAXS", "Ер, ёш, юз, минг, чой, Шаҳар, ғоя, ШАХС"),
         ("Kirill: уже кириллица", "Кирилл: уже кириллица"),
+        ("Yoʻq, yoʻl yopiq", "Йўқ, йўл ёпиқ"),
+        ("Sudya qaror qildi", "Судья қарор қилди"),
+        ("şartnoma, köz, ğalaba, çoy", "шартнома, кўз, ғалаба, чой"),
     ],
 )
 def test_lat_to_cyr_display(src, expected):

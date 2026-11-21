@@ -31,6 +31,8 @@ class LoadedScenario:
     quiz: Quiz | None = None
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    # pre-generated speech: lang -> {"<speaker>/<text_key>": manifest entry}, filled by app.tts.catalog.attach_audio
+    audio: dict[str, dict[str, dict]] = field(default_factory=dict)
 
 
 def _read_json(path: Path):

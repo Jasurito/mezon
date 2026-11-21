@@ -1,0 +1,42 @@
+# Mezon object storage: RustFS (S3-compatible) for the pre-generated TTS audio (bucket "mezon-audio").
+# Official MinIO images are no longer published, so RustFS takes its place; any S3 client works with it.
+#
+# Installed by bootstrap.sh to /opt/mezon/storage and started there:  docker compose up -d
+# Joins the "mezon" network of the systemd services, so the backend reaches it as http://mezon-storage:9000.
+# Ports are bound to 127.0.0.1 only: S3 API on 9000 (uploads go through an SSH tunnel), web console on 9001.
+# Public read goes through nginx (/audio/ -> bucket, GET only). Root credentials: /etc/mezon/storage.env.
+name: mezon-storage
+
+services:
+  storage:
+    image: rustfs/rustfs:1.0.6
+    container_name: mezon-storage
+    restart: unless-stopped
+    env_file: /etc/mezon/storage.env
+    environment:
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+    # The image's own bucket bootstrap is broken in 1.0.6 (its bundled CLI lacks Public Access Block),
+    # so the bucket and mezon-audio.policy.json are applied over S3 by `python -m app.tts init-bucket`.
+    volumes:
+      - mezon-storagedata:/data
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    # the VM has 3.7 GB shared with Postgres, MongoDB, backend and frontend
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+    networks: [mezon]
+
+networks:
+  mezon:
+    external: true
+
+volumes:
+  mezon-storagedata:
+    name: mezon-storagedata

@@ -85,6 +85,8 @@ class SayEvent(BaseModel):
     speaker: str
     text: str
     emotion: str = "neutral"
+    audio_url: str | None = Field(None, description="Pre-generated speech (MP3); null = text only")
+    audio_duration_ms: int | None = None
 
 
 class ReactEvent(BaseModel):
@@ -256,6 +258,15 @@ class ScenarioDetail(BaseModel):
     legal_acts: list[LegalActView]
     kind: Literal["court", "situation"] = "court"
     scoring: ScenarioScoring
+
+
+class AudioLineView(BaseModel):
+    """One pre-generated line of a scenario: the client may preload these when the case opens."""
+
+    speaker: str
+    text_key: str
+    url: str
+    duration_ms: int
 
 
 # --------------------------------------------------------------------------- результат

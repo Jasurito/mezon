@@ -12,6 +12,7 @@ from app.scenarios.loader import LoadedScenario
 from app.schemas import api
 from app.schemas.legal import CitationView, Locale
 from app.schemas.scenario import SKILLS
+from app.tts.catalog import audio_for
 
 
 def stage_index(loaded: LoadedScenario, stage_id: str) -> int:
@@ -29,7 +30,16 @@ def present_events(
     out: list = []
     for e in events:
         if e.type == "say":
-            out.append(api.SayEvent(speaker=e.speaker, text=translate(loaded, e.text_key, locale), emotion=e.emotion))
+            audio = audio_for(loaded, e.speaker, e.text_key, locale)
+            out.append(
+                api.SayEvent(
+                    speaker=e.speaker,
+                    text=translate(loaded, e.text_key, locale),
+                    emotion=e.emotion,
+                    audio_url=audio.url if audio else None,
+                    audio_duration_ms=audio.duration_ms if audio else None,
+                )
+            )
         elif e.type == "react":
             out.append(api.ReactEvent(character=e.character, reaction=e.reaction))
         elif e.type == "stage_changed":
