@@ -59,7 +59,7 @@ export default function CasePage() {
             })}
           </ul>
         </section>
-        <section className="mt-8" aria-labelledby="claims">
+        {data.claims.length > 0 && <section className="mt-8" aria-labelledby="claims">
           <h2 id="claims" className="mb-3 text-lg font-bold text-gold">{t("claims")}</h2>
           <dl className="grid gap-3">
             {data.claims.map((c) => (
@@ -68,7 +68,7 @@ export default function CasePage() {
               </div>
             ))}
           </dl>
-        </section>
+        </section>}
       </div>
 
       <aside className="space-y-8">

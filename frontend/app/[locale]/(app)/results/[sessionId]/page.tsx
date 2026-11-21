@@ -5,7 +5,8 @@ import { useParams } from "next/navigation";
 import { CitationChip, ErrorState, Loading } from "@/components/common/state";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
-import { api, type DecisionKind, type ResultKind, type SessionResult } from "@/lib/api";
+import { ClaimLetter } from "@/components/common/claim-letter";
+import { api, type CaseAudience, type DecisionKind, type ResultKind, type SessionResult } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/store/user";
 import { useLoad } from "@/hooks/use-load";
@@ -27,12 +28,19 @@ export default function ResultsPage() {
   const router = useRouter();
   const { sessionId } = useParams<{ sessionId: string }>();
   const withUser = useUser((s) => s.withUser);
-  // the result plus the case's legal date (article editions are shown as of that date)
-  const { data, error: failed, retry: load } = useLoad<[SessionResult, string | null]>(
-    () => Promise.all([api.result(sessionId, locale), api.session(sessionId, locale).then((s) => s.legal_date).catch(() => null)]),
+  // the result, the case's legal date (article editions are shown as of that date) and who the case is for
+  const { data, error: failed, retry: load } = useLoad<[SessionResult, { date: string; audience?: CaseAudience } | null]>(
+    () => Promise.all([
+      api.result(sessionId, locale),
+      api.session(sessionId, locale)
+        .then(async (s) => ({ date: s.legal_date, audience: (await api.scenario(s.scenario_id, locale).catch(() => null))?.audience }))
+        .catch(() => null),
+    ]),
     [sessionId, locale],
   );
-  const [r, legalDate] = data ?? [null, null];
+  const [r, meta] = data ?? [null, null];
+  const legalDate = meta?.date ?? null;
+  const lifeSituation = meta?.audience === "public";
 
   async function replay() {
     const s = await withUser((user_id) => api.createSession({ user_id, scenario_id: r!.scenario_id, locale }));
@@ -48,7 +56,7 @@ export default function ResultsPage() {
   return (
     <article className="grid gap-10 lg:grid-cols-[1.5fr_1fr]">
       <div>
-        <p className="text-ink-muted">{t("kicker")}</p>
+        <p className="text-ink-muted">{t(lifeSituation ? "kickerSituation" : "kicker")}</p>
         {label && (
           <p className={cn("result-stamp mt-4", STAMP[kind ?? "settlement"])}>
             <span className="sr-only">{t("resultLabel")}: </span>{label}
@@ -102,6 +110,8 @@ export default function ResultsPage() {
             </ul>
           )}
         </section>
+        {/* life situations end with a real tool: the person's own claim letter to a seller */}
+        {lifeSituation && <ClaimLetter />}
       </div>
 
       <aside className="space-y-8 lg:pt-16">

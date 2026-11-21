@@ -46,3 +46,10 @@
 .case-file.is-highlight { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
 html:not([data-motion="reduced"]) .case-file.is-highlight { animation: case-pulse 1.6s ease-in-out 3; }
 @keyframes case-pulse { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 35%, transparent); } }
+
+/* claim letter (life situations): printing a page that has one prints only the letter, on white paper */
+@media print {
+  body:has(.letter-print) * { visibility: hidden; }
+  body:has(.letter-print) .letter-print, body:has(.letter-print) .letter-print * { visibility: visible; }
+  body:has(.letter-print) .letter-print { position: absolute; inset: 0 0 auto 0; margin: 0; box-shadow: none; background: #fff; color: #000; font-size: 12pt; }
+}

@@ -6,18 +6,29 @@ import { Link } from "@/i18n/navigation";
 import { api, type ScenarioCard } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useLoad } from "@/hooks/use-load";
+import { useUser } from "@/store/user";
 
 export default function CasesPage() {
   const t = useTranslations();
   const locale = useLocale();
   const { data: cards, error: failed, retry: load } = useLoad<ScenarioCard[]>(() => api.scenarios(locale), [locale]);
+  // two tracks: life situations (plain language) and court cases; a lawyer sees court cases first, everyone else
+  // (non-lawyers and guests) sees life situations first
+  const pro = useUser((s) => s.account?.audience === "professional");
+  const tracks = (["public", "professional"] as const)
+    .map((a) => ({ a, items: (cards ?? []).filter((c) => (c.audience ?? "professional") === a) }))
+    .filter((tr) => tr.items.length > 0);
+  if (pro) tracks.reverse();
 
   return (
     <>
       <PageTitle title={t("cases.title")} lead={t("cases.lead")} />
-      {failed ? <ErrorState onRetry={load} /> : !cards ? <Loading /> : (
-        <ul className="grid gap-4 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
-          {cards.map((c) => {
+      {failed ? <ErrorState onRetry={load} /> : !cards ? <Loading /> : tracks.map((tr) => (
+        <section key={tr.a} className="mb-12" aria-labelledby={`track-${tr.a}`}>
+          <h2 id={`track-${tr.a}`} className="text-2xl font-bold">{t(`cases.track_${tr.a}`)}</h2>
+          <p className="mb-5 mt-1 max-w-[62ch] text-ink-muted">{t(`cases.track_${tr.a}_lead`)}</p>
+        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {tr.items.map((c) => {
             const body = (
               <>
                 <span className="text-sm text-ink-muted">{c.category}</span>
@@ -42,7 +53,8 @@ export default function CasesPage() {
             );
           })}
         </ul>
-      )}
+        </section>
+      ))}
     </>
   );
 }
