@@ -104,6 +104,7 @@ jobs:
           pytest -q
           tests/engine/test_golden_paths.py tests/engine/test_transitions.py tests/engine/test_determinism.py
           tests/game/test_api_flow.py tests/game/test_citations_resolve.py tests/game/test_locales.py
+          tests/game/test_evidence_document.py
           tests/mentor/test_mentor_no_ai.py tests/mentor/test_mentor_validation.py
           tests/api/test_health.py tests/api/test_migrations.py
         env:

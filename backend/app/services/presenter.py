@@ -87,6 +87,22 @@ def present_evidence(loaded: LoadedScenario, state: EngineState, locale: Locale)
     ]
 
 
+def build_evidence_document(
+    loaded: LoadedScenario, state: EngineState, evidence_id: str, locale: Locale
+) -> api.EvidenceDocument | None:
+    """Текст улики из материалов дела; None, если в этой сессии её ещё нет (тот же список, что GameState.evidence)."""
+    if evidence_id not in {e.id for e in present_evidence(loaded, state, locale)}:
+        return None
+    sc = loaded.scenario
+    ev = next(e for e in sc.evidence if e.id == evidence_id)
+    if ev.text_key:
+        lines = [ln.strip() for ln in translate(loaded, ev.text_key, locale).split("\n") if ln.strip()]
+    else:
+        facts = {f.id: f for f in sc.facts}
+        lines = [translate(loaded, facts[f].text_key, locale) for f in ev.facts if f in facts]
+    return api.EvidenceDocument(id=ev.id, title=translate(loaded, ev.title_key, locale), type=ev.type, lines=lines)
+
+
 def build_game_state(
     loaded: LoadedScenario,
     state: EngineState,

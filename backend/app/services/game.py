@@ -152,6 +152,17 @@ def get_state(
     return presenter.build_game_state(r.loaded, r.state, r.events, session.id, locale or session.locale)  # type: ignore[arg-type]
 
 
+def get_evidence_document(
+    db: Session, registry: Registry, session_id: uuid.UUID, evidence_id: str, locale: Locale | None
+) -> api.EvidenceDocument:
+    session = _get_session(db, session_id)
+    r = _replay(db, registry, session)
+    doc = presenter.build_evidence_document(r.loaded, r.state, evidence_id, locale or session.locale)  # type: ignore[arg-type]
+    if doc is None:
+        raise NotFoundError("Документ не найден или ещё не доступен", details={"evidence_id": evidence_id})
+    return doc
+
+
 def set_locale(
     db: Session, registry: Registry, session_id: uuid.UUID, locale: Locale, history: HistoryStore | None = None
 ) -> api.GameState:

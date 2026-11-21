@@ -142,6 +142,15 @@ class EvidenceView(BaseModel):
     presented: bool = False
 
 
+class EvidenceDocument(BaseModel):
+    id: str
+    title: str
+    type: Literal["document", "object", "testimony"]
+    lines: list[str] = Field(
+        description="Текст документа по абзацам; если у улики нет своего текста (text_key) — факты, которые она подтверждает"
+    )
+
+
 class GameState(BaseModel):
     session_id: uuid.UUID
     scenario_id: str

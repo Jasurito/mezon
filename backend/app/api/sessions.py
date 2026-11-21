@@ -12,6 +12,7 @@ from app.scenarios.registry import Registry, get_registry
 from app.schemas.api import (
     ActionRequest,
     CreateSession,
+    EvidenceDocument,
     GameState,
     PatchSession,
     SessionResult,
@@ -46,6 +47,23 @@ def get_session(
 ):
     """Состояние после replay; events — события последнего действия."""
     return game.get_state(db, registry, session_id, locale)
+
+
+@router.get(
+    "/sessions/{session_id}/evidence/{evidence_id}",
+    response_model=EvidenceDocument,
+    dependencies=[Depends(require_path_session)],
+)
+def get_evidence_document(
+    session_id: uuid.UUID,
+    evidence_id: str,
+    locale: Locale | None = None,
+    db: Session = Depends(get_db),
+    registry: Registry = Depends(get_registry),
+):
+    """Текст документа из материалов дела. Только улики, уже доступные в этой сессии (как в GameState.evidence):
+    заключение эксперта не прочитать до того, как его приобщили."""
+    return game.get_evidence_document(db, registry, session_id, evidence_id, locale)
 
 
 @router.patch("/sessions/{session_id}", response_model=GameState, dependencies=[Depends(require_path_session)])
