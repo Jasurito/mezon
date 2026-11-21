@@ -8,3 +8,5 @@ graphify-out/
 # test fixtures (lex.uz HTML fragments) and static assets (favicon)
 ingestion/tests/fixtures/
 frontend/public/
+# case folders live outside git (make scenarios-upload); only scenarios/README.md is part of the repo
+scenarios/*/
