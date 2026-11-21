@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = "gemma3:12b"
     OLLAMA_MENTOR_TIMEOUT: float = 60
     OLLAMA_FAST_TIMEOUT: float = 15
+    # False = отключить режим размышлений у моделей, где он есть (qwen3); пусто = не передавать
+    OLLAMA_THINK: bool | None = None
     LLM_MODEL_MENTOR: str = "claude-haiku-5-5"
     LLM_MODEL_FAST: str = "claude-haiku-5-5"
     LLM_MENTOR_TIMEOUT: float = 20
@@ -69,7 +71,7 @@ class Settings(BaseSettings):
 
     @field_validator("ANTHROPIC_API_KEY", "EMBEDDER", "MONGO_URL", "SEED_PATH", "RERANK_TIMEOUT",
         "PUBLIC_BASE_URL", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI",
-        "AUDIO_PUBLIC_BASE_URL", "AUDIO_MANIFEST_BASE_URL", mode="before")
+        "AUDIO_PUBLIC_BASE_URL", "AUDIO_MANIFEST_BASE_URL", "OLLAMA_THINK", mode="before")
     @classmethod
     def _empty_to_none(cls, v):
         if isinstance(v, str) and not v.strip():

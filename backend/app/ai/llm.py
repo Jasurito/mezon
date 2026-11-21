@@ -103,9 +103,9 @@ def get_llm(settings: Settings = Depends(get_settings)) -> LLM | None:
     if settings.LLM_PROVIDER == "ollama":
         from app.ai.ollama import OllamaLLM
 
-        k = f"ollama|{settings.OLLAMA_URL}|{settings.OLLAMA_MODEL}"
+        k = f"ollama|{settings.OLLAMA_URL}|{settings.OLLAMA_MODEL}|{settings.OLLAMA_THINK}"
         if k not in _clients:
-            _clients[k] = OllamaLLM(url=settings.OLLAMA_URL, model=settings.OLLAMA_MODEL)
+            _clients[k] = OllamaLLM(url=settings.OLLAMA_URL, model=settings.OLLAMA_MODEL, think=settings.OLLAMA_THINK)
         return _clients[k]
     key = settings.ANTHROPIC_API_KEY or ""
     if key not in _clients:

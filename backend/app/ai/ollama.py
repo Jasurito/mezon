@@ -14,7 +14,8 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class OllamaLLM:
-    def __init__(self, url: str, model: str, *, client: httpx.Client | None = None) -> None:
+    def __init__(self, url: str, model: str, *, client: httpx.Client | None = None, think: bool | None = None) -> None:
+        self._think = think  # False отключает режим размышлений (Qwen3 и др.): быстрее, токены не тратятся
         self._url = url.rstrip("/")
         self._model = model
         self._client = client or httpx.Client()
@@ -39,6 +40,8 @@ class OllamaLLM:
             "format": output_model.model_json_schema(),
             "options": {"temperature": 0, "num_predict": max_tokens},
         }
+        if self._think is not None:
+            body["think"] = self._think
         try:
             resp = self._client.post(f"{self._url}/api/chat", json=body, timeout=timeout)
             resp.raise_for_status()

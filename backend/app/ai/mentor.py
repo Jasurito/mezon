@@ -40,8 +40,8 @@ log = logging.getLogger("adolat.ai")
 
 HISTORY_LIMIT = 6
 HISTORY_TEXT_LIMIT = 1000
-MENTOR_MAX_TOKENS = 1500
-OLLAMA_MENTOR_MAX_TOKENS = 700
+MENTOR_MAX_TOKENS = 4096  # только страховка от зависания: длину задаёт промпт, ответ не обрезается
+OLLAMA_MENTOR_MAX_TOKENS = 2048  # страховка; обычный ответ ~300–600 токенов
 HEAD_SOURCES = 5
 
 Kind = Literal["error", "out_of_scope", "insufficient", "answer"]

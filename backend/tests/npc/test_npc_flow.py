@@ -34,7 +34,7 @@ def test_lexical_ru(npc_client):
         n.start(steps=PREP)
         r = n.ask("plaintiff", "Когда вы обнаружили недостаток?")
     assert r.status_code == 200, r.text
-    body = r.json()
+    body = {k: v for k, v in r.json().items() if not k.startswith("audio_")}  # озвучка проверяется отдельно
     assert body == {
         "speaker": "plaintiff",
         "text": DEFECT_RU,
@@ -67,7 +67,7 @@ def test_lexical_nonsense_is_unknown(npc_client):
     with npc_client() as n:
         n.start(steps=PREP)
         r = n.ask("plaintiff", "абырвалг кукуруза фыва")
-    assert r.json() == {
+    assert {k: v for k, v in r.json().items() if not k.startswith("audio_")} == {
         "speaker": "plaintiff",
         "text": UNKNOWN_RU,
         "question_id": "unknown",

@@ -97,3 +97,32 @@ def test_mentor_ask_end_to_end_with_ollama(mentor_client, seeded_db):
         events = m.ask("Можно ли вернуть товар с недостатком?")
     assert "block" in names(events)
     assert first(events, "done")["ai_unavailable"] is False
+
+
+def test_think_flag_sent_only_when_configured():
+    import httpx
+    from pydantic import BaseModel
+
+    from app.ai.ollama import OllamaLLM
+
+    class Out(BaseModel):
+        ok: bool
+
+    seen = []
+
+    def handler(request):
+        import json as _j
+        seen.append(_j.loads(request.content))
+        return httpx.Response(200, json={"message": {"content": '{"ok": true}'}})
+
+    for think in (None, False):
+        llm = OllamaLLM("http://x", "qwen3:30b-a3b", client=httpx.Client(transport=httpx.MockTransport(handler)), think=think)
+        assert llm.structured(model="m", system="s", messages=[], output_model=Out, max_tokens=64, timeout=5, effort="low").ok
+    assert "think" not in seen[0] and seen[1]["think"] is False
+
+
+def test_empty_think_env_is_none():
+    from app.config import Settings
+
+    assert Settings(OLLAMA_THINK="").OLLAMA_THINK is None
+    assert Settings(OLLAMA_THINK="false").OLLAMA_THINK is False
