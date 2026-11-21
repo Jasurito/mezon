@@ -35,8 +35,6 @@ class User(Base):
     google_sub: Mapped[str | None] = mapped_column(Text, unique=True)
     avatar_url: Mapped[str | None] = mapped_column(Text)
     merged_into: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
-    # кто учится: professional = юрист или студент-юрист, public = не специалист; NULL = не указано
-    audience: Mapped[str | None] = mapped_column(Text)
 
     @property
     def is_account(self) -> bool:

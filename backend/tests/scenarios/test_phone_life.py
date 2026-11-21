@@ -1,4 +1,4 @@
-"""Жизненная ситуация phone_defect_life_001 «Телефон сломался через 10 дней» (audience public): тот же формат дела,
+"""Жизненная ситуация phone_defect_life_001 «Телефон сломался через 10 дней» (kind situation): тот же формат дела,
 другие этапы. Загрузка, три исхода, ловушки в папке, разбор с «что если»."""
 
 from __future__ import annotations
@@ -48,8 +48,8 @@ def run(sc, **kw):
     return state, evaluate(sc, state)
 
 
-def test_public_card(sc):
-    assert sc.card.audience == "public"
+def test_situation_card(sc):
+    assert sc.card.kind == "situation"
     assert sc.stages[0].id == "SITUATION"
 
 

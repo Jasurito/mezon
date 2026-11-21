@@ -181,7 +181,7 @@ class ScenarioCard(BaseModel):
     cover: str | None
     fictional_notice: str
     available: bool
-    audience: Literal["professional", "public"] = "professional"
+    kind: Literal["court", "situation"] = "court"  # category: court case or life situation
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -233,7 +233,7 @@ class ScenarioDetail(BaseModel):
     claims: list[ClaimView]
     documents: list[DocumentView]
     legal_acts: list[LegalActView]
-    audience: Literal["professional", "public"] = "professional"
+    kind: Literal["court", "situation"] = "court"
 
 
 # --------------------------------------------------------------------------- результат

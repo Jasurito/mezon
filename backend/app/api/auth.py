@@ -79,9 +79,7 @@ def signup(
     ratelimit.record_request(db, ip, now)
     if accounts.find_by_email(db, body.email) is not None:
         raise EmailExistsError()
-    user = accounts.create_email_user(
-        db, body.display_name, body.email, hash_password(body.password), now, audience=body.audience
-    )
+    user = accounts.create_email_user(db, body.display_name, body.email, hash_password(body.password), now)
     if user is None:
         raise EmailExistsError()
     token = _open_session(db, user, body.guest_user_id, request, settings, now, history)

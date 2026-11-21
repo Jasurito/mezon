@@ -160,9 +160,19 @@ class Card(_Model):
     topic_keys: list[str]
     cover: str | None = None
     available: bool = True
-    # who the case is for: professional = a court case (lawyers, law students), public = a life situation for
-    # non-lawyers (plain language, everyday steps; the frontend shows it without the courtroom)
-    audience: Literal["professional", "public"] = "professional"
+    # category, open to everyone: "court" = a court case (hearing in the courtroom), "situation" = a life situation
+    # (everyday steps; the frontend shows it without the courtroom)
+    kind: Literal["court", "situation"] = "court"
+
+    @model_validator(mode="before")
+    @classmethod
+    def _legacy_audience(cls, data: Any) -> Any:
+        """Case files written on 2026-11-21 used ``audience: public|professional``; read them as ``kind``."""
+        if isinstance(data, dict) and "audience" in data:
+            data = dict(data)
+            audience = data.pop("audience")
+            data.setdefault("kind", "situation" if audience == "public" else "court")
+        return data
 
 
 class Intro(_Model):

@@ -141,13 +141,13 @@
           "title": "Available",
           "type": "boolean"
         },
-        "audience": {
-          "default": "professional",
+        "kind": {
+          "default": "court",
           "enum": [
-            "professional",
-            "public"
+            "court",
+            "situation"
           ],
-          "title": "Audience",
+          "title": "Kind",
           "type": "string"
         }
       },
