@@ -147,6 +147,7 @@ def build_scenario_card(loaded: LoadedScenario, locale: Locale) -> api.ScenarioC
         cover=card.cover,
         fictional_notice=translate(loaded, sc.fictional_notice_key, locale),
         available=card.available,
+        audience=card.audience,
     )
 
 
@@ -171,6 +172,7 @@ def build_scenario_detail(
         claims=[api.ClaimView(side=c.side, text=t(c.text_key)) for c in sc.intro.claims],
         documents=[api.DocumentView(id=e.id, title=t(e.title_key)) for e in sc.evidence if e.in_case_file],
         legal_acts=legal_acts,
+        audience=sc.card.audience,
     )
 
 

@@ -9,6 +9,7 @@ CASES = {
     "test_consumer_moisture": "consumer_moisture_001",
     "test_wedding_photo": "wedding_photo_002",
     "test_rent_deposit": "rent_deposit_003",
+    "test_phone_life": "phone_defect_life_001",
 }
 
 collect_ignore = [

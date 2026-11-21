@@ -140,6 +140,15 @@
           "default": true,
           "title": "Available",
           "type": "boolean"
+        },
+        "audience": {
+          "default": "professional",
+          "enum": [
+            "professional",
+            "public"
+          ],
+          "title": "Audience",
+          "type": "string"
         }
       },
       "required": [

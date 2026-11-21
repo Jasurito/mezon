@@ -160,6 +160,9 @@ class Card(_Model):
     topic_keys: list[str]
     cover: str | None = None
     available: bool = True
+    # who the case is for: professional = a court case (lawyers, law students), public = a life situation for
+    # non-lawyers (plain language, everyday steps; the frontend shows it without the courtroom)
+    audience: Literal["professional", "public"] = "professional"
 
 
 class Intro(_Model):
