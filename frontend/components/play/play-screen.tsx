@@ -18,6 +18,7 @@ import { useSettings } from "@/store/settings";
 import { useUi } from "@/store/ui";
 import { CaseFile } from "./case-file";
 import { NpcPanel, type Askable } from "./npc-panel";
+import { SoundToggle } from "./sound-toggle";
 
 const NAMES: Record<string, string> = {};
 
@@ -139,6 +140,7 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
               <FileText />{t("play.evidence")}
             </Button>
             <ThemeMenu />
+            <SoundToggle />
             {!st.finished && askable.length > 0 && (
               <Button variant="outline" className="bg-navy/85" onClick={() => setAsking(true)} aria-expanded={asking}>
                 <MessagesSquare />{t("npc.open")}

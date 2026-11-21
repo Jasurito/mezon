@@ -9,8 +9,9 @@ export const SIZE_MIN = 0.875, SIZE_MAX = 1.375, SIZE_STEP = 0.0625;
 
 /** motion: "full" animates the court (camera focus, idle motion, typing); "reduced" turns movement off. The default is full,
  * the game is the product; people who need less motion switch it in Settings (OS reduce-motion is not forced on the game). */
-export interface Settings { family: (typeof FONT_FAMILIES)[number]; size: number; lineHeight: (typeof LINE_HEIGHTS)[number]; motion: (typeof MOTIONS)[number]; courtTheme: CourtTheme }
-export const DEFAULT_SETTINGS: Settings = { family: "commissioner", size: 1, lineHeight: "normal", motion: "full", courtTheme: "pixel" };
+/** sound: characters read their lines aloud (pre-generated speech, lib/voice.ts) */
+export interface Settings { family: (typeof FONT_FAMILIES)[number]; size: number; lineHeight: (typeof LINE_HEIGHTS)[number]; motion: (typeof MOTIONS)[number]; courtTheme: CourtTheme; sound: boolean }
+export const DEFAULT_SETTINGS: Settings = { family: "commissioner", size: 1, lineHeight: "normal", motion: "full", courtTheme: "pixel", sound: true };
 export const SETTINGS_KEY = "mezon.settings";
 
 export function applySettings(s: Settings) {

@@ -13,7 +13,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const init = useUser((s) => s.init);
   useEffect(() => {
     init();
-    const s = useSettings.getState(); applySettings({ family: s.family, size: s.size, lineHeight: s.lineHeight, motion: s.motion, courtTheme: s.courtTheme });
+    const s = useSettings.getState(); applySettings({ family: s.family, size: s.size, lineHeight: s.lineHeight, motion: s.motion, courtTheme: s.courtTheme, sound: s.sound });
   }, [init]);
   return (
     <TooltipProvider delayDuration={300}>

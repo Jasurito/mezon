@@ -1,6 +1,7 @@
 "use client";
 import { create } from "zustand";
 import { api, ApiError, type GameEvent, type GameState, type Locale } from "@/lib/api";
+import { isSpeaking, playVoice, preloadVoice, stopVoice } from "@/lib/voice";
 import { useSettings } from "@/store/settings";
 
 export interface CourtApi {
@@ -45,12 +46,21 @@ interface GameStore {
 let timer: ReturnType<typeof setInterval> | null = null;
 const reduce = () => useSettings.getState().motion === "reduced";
 const later = (fn: () => void, ms: number) => setTimeout(fn, reduce() ? 0 : ms);
+const TYPE_MS = 22;
+/** typing pace for a voiced line: the text finishes a little before the speech does */
+const typeMs = (ev: Say) =>
+  ev.audio_url && ev.audio_duration_ms && useSettings.getState().sound ? Math.min(90, Math.max(TYPE_MS, (ev.audio_duration_ms * 0.85) / ev.text.length)) : TYPE_MS;
+/** the next voiced lines in the queue start downloading now, so they play without a gap */
+const preloadQueue = (queue: GameEvent[]) => {
+  if (!useSettings.getState().sound) return;
+  queue.filter((e): e is Say => e.type === "say" && !!e.audio_url).slice(0, 3).forEach((e) => preloadVoice(e.audio_url));
+};
 
 export const useGame = create<GameStore>()((set, get) => {
   const finishTyping = () => {
     if (timer) { clearInterval(timer); timer = null; }
     const cur = get().current; if (!cur) return;
-    get().court?.talk(cur.speaker, false);
+    if (!isSpeaking()) get().court?.talk(cur.speaker, false); // a voiced line keeps talking until its audio ends
     set({ typed: cur.text, typing: false, waiting: true });
   };
 
@@ -62,10 +72,12 @@ export const useGame = create<GameStore>()((set, get) => {
 
     load: async (sid, locale) => {
       if (timer) { clearInterval(timer); timer = null; }
+      stopVoice();
       set({ sessionId: sid, error: null, busy: true, current: null, typed: "", waiting: false, note: null });
       try {
         const state = await api.session(sid, locale);
         set({ state, queue: [...state.events] });
+        preloadQueue(state.events);
         later(() => get().next(), 400);
       } catch (e) {
         set({ error: e instanceof ApiError && e.status === 404 ? "load" : "offline", busy: false });
@@ -78,6 +90,7 @@ export const useGame = create<GameStore>()((set, get) => {
       try {
         const state = await api.act(sessionId, actionId, params);
         set({ state, queue: [...get().queue, ...state.events], error: null });
+        preloadQueue(get().queue);
         get().next();
       } catch (e) {
         if (e instanceof ApiError && e.status === 409) {
@@ -101,8 +114,12 @@ export const useGame = create<GameStore>()((set, get) => {
 
     advance: () => {
       const { typing, waiting } = get();
-      if (typing) return finishTyping();
-      if (waiting) get().next();
+      if (typing) return finishTyping(); // the voice keeps playing; only the text jumps to the end
+      if (waiting) {
+        const cur = get().current;
+        if (isSpeaking()) { stopVoice(); if (cur) get().court?.talk(cur.speaker, false); }
+        get().next();
+      }
     },
 
     next: () => {
@@ -120,9 +137,14 @@ export const useGame = create<GameStore>()((set, get) => {
         case "say": {
           court?.focus(ev.speaker); court?.talk(ev.speaker, true);
           set({ current: ev, typed: "", typing: true });
+          preloadQueue(get().queue);
+          if (ev.audio_url && useSettings.getState().sound) {
+            // mouth stops with the audio, unless the text is still being typed
+            playVoice(ev.audio_url, () => { if (get().current === ev && !get().typing) court?.talk(ev.speaker, false); });
+          }
           if (reduce()) { finishTyping(); break; }
           let i = 0;
-          timer = setInterval(() => { i += 1; if (i >= ev.text.length) finishTyping(); else set({ typed: ev.text.slice(0, i) }); }, 22);
+          timer = setInterval(() => { i += 1; if (i >= ev.text.length) finishTyping(); else set({ typed: ev.text.slice(0, i) }); }, typeMs(ev));
           break;
         }
         case "react": if (ev.reaction === "gavel") court?.gavel(); else court?.react(ev.character, ev.reaction); later(() => get().next(), 350); break;
@@ -134,6 +156,6 @@ export const useGame = create<GameStore>()((set, get) => {
       }
     },
 
-    reset: () => { if (timer) { clearInterval(timer); timer = null; } set({ sessionId: null, state: null, queue: [], current: null, typed: "", busy: false, note: null, newEvidence: [], pending: [], error: null }); },
+    reset: () => { if (timer) { clearInterval(timer); timer = null; } stopVoice(); set({ sessionId: null, state: null, queue: [], current: null, typed: "", busy: false, note: null, newEvidence: [], pending: [], error: null }); },
   };
 });

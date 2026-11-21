@@ -9,7 +9,10 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { api, ApiError, type ActionView, type GameEvent, type GameState, type Locale } from "@/lib/api";
 import { reveal } from "@/lib/reveal";
 import { cn } from "@/lib/utils";
+import { playVoices, stopVoice } from "@/lib/voice";
+import { useSettings } from "@/store/settings";
 import { useUi } from "@/store/ui";
+import { SoundToggle } from "./sound-toggle";
 
 /*
  * Life situation (scenario kind "situation"): the same engine and API as a court case, shown as a
@@ -17,7 +20,7 @@ import { useUi } from "@/store/ui";
  * put in the folder, or "continue". Rules arrive as "the rule in plain words" with the official article one click away.
  */
 type Entry =
-  | { key: number; kind: "say"; speaker: string; text: string }
+  | { key: number; kind: "say"; speaker: string; text: string; audio?: string | null }
   | { key: number; kind: "note"; citation_id: string; text: string }
   | { key: number; kind: "stage"; title: string }
   | { key: number; kind: "score"; delta: number };
@@ -28,7 +31,7 @@ function toEntries(events: GameEvent[]): Entry[] {
   let points = 0; // shown once, after the step's explanation, before the next stage starts
   const flush = () => { if (points > 0) out.push({ key: ++seq, kind: "score", delta: points }); points = 0; };
   for (const e of events) {
-    if (e.type === "say") out.push({ key: ++seq, kind: "say", speaker: e.speaker, text: e.text });
+    if (e.type === "say") out.push({ key: ++seq, kind: "say", speaker: e.speaker, text: e.text, audio: e.audio_url });
     else if (e.type === "legal_note") out.push({ key: ++seq, kind: "note", citation_id: e.citation_id, text: e.text });
     else if (e.type === "stage_changed" && e.stage !== "RESULTS") { flush(); out.push({ key: ++seq, kind: "stage", title: e.title }); }
     else if (e.type === "score" && e.delta > 0) points += e.delta;
@@ -89,7 +92,12 @@ export function SituationScreen({ sessionId }: { sessionId: string }) {
     const from = seen.current > 0 ? seen.current : log.findLastIndex((e) => e.kind === "stage");
     seen.current = log.length;
     reveal(story.children[Math.max(0, from)] ?? endRef.current, moveRef.current ?? endRef.current);
+    // the new part of the story is read aloud, line by line
+    if (useSettings.getState().sound) {
+      playVoices(log.slice(Math.max(0, from)).flatMap((e) => (e.kind === "say" && e.audio ? [e.audio] : [])));
+    }
   }, [log]);
+  useEffect(() => () => stopVoice(), []);
 
   // finished: a short pause on the last line, then the result
   useEffect(() => {
@@ -146,6 +154,7 @@ export function SituationScreen({ sessionId }: { sessionId: string }) {
             <span className="num text-lg">{st.score}</span><span className="num text-sm text-ink-muted">/{st.max_score}</span>
             <span className="sr-only">{tc("scoreHint")}</span>
           </p>
+          <SoundToggle />
         </div>
         <ol className="mx-auto mt-3 flex max-w-6xl gap-1.5" aria-label={t("progress")}>
           {Array.from({ length: steps }, (_, i) => (

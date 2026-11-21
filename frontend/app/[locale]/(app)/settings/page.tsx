@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { FONT_FAMILIES, LINE_HEIGHTS, MOTIONS, SIZE_MAX, SIZE_MIN, SIZE_STEP } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+import { stopVoice } from "@/lib/voice";
 import { useSettings } from "@/store/settings";
 import { useMounted } from "@/hooks/use-load";
 
@@ -71,6 +72,17 @@ export default function SettingsPage() {
               ))}
             </div>
             <p className="mt-2 text-sm text-ink-muted">{t("motionHint")}</p>
+          </fieldset>
+
+          <fieldset>
+            <legend className="mb-3 font-semibold">{t("sound")}</legend>
+            <div className="inline-flex rounded-md border border-paper/15 p-1" role="radiogroup">
+              {([true, false] as const).map((on) => (
+                <button key={String(on)} type="button" role="radio" aria-checked={s.sound === on} onClick={() => { if (!on) stopVoice(); s.set({ sound: on }); }}
+                  className="min-h-10 rounded px-4 text-sm aria-checked:bg-gold aria-checked:font-semibold aria-checked:text-navy">{t(on ? "sound_on" : "sound_off")}</button>
+              ))}
+            </div>
+            <p className="mt-2 text-sm text-ink-muted">{t("soundHint")}</p>
           </fieldset>
 
           <fieldset>

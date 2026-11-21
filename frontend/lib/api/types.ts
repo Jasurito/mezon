@@ -25,7 +25,8 @@ export interface ActionView {
 }
 
 export type GameEvent =
-  | { type: "say"; speaker: string; text: string; emotion: string }
+  /** audio_url: pre-generated speech (MP3, backend docs/TTS.md); null or absent = text only (mock mode, AI text) */
+  | { type: "say"; speaker: string; text: string; emotion: string; audio_url?: string | null; audio_duration_ms?: number | null }
   | { type: "react"; character: string; reaction: Reaction }
   | { type: "stage_changed"; stage: string; title: string }
   | { type: "evidence_added"; evidence_id: string }
@@ -111,6 +112,8 @@ export interface NpcAnswer {
   question_id: string; fact_ids: string[]; ai_generated: boolean;
   /** key question: the same question can be asked officially in court with this game action */
   suggested_action_id: string | null;
+  /** speech of a scripted answer; null for AI-written answers and "please rephrase" */
+  audio_url?: string | null; audio_duration_ms?: number | null;
 }
 export const NPC_MAX_LEN = 500;
 

@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { api, ApiError, NPC_MAX_LEN, type NpcAnswer } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { playVoice } from "@/lib/voice";
 import { useGame } from "@/store/game";
+import { useSettings } from "@/store/settings";
 
 export interface Askable { id: string; name: string; role: string }
 type Msg = { id: number; from: "me"; text: string } | { id: number; from: "npc"; answer: NpcAnswer };
@@ -60,7 +62,13 @@ export function NpcPanel({ open, onOpenChange, sessionId, characters }: {
       const answer = await api.askNpc(sessionId, current, q);
       push(current, { id: ++seq.current, from: "npc", answer });
       const { court, busy: queueBusy } = useGame.getState();
-      if (!queueBusy && court) { court.focus(answer.speaker); court.talk(answer.speaker, true); setTimeout(() => court.talk(answer.speaker, false), 1400); }
+      // never over the court dialogue: the scripted answer is spoken only when the hearing is idle
+      const voiced = !queueBusy && !!answer.audio_url && useSettings.getState().sound;
+      if (voiced) playVoice(answer.audio_url!, () => court?.talk(answer.speaker, false));
+      if (!queueBusy && court) {
+        court.focus(answer.speaker); court.talk(answer.speaker, true);
+        if (!voiced) setTimeout(() => court.talk(answer.speaker, false), 1400);
+      }
     } catch (err) {
       setText(q);
       toast.error(err instanceof ApiError && err.code === "SESSION_FINISHED" ? t("finished") : t("error"));
