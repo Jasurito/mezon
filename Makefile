@@ -80,8 +80,9 @@ seed-dump:
 	$(PY) -m legal_ingestion dump
 
 # Дела хранятся вне git: залить scenarios/ на сервер (нужен SSH-доступ к vm1), потом перезапустить бэкенд там.
+# Без --delete: дела коллег, которых нет у вас локально, на сервере не удаляются.
 VM_HOST ?= deploy@vm1.modeus.cc
 VM_SRC ?= /opt/mezon/src
 scenarios-upload:
-	rsync -az --delete --exclude '.DS_Store' scenarios/ $(VM_HOST):$(VM_SRC)/scenarios/
+	rsync -az --exclude '.DS_Store' --exclude 'README.md' scenarios/ $(VM_HOST):$(VM_SRC)/scenarios/
 	@echo "Дела залиты в $(VM_HOST):$(VM_SRC)/scenarios. Перезапустите бэкенд на сервере: systemctl restart mezon-backend"

@@ -60,7 +60,7 @@ def test_lexical_uz_cyrl_session_uses_latin_texts(npc_client):
         n.start("uz-Cyrl", steps=PREP)
         r = n.ask("plaintiff", "Кафолат талони берилганми?")
     assert r.json()["question_id"] == "plaintiff_warranty"
-    assert r.json()["text"].startswith("Ha, do")  # запасной язык: uz-Latn
+    assert r.json()["text"].startswith("Ҳа, дў")  # запасной язык: uz-Latn в кириллице
 
 
 def test_lexical_nonsense_is_unknown(npc_client):

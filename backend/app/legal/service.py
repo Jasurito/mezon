@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.errors import NotFoundError
+from app.i18n.translit import lat_to_cyr_display
 from app.legal.messages import fallback_language_note, unconfirmed_note
 from app.models.legal import Article, ArticlePart, Citation, DocumentVersion, LegalDocument
 from app.schemas.legal import (
@@ -28,6 +29,9 @@ _NOT_FOUND = "Статья не найдена"
 
 def _title(doc: LegalDocument, locale: str) -> str:
     titles = doc.title or {}
+    if locale == "uz-Cyrl" and not titles.get("uz-Cyrl") and titles.get("uz-Latn"):
+        # название документа — метаданные, не текст закона: транслитерация допустима
+        return lat_to_cyr_display(titles["uz-Latn"])
     for key in (locale, "ru"):
         if titles.get(key):
             return titles[key]

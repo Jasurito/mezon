@@ -1,3 +1,4 @@
+from app.i18n.translit import lat_to_cyr_display
 """Презентер: чистые функции, без БД."""
 
 import uuid
@@ -111,10 +112,10 @@ def test_translate_fallback_chain():
     key = "act.enter_courtroom"
     ru = loaded.texts["ru"][key]
     lat = loaded.texts["uz-Latn"][key]
-    # uz-Cyrl в фикстуре отсутствует: берётся uz-Latn, затем ru
-    assert translate(loaded, key, "uz-Cyrl") == loaded.texts["uz-Cyrl"].get(key, lat)
+    # uz-Cyrl в фикстуре отсутствует: берётся uz-Latn в кириллической транслитерации, затем ru
+    assert translate(loaded, key, "uz-Cyrl") == loaded.texts["uz-Cyrl"].get(key, lat_to_cyr_display(lat))
     loaded.texts["uz-Cyrl"].pop(key, None)
-    assert translate(loaded, key, "uz-Cyrl") == lat
+    assert translate(loaded, key, "uz-Cyrl") == lat_to_cyr_display(lat)
     loaded.texts["uz-Latn"].pop(key)
     assert translate(loaded, key, "uz-Cyrl") == ru
     assert translate(loaded, key, "uz-Latn") == ru
