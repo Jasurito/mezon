@@ -2,8 +2,8 @@
 
 ```
 GitHub Actions (.github/workflows/ci-cd.yml)
-  changes ─┬─ frontend: pnpm i18n check, typecheck, lint, build
-           ├─ backend:  pytest (Postgres 16 + pgvector service), docker build
+  changes ─┬─ frontend: pnpm i18n check, typecheck, build
+           ├─ backend:  critical pytest (Postgres 16 + pgvector service)
            └─ deploy (main only, after green checks):
                 rsync repo ──> deploy@vm1:/opt/mezon/src
                 ssh deploy@vm1 sudo mezon-deploy --sha <sha> <backend|frontend|all>
@@ -24,7 +24,7 @@ To deploy by hand: Actions → **CI/CD** → **Run workflow**, then pick all, fr
 | `systemd/mezon-{db,mongo,backend,frontend}.service` | `/etc/systemd/system/` |
 | `mezon-deploy` | `/usr/local/sbin/mezon-deploy` (root-owned; the `deploy` user may only `sudo` this) |
 | `env/backend.env.example` | appended to `/etc/mezon/backend.env` (secrets, `chmod 600`, never in git) |
-| `env/frontend.build.env.example` | `/etc/mezon/frontend.build.env` (`NEXT_PUBLIC_API_MODE=mock\|live`) |
+| `env/frontend.build.env.example` | `/etc/mezon/frontend.build.env` (`NEXT_PUBLIC_API_MODE=mock\|live`, `NEXT_PUBLIC_GOOGLE_AUTH`); missing keys are appended |
 | `nginx/mezon.modeus.cc.conf` | reference for `/etc/nginx/sites-available/mezon.modeus.cc` (certbot adds TLS) |
 | `bootstrap.sh` | one-time setup, idempotent |
 
@@ -62,5 +62,22 @@ docker exec -it mezon-mongo mongosh -u mezon -p "$(sudo sed -n 's/^MONGO_INITDB_
 
 **Data.** Postgres data is in the docker volume `mezon-pgdata` and MongoDB data in `mezon-mongodata`. Both survive container restarts, redeploys and reboots, but a volume is not a backup:
 `docker exec mezon-db pg_dump -U mezon mezon | gzip > pg-$(date +%F).sql.gz` and `docker exec mezon-mongo mongodump -u mezon -p … --authenticationDatabase admin --archive --gzip > mongo-$(date +%F).gz`.
+
+**Accounts.** The backend owns sign-in (`/api/auth/*`, cookie `mezon_session`). Production values live in
+`/etc/mezon/backend.env` (the template lists them all):
+
+| Setting | Value on vm1 | Why |
+|---|---|---|
+| `PUBLIC_BASE_URL` | `https://mezon.modeus.cc` | redirect after sign-in, Google redirect URI, and the CSRF check: POSTs from any other `Origin` get 403 `CSRF_FAILED` |
+| `COOKIE_SECURE` | `true` | session cookie only over https |
+| `TRUST_PROXY_HEADERS` | `true` | the backend listens on 127.0.0.1 behind nginx, which appends the client IP to `X-Forwarded-For`; without it every client is "127.0.0.1" for the rate limits |
+| `AUTH_IP_MAX_REQUESTS` | `120` per 15 min | above the code default (30): the jury and the venue share one Wi-Fi address |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | empty | Google sign-in is off (503) until set |
+
+To turn on Google sign-in: create a Web OAuth client in Google Cloud with the redirect URI
+`https://mezon.modeus.cc/api/auth/google/callback`, put the id and secret in `/etc/mezon/backend.env`,
+`systemctl restart mezon-backend`, then set `NEXT_PUBLIC_GOOGLE_AUTH=true` in `/etc/mezon/frontend.build.env` and run
+`sudo mezon-deploy frontend` (the button is hidden until then). Failed Google sign-ins come back to `/?auth_error=google`
+and the site explains what happened.
 
 **Frontend → real backend.** Set `NEXT_PUBLIC_API_MODE=live` in `/etc/mezon/frontend.build.env`, then run `sudo mezon-deploy frontend` (the value is baked in at build time).

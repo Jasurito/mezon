@@ -21,8 +21,9 @@ if [ -n "$PUBKEY" ]; then
   chown deploy:deploy /home/deploy/.ssh/authorized_keys; chmod 600 /home/deploy/.ssh/authorized_keys
 fi
 
-# 2. source dir synced by CI
-install -d -m 755 -o deploy -g deploy /opt/mezon /opt/mezon/src
+# 2. source dir synced by CI (and the backend's bind-mount sources, so docker never creates them as root)
+install -d -m 755 -o deploy -g deploy /opt/mezon /opt/mezon/src /opt/mezon/src/scenarios /opt/mezon/src/legal_data
+chown -R deploy:deploy /opt/mezon/src
 
 # 3. deploy script (root-owned, so the deploy user cannot change what sudo runs)
 install -m 755 -o root -g root "$HERE/mezon-deploy" /usr/local/sbin/mezon-deploy
@@ -56,6 +57,9 @@ grep -E '^[A-Z_]+=' "$HERE/env/backend.env.example" | while IFS= read -r line; d
   grep -q "^${line%%=*}=" /etc/mezon/backend.env || printf '%s\n' "$line" >> /etc/mezon/backend.env
 done
 [ -f /etc/mezon/frontend.build.env ] || install -m 644 "$HERE/env/frontend.build.env.example" /etc/mezon/frontend.build.env
+grep -E '^NEXT_PUBLIC_[A-Z0-9_]+=' "$HERE/env/frontend.build.env.example" | while IFS= read -r line; do
+  grep -q "^${line%%=*}=" /etc/mezon/frontend.build.env || printf '%s\n' "$line" >> /etc/mezon/frontend.build.env
+done
 
 # 5. systemd units
 install -m 644 "$HERE"/systemd/mezon-*.service /etc/systemd/system/

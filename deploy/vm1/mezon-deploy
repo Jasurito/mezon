@@ -27,8 +27,9 @@ done
 [ ${#TARGETS[@]} -gt 0 ] || die "nothing to deploy (use frontend, backend or all)"
 [ -d "$SRC" ] || die "$SRC is missing: CI must rsync the repository first"
 
-# mounts used by mezon-backend.service must exist even before content is committed
-mkdir -p "$SRC/scenarios" "$SRC/legal_data"
+# mounts used by mezon-backend.service must exist even before content is committed. Owned by "deploy":
+# a root-owned dir here makes the next CI rsync fail with "Permission denied" (happened with legal_data/).
+install -d -o deploy -g deploy "$SRC/scenarios" "$SRC/legal_data"
 
 wait_healthy() { # url
   for _ in $(seq 1 60); do curl -fs -o /dev/null --max-time 3 "$1" && return 0; sleep 2; done
@@ -41,13 +42,12 @@ deploy() {
   case "$name" in
     frontend)
       ctx="$SRC/frontend"; url="http://127.0.0.1:3000/uz"
-      # NEXT_PUBLIC_* are baked in at build time
-      local mode=mock sketches=true
+      # NEXT_PUBLIC_* are baked in at build time: every NEXT_PUBLIC_X=value line becomes a --build-arg
+      # (the Dockerfile declares the ARGs and their defaults)
       if [ -f "$CONF/frontend.build.env" ]; then
-        mode=$(sed -n 's/^NEXT_PUBLIC_API_MODE=//p' "$CONF/frontend.build.env" | tail -1)
-        sketches=$(sed -n 's/^NEXT_PUBLIC_SHOW_SKETCHES=//p' "$CONF/frontend.build.env" | tail -1)
-      fi
-      args=(--build-arg "NEXT_PUBLIC_API_MODE=${mode:-mock}" --build-arg "NEXT_PUBLIC_SHOW_SKETCHES=${sketches:-true}") ;;
+        while IFS= read -r line; do args+=(--build-arg "$line"); done \
+          < <(grep -E '^NEXT_PUBLIC_[A-Z0-9_]+=[A-Za-z0-9_.:/-]*$' "$CONF/frontend.build.env")
+      fi ;;
     backend)
       ctx="$SRC/backend"; url="http://127.0.0.1:8000/api/health"
       systemctl start mezon-db mezon-mongo ;;
