@@ -27,14 +27,15 @@ export function Pitch() {
       <section aria-labelledby="pitch-for">
         <h2 id="pitch-for" className="desk-h pitch-title">{t("forTitle")}</h2>
         <div className="pitch-for">
-          {(["public", "pro"] as const).map((k) => (
+          {/* two categories, open to everyone; each opens its section of the case list */}
+          {(["situation", "court"] as const).map((k) => (
             <article key={k} className="sheet-paper pitch-sheet">
               <h3 className="desk-h">{t(`${k}Title`)}</h3>
               <p className="pitch-sheet__lead">{t(`${k}Lead`)}</p>
               <ul className="pitch-ticks">
                 {([1, 2, 3] as const).map((i) => <li key={i}>{t(`${k}Point${i}`)}</li>)}
               </ul>
-              <Link className="btn-ink" href={`/auth/sign-up?audience=${k === "pro" ? "professional" : "public"}`}>{t(`${k}Cta`)}</Link>
+              <Link className="btn-ink" href={`/cases#track-${k}`}>{t(`${k}Cta`)}</Link>
             </article>
           ))}
         </div>

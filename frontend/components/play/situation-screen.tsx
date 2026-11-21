@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { useUi } from "@/store/ui";
 
 /*
- * Life situation (scenario audience "public") for non-lawyers: the same engine and API as a court case, shown as a
+ * Life situation (scenario kind "situation"): the same engine and API as a court case, shown as a
  * step-by-step story instead of a courtroom. Every action is a plain card: a question with answers, a document to
  * put in the folder, or "continue". Rules arrive as "the rule in plain words" with the official article one click away.
  */
@@ -150,22 +150,22 @@ export function SituationScreen({ sessionId }: { sessionId: string }) {
           <section aria-live="polite" aria-label={t("story")} className="grid gap-3">
             {log.map((e) => {
               if (e.kind === "stage") return (
-                <h2 key={e.key} className="mt-4 flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-gold first:mt-0">
+                <h2 key={e.key} className="fade-in mt-4 flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-gold first:mt-0">
                   <span className="h-px flex-1 bg-hairline" />{e.title}<span className="h-px flex-1 bg-hairline" />
                 </h2>
               );
-              if (e.kind === "score") return <p key={e.key} className="num justify-self-start rounded-full bg-teal/15 px-2.5 py-0.5 text-sm text-teal">+{e.delta}</p>;
+              if (e.kind === "score") return <p key={e.key} className="fade-in num justify-self-start rounded-full bg-teal/15 px-2.5 py-0.5 text-sm text-teal">+{e.delta}</p>;
               if (e.kind === "note") return (
-                <aside key={e.key} className="rounded-md border-l-4 border-gold bg-paper px-4 py-3 text-navy">
+                <aside key={e.key} className="fade-in rounded-md border-l-4 border-gold bg-paper px-4 py-3 text-navy">
                   <p className="flex items-center gap-1.5 text-sm font-bold text-[#7a5f0e]"><Scale className="size-4" aria-hidden />{t("rule")}</p>
                   <p className="mt-1">{e.text}</p>
                   <button type="button" className="mt-1.5 text-sm font-semibold text-[#7a5f0e] underline underline-offset-2" onClick={() => openLegal(e.citation_id, st.legal_date)}>{tc("openArticle")}</button>
                 </aside>
               );
-              if (e.speaker === "narrator") return <p key={e.key} className="max-w-[65ch] text-[1.05rem] leading-relaxed">{e.text}</p>;
+              if (e.speaker === "narrator") return <p key={e.key} className="fade-in max-w-[65ch] text-[1.05rem] leading-relaxed">{e.text}</p>;
               const mine = e.speaker === player;
               return (
-                <figure key={e.key} className={cn("max-w-[34rem] rounded-xl px-4 py-2.5", mine ? "justify-self-end rounded-br-sm bg-gold/15" : "justify-self-start rounded-bl-sm bg-navy-3")}>
+                <figure key={e.key} className={cn("fade-in max-w-[34rem] rounded-xl px-4 py-2.5", mine ? "justify-self-end rounded-br-sm bg-gold/15" : "justify-self-start rounded-bl-sm bg-navy-3")}>
                   <figcaption className={cn("text-xs font-bold", mine ? "text-gold" : "text-ink-muted")}>{names[e.speaker] ?? e.speaker}</figcaption>
                   <blockquote className="mt-0.5">{e.text}</blockquote>
                 </figure>

@@ -17,7 +17,7 @@ export default function Landing({ params }: { params: Promise<{ locale: string }
     <div className="desk-page">
       <DeskHeader />
       {/* guests: what Mezon is and for whom; signed-in users: their case desk */}
-      <HomeGate guest={<Pitch />} member={<CaseDesk />} />
+      <div className="page-in"><HomeGate guest={<Pitch />} member={<CaseDesk />} /></div>
       <footer className="desk-foot">{common("disclaimer")} LexHackathon 2026.</footer>
     </div>
   );

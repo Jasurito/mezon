@@ -12,8 +12,8 @@ export type Difficulty = "beginner" | "intermediate" | "advanced";
 export type ResultKind = "win" | "partial" | "loss" | "settlement" | "procedural_loss";
 /** debrief: a move in court, a justification of it, or a forecast of the outcome */
 export type DecisionKind = "action" | "reasoning" | "prediction";
-/** who a case is for: professional = a court case, public = a life situation for non-lawyers (no courtroom) */
-export type CaseAudience = "professional" | "public";
+/** case category, open to everyone: a court case (courtroom) or a life situation (everyday steps, no courtroom) */
+export type CaseKind = "court" | "situation";
 
 export interface UserOut { user_id: string; display_name: string | null; created_at: string }
 
@@ -47,7 +47,7 @@ export interface GameState {
 export interface ScenarioCard {
   scenario_id: string; title: string; category: string; difficulty: Difficulty; minutes: number;
   topics: string[]; cover: string | null; fictional_notice: string; available: boolean;
-  audience?: CaseAudience;
+  kind?: CaseKind;
 }
 export interface CharacterView { id: string; name: string; role: string; sprite: string }
 export interface LegalActView { document_key: string; title: string; source_url: string | null }
@@ -58,7 +58,7 @@ export interface ScenarioDetail {
   claims: { side: "plaintiff" | "defendant"; text: string }[];
   documents: { id: string; title: string }[];
   legal_acts: LegalActView[];
-  audience?: CaseAudience;
+  kind?: CaseKind;
 }
 
 export interface EditionView { effective_from: string | null; effective_to: string | null; status: EditionStatus }

@@ -7,7 +7,7 @@ import { CitationChip, ErrorState, Loading } from "@/components/common/state";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ClaimLetter } from "@/components/common/claim-letter";
-import { api, type CaseAudience, type DecisionKind, type ResultKind, type SessionResult } from "@/lib/api";
+import { api, type CaseKind, type DecisionKind, type ResultKind, type SessionResult } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/store/user";
 import { useLoad } from "@/hooks/use-load";
@@ -29,19 +29,19 @@ export default function ResultsPage() {
   const router = useRouter();
   const { sessionId } = useParams<{ sessionId: string }>();
   const withUser = useUser((s) => s.withUser);
-  // the result, the case's legal date (article editions are shown as of that date) and who the case is for
-  const { data, error: failed, retry: load } = useLoad<[SessionResult, { date: string; audience?: CaseAudience } | null]>(
+  // the result, the case's legal date (article editions are shown as of that date) and its category
+  const { data, error: failed, retry: load } = useLoad<[SessionResult, { date: string; kind?: CaseKind } | null]>(
     () => Promise.all([
       api.result(sessionId, locale),
       api.session(sessionId, locale)
-        .then(async (s) => ({ date: s.legal_date, audience: (await api.scenario(s.scenario_id, locale).catch(() => null))?.audience }))
+        .then(async (s) => ({ date: s.legal_date, kind: (await api.scenario(s.scenario_id, locale).catch(() => null))?.kind }))
         .catch(() => null),
     ]),
     [sessionId, locale],
   );
   const [r, meta] = data ?? [null, null];
   const legalDate = meta?.date ?? null;
-  const lifeSituation = meta?.audience === "public";
+  const lifeSituation = meta?.kind === "situation";
 
   async function replay() {
     const s = await withUser((user_id) => api.createSession({ user_id, scenario_id: r!.scenario_id, locale }));
