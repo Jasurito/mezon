@@ -21,4 +21,4 @@ graphify explain "HistoryStore"
 In Claude Code use the `/graphify` skill (`.claude/skills/graphify`); it installs the `graphifyy` package on first use.
 Fall back to grep/Read for a single symbol lookup or when the graph has no answer.
 
-**Keep it fresh.** After significant changes run `/graphify . --update` (it re-extracts only changed files), then commit the three files above. `.claude/` (vendored skills) is excluded from the graph on purpose. Graphify's local state in `graphify-out/` (cache, manifest) is git-ignored.
+**Keep it fresh.** After significant changes run `/graphify . --update` (it re-extracts only changed files), then commit the three files above. What stays out of the graph is listed in `.graphifyignore` (vendored skills in `.claude/`, the lex.uz corpus in `legal_data/`, fixtures, static assets); keep large data there too. Graphify's local state in `graphify-out/` (cache, manifest) is git-ignored.

@@ -1,0 +1,10 @@
+# What stays out of the graphify knowledge graph (gitignore syntax). Read by `/graphify` and `graphify update`.
+# Vendored third-party Claude skills: library docs, not this project's architecture
+.claude/
+# lex.uz legal corpus (raw HTML, processed JSON, seed dump): data, not architecture, and very large
+legal_data/
+# graphify's own outputs
+graphify-out/
+# test fixtures (lex.uz HTML fragments) and static assets (favicon)
+ingestion/tests/fixtures/
+frontend/public/
