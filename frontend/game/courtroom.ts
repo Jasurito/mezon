@@ -6,7 +6,7 @@
  *   daylight - the same pixel art in daylight colours
  *   flat     - smooth vector illustration (arched windows, soft shadows)
  *   ink      - line drawing on paper, the site's case-file style
- * Every theme has the flag of Uzbekistan by the bench. Text never lives in the canvas except the nametags.
+ * Every theme has the flag of Uzbekistan by the bench and the State Emblem above it. Text never lives in the canvas except the nametags.
  */
 import type { CourtApi } from "@/store/game";
 
@@ -177,22 +177,118 @@ function windowAt(pt: Painter, x: number, y: number) {
   pt.box(x - 3, y + 54, 30, 3, "trim", { r: 1, bevel: true });
 }
 
+/** a rotated diamond from (x, y) along angle a: wheat grains, leaves */
+function leaf(pt: Painter, x: number, y: number, a: number, len: number, wid: number, k: string) {
+  const c = Math.cos(a), s = Math.sin(a), nx = (-s * wid) / 2, ny = (c * wid) / 2, mx = x + c * len * 0.45, my = y + s * len * 0.45;
+  pt.poly([x, y, mx + nx, my + ny, x + c * len, y + s * len, mx - nx, my - ny], k);
+}
+
+/**
+ * State Emblem of Uzbekistan, simplified for the wall above the bench: the Khumo bird over a rising sun, mountains
+ * and a valley with two rivers; a wreath of wheat (left) and cotton (right) tied with a ribbon in the flag colours;
+ * the eight-pointed star with a crescent and a star on top. Ink theme: the same drawing in ink tints.
+ */
 function emblem(pt: Painter, cx: number, cy: number) {
-  // ring with the scales of justice
-  pt.circle(cx, cy, 15, pt.style === "ink" ? "paper" : mix(pt.t.emblem, -0.35));
-  pt.circle(cx, cy, 13.2, "emblem", { line: false });
-  pt.circle(cx, cy, 10.6, "wallA");
-  if (pt.style === "pixel") for (let a = 0; a < 16; a++) { const ang = (a / 16) * Math.PI * 2; pt.box(cx + Math.cos(ang) * 11.9 - 0.25, cy + Math.sin(ang) * 11.9 - 0.25, 0.5, 0.5, mix(pt.t.emblem, 0.35)); }
-  const k = "emblem";
-  pt.box(cx - 0.8, cy - 8, 1.6, 15, k, { line: false });                       // post
-  pt.box(cx - 8, cy - 5.5, 16, 1.3, k, { r: 0.6, line: false });               // beam
-  pt.circle(cx, cy - 8.6, 1.2, k, { line: false });
-  for (const s of [-1, 1]) {
-    const px = cx + s * 7;
-    pt.line(px, cy - 4.6, px - 2.6, cy + 1, k, 0.35); pt.line(px, cy - 4.6, px + 2.6, cy + 1, k, 0.35);
-    pt.poly([px - 3.6, cy + 1, px + 3.6, cy + 1, px + 2.2, cy + 2.8, px - 2.2, cy + 2.8], k);
+  const ink = pt.style === "ink";
+  const gold = ink ? pt.t.ink : pt.t.emblem;
+  const C = {
+    gold, dark: ink ? pt.t.ink : mix(gold, -0.4), light: ink ? "#6F7DB8" : mix(gold, 0.45),
+    sky: ink ? "#E1E6F0" : "#3A8FD0", sun: ink ? "#C6CCE2" : "#F6C945", ray: ink ? "#9AA5CF" : "#FBE08A",
+    mount: ink ? "#9AA5CF" : "#5C7C99", snow: ink ? "#FBFCF8" : "#EEF4F8", valley: ink ? "#D3D8E6" : "#3E9B4F", river: ink ? "#FBFCF8" : "#BDE8F8",
+    leaf: ink ? "#6F7DB8" : "#2F8B45", boll: ink ? "#FBFCF8" : "#FAF7EE", octa: ink ? "#9AA5CF" : FLAG.blue,
+  };
+  const deg = Math.PI / 180, R = 14, wc = cy + 1;
+  const at = (a: number, r = R) => [cx + Math.cos(a) * r, wc + Math.sin(a) * r];
+
+  // landscape disc: valley, sky above the horizon, sun rays, the rising sun, mountains, two rivers
+  const r0 = 9.6, oy = cy + 0.6, hz = oy + 2.4;
+  pt.circle(cx, oy, r0 + 0.8, C.dark, { line: false });
+  pt.circle(cx, oy, r0, C.valley, { line: false });
+  const s0 = Math.asin((hz - oy) / r0), sky: number[] = [];
+  for (let i = 0; i <= 28; i++) { const a = Math.PI - s0 + (i / 28) * (Math.PI + 2 * s0); sky.push(cx + Math.cos(a) * r0, oy + Math.sin(a) * r0); }
+  pt.poly(sky, C.sky);
+  for (let i = 0; i <= 12; i++) {
+    const a = Math.PI + 0.14 + (i / 12) * (Math.PI - 0.28), dx = Math.cos(a), dy = Math.sin(a);
+    const b = (hz - oy) * dy, L = -b + Math.sqrt(b * b - ((hz - oy) ** 2 - r0 * r0));   // ray length to the rim
+    pt.line(cx + dx * 4.6, hz + dy * 4.6, cx + dx * (L - 0.5), hz + dy * (L - 0.5), C.ray, ink ? 0.3 : 0.55, 0.9);
   }
-  pt.box(cx - 4, cy + 6.2, 8, 1.6, k, { r: 0.6, line: false });                // base
+  const half: number[] = [];
+  for (let i = 0; i <= 16; i++) { const a = Math.PI + (i / 16) * Math.PI; half.push(cx + Math.cos(a) * 4.2, hz + Math.sin(a) * 4.2); }
+  pt.poly(half, C.sun);
+  for (const s of [-1, 1]) {
+    pt.poly([cx + s * 9.3, hz, cx + s * 7, hz - 3.6, cx + s * 5.4, hz - 2.2, cx + s * 3.8, hz - 3, cx + s * 1.8, hz], C.mount);
+    pt.poly([cx + s * 7, hz - 3.6, cx + s * 7.8, hz - 2.6, cx + s * 6.2, hz - 2.6], C.snow);
+  }
+  const river = (pts: number[]) => { for (let i = 0; i + 3 < pts.length; i += 2) pt.line(pts[i], pts[i + 1], pts[i + 2], pts[i + 3], C.river, 0.7); };
+  river([cx - 1.2, hz + 0.6, cx - 2.6, hz + 2.4, cx - 2, hz + 4.2, cx - 4.2, hz + 6]);
+  river([cx + 1.2, hz + 0.6, cx + 2.2, hz + 2.6, cx + 1.6, hz + 4.4, cx + 3.6, hz + 6]);
+  if (ink) { pt.g.lineStyle(0.4 * pt.p, pt.col("ink"), 1); pt.g.strokeCircle(cx * pt.p, oy * pt.p, (r0 + 0.8) * pt.p); }
+
+  // wreath: wheat ears on the left, cotton branches with open bolls on the right
+  const wheat: number[][] = [];
+  for (let a = 112; a <= 232; a += 10) wheat.push(at(a * deg));
+  wheat.forEach(([x, y], i) => {
+    if (i) pt.line(wheat[i - 1][0], wheat[i - 1][1], x, y, C.dark, 0.5);
+    const a = (112 + i * 10) * deg, tang = Math.atan2(Math.cos(a), -Math.sin(a));
+    leaf(pt, x, y, tang - 0.55, 2.9, 1.3, C.gold); leaf(pt, x, y, tang + 0.55, 2.9, 1.3, C.gold);
+  });
+  const top = at(232 * deg), ta = Math.atan2(Math.cos(232 * deg), -Math.sin(232 * deg));
+  leaf(pt, top[0], top[1], ta, 3.4, 1.4, C.gold);
+  const cotton: number[][] = [];
+  for (let a = 68; a >= -52; a -= 10) cotton.push(at(a * deg));
+  cotton.forEach(([x, y], i) => {
+    if (i) pt.line(cotton[i - 1][0], cotton[i - 1][1], x, y, ink ? pt.t.ink : mix(C.leaf, -0.35), 0.5);
+    const a = (68 - i * 10) * deg, tang = Math.atan2(-Math.cos(a), Math.sin(a));
+    if (i % 3 !== 1) { leaf(pt, x, y, tang - 0.95, 3, 1.8, C.leaf); leaf(pt, x, y, tang + 0.95, 3, 1.8, C.leaf); }
+  });
+  cotton.forEach(([x, y], i) => {
+    if (i % 3 !== 1) return;
+    const a = (68 - i * 10) * deg, bx = x + Math.cos(a) * 0.9, by = y + Math.sin(a) * 0.9;
+    pt.circle(bx, by, 2, ink ? pt.t.ink : mix(C.leaf, -0.25), { line: false });
+    [[-0.7, 0.3], [0.7, 0.3], [0, -0.6]].forEach(([dx, dy]) => pt.circle(bx + dx, by + dy, 1.05, C.boll, { line: false }));
+  });
+
+  // the Khumo bird with open wings, head turned to the right
+  const bx = cx, by = oy - 1.5;
+  const wing: [number, number][] = [[1, -1.6], [3.4, -4], [6.4, -5.8], [9.6, -6.6], [11.4, -6.4], [10.6, -4.4], [9.2, -4.6], [8.8, -2.7], [7.4, -3.1],
+    [6.8, -1.1], [5.4, -1.7], [4.6, 0.4], [3.4, -0.4], [2.4, 1.6], [1, 1]];
+  for (const s of [-1, 1]) {
+    pt.poly(wing.flatMap(([dx, dy]) => [bx + s * dx, by + dy]), C.gold, true);
+    [[9.2, -4.6], [7.4, -3.1], [5.4, -1.7], [3.4, -0.4]].forEach(([dx, dy]) => pt.line(bx + s * dx, by + dy, bx + s * (dx * 0.55 + 0.6), by + dy * 0.4 - 2.2, C.dark, 0.3, 0.8));
+  }
+  pt.poly([bx - 1.1, by + 2.6, bx + 1.1, by + 2.6, bx + 2.6, by + 6.6, bx + 1.3, by + 6, bx, by + 7, bx - 1.3, by + 6, bx - 2.6, by + 6.6], C.gold, true);
+  pt.line(bx, by + 3, bx, by + 6.6, C.dark, 0.3, 0.8); pt.line(bx - 0.6, by + 3, bx - 1.6, by + 6.2, C.dark, 0.3, 0.8); pt.line(bx + 0.6, by + 3, bx + 1.6, by + 6.2, C.dark, 0.3, 0.8);
+  pt.ellipse(bx, by + 0.8, 3, 5.6, C.gold);
+  pt.poly([bx - 0.3, by - 3.4, bx + 0.3, by - 4.6, bx + 0.9, by - 3.5], C.gold);
+  pt.circle(bx + 0.4, by - 2.5, 1.3, C.gold, { line: false });
+  pt.poly([bx + 1.5, by - 2.8, bx + 2.7, by - 2.4, bx + 1.5, by - 2], C.dark);
+  pt.circle(bx + 0.8, by - 2.8, 0.3, C.dark, { line: false });
+  pt.ellipse(bx, by + 1, 1.6, 3.4, C.light, 0.45);
+
+  // ribbon in the flag colours wrapped along the bottom of the wreath (blue on top, as on the flag)
+  const arcBand = (r1: number, r2: number, k: string, a0 = 52, a1 = 128) => {
+    const pts: number[] = [];
+    for (let a = a0; a <= a1; a += 4) pts.push(...at(a * deg, r2));
+    for (let a = a1; a >= a0; a -= 4) pts.push(...at(a * deg, r1));
+    pt.poly(pts, k);
+  };
+  arcBand(R - 1.7, R - 0.5, FLAG.blue); arcBand(R - 0.5, R + 0.5, FLAG.white); arcBand(R + 0.5, R + 1.7, FLAG.green);
+  arcBand(R + 0.4, R + 0.6, FLAG.red); arcBand(R - 0.6, R - 0.4, FLAG.red);
+  for (const a of [52, 128]) {   // cut ends folding back
+    const [x1, y1] = at(a * deg, R + 1.7), [x2, y2] = at(a * deg, R - 1.7), s = a < 90 ? 1 : -1;
+    pt.poly([x1, y1, x2, y2, x2 + s * 1.6, y2 + 1.4, x1 + s * 1.6, y1 + 1.4], ink ? "#9AA5CF" : mix(FLAG.green, -0.3));
+  }
+  if (ink) {
+    pt.g.lineStyle(0.35 * pt.p, pt.col("ink"), 1);
+    for (const r of [R + 1.7, R - 1.7]) { pt.g.beginPath(); pt.g.arc(cx * pt.p, wc * pt.p, r * pt.p, 52 * deg, 128 * deg, false); pt.g.strokePath(); }
+  }
+
+  // eight-pointed star with a crescent and a star
+  const sx = cx, sy = wc - 14.2;
+  const oct = (r: number) => { const pts: number[] = []; for (let i = 0; i < 16; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 8, rr = i % 2 ? r * 0.77 : r; pts.push(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } return pts; };
+  pt.poly(oct(4.1), C.gold); pt.poly(oct(3.2), C.octa);
+  pt.circle(sx - 0.5, sy + 0.1, 1.6, C.gold, { line: false }); pt.circle(sx + 0.05, sy - 0.2, 1.38, C.octa, { line: false });
+  pt.star(sx + 1.05, sy + 0.15, 0.8, C.gold);
 }
 
 function drawRoom(scene: any, sp: { style: Style; p: number; pal: Pal }) {

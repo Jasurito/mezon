@@ -45,7 +45,7 @@
   "landing": {
     "headline": "Har bir iş jilddan boşlanadi.",
     "lead": "Hujjatlarni öqing, sudda dalil keltiring va har bir qaroringizni qonun moddasi bilan tekşiring.",
-    "caseNumber": "Iş № 001",
+    "caseNumber": "Iş № {num}",
     "photoCaption": "Sud zali. Majlis 01.03.2026",
     "caseTitle": "Nosoz smartfon",
     "fieldType": "Iş turi",

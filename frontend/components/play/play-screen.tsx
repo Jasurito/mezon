@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadio
 import { Court } from "@/game/Court";
 import { Link, useRouter } from "@/i18n/navigation";
 import { api, type ActionView, type Locale } from "@/lib/api";
+import { reveal } from "@/lib/reveal";
 import { COURT_THEMES, type CourtTheme } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 import { useGame } from "@/store/game";
@@ -33,6 +34,7 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
   const [askable, setAskable] = useState<Askable[]>([]);
   const [asking, setAsking] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const dialogueRef = useRef<HTMLDivElement>(null);
   const secretary = t("play.secretary");
   const tagNames = useMemo(() => ({ secretary, ...Object.fromEntries(Object.entries(names).map(([id, n]) => [id, n.name])) }), [names, secretary]);
   const lastLocale = useRef(locale);
@@ -71,6 +73,12 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
   }, [g.state?.finished, g.busy, g.queue.length, router, sessionId]);
 
   useEffect(() => { if (g.illegal) toast.error(t("play.illegal")); }, [g.illegal, t]);
+
+  // short screens: the dialogue and the choices sit under the scene; scroll them into view when they change
+  const line = g.current;
+  const choiceKey = g.busy ? "" : (g.state?.available_actions ?? []).map((a) => a.action_id).join("|");
+  useEffect(() => { if (line) reveal(dialogueRef.current, dialogueRef.current); }, [line]);
+  useEffect(() => { if (choiceKey) reveal(dialogueRef.current, actionsRef.current); }, [choiceKey]);
 
   // Space / Enter advance the dialogue when focus is not on a control
   useEffect(() => {
@@ -146,7 +154,7 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
           {g.toast && <div key={g.toast.key} className="stage-toast is-on" aria-live="polite">{g.toast.title}</div>}
         </div>
         {/* below the scene, never over it: nametags, speech bubbles and the evidence table stay visible */}
-        <div className="dialogue" onClick={() => g.advance()} aria-live="polite">
+        <div ref={dialogueRef} className="dialogue" onClick={() => g.advance()} aria-live="polite">
           {g.current && (
             <>
               {who?.name && <p className="mb-1 font-bold text-gold">{who.name} <span className="text-sm font-normal text-ink-muted">{who.role}</span></p>}

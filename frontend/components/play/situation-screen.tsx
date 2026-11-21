@@ -7,6 +7,7 @@ import { ErrorState, Loading } from "@/components/common/state";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
 import { api, ApiError, type ActionView, type GameEvent, type GameState, type Locale } from "@/lib/api";
+import { reveal } from "@/lib/reveal";
 import { cn } from "@/lib/utils";
 import { useUi } from "@/store/ui";
 
@@ -55,6 +56,9 @@ export function SituationScreen({ sessionId }: { sessionId: string }) {
     try { return JSON.parse(sessionStorage.getItem(addedKey(sessionId)) || "[]"); } catch { return []; }
   });
   const endRef = useRef<HTMLDivElement>(null);
+  const storyRef = useRef<HTMLElement>(null);
+  const moveRef = useRef<HTMLElement>(null);
+  const seen = useRef(0);
   const lastLocale = useRef(locale);
 
   useEffect(() => {
@@ -78,7 +82,14 @@ export function SituationScreen({ sessionId }: { sessionId: string }) {
     return () => { live = false; };
   }, [sessionId, locale]);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, [log.length]);
+  // after an answer: bring the next question into view, keeping the first new line of the story on screen
+  // (on first load: the start of the current stage)
+  useEffect(() => {
+    const story = storyRef.current; if (!story || !log.length || log.length === seen.current) return;
+    const from = seen.current > 0 ? seen.current : log.findLastIndex((e) => e.kind === "stage");
+    seen.current = log.length;
+    reveal(story.children[Math.max(0, from)] ?? endRef.current, moveRef.current ?? endRef.current);
+  }, [log]);
 
   // finished: a short pause on the last line, then the result
   useEffect(() => {
@@ -147,7 +158,7 @@ export function SituationScreen({ sessionId }: { sessionId: string }) {
       <main id="main" className="mx-auto grid w-full max-w-6xl flex-1 items-start gap-6 px-3 pb-24 pt-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0">
           {/* the story so far */}
-          <section aria-live="polite" aria-label={t("story")} className="grid gap-3">
+          <section ref={storyRef} aria-live="polite" aria-label={t("story")} className="grid gap-3">
             {log.map((e) => {
               if (e.kind === "stage") return (
                 <h2 key={e.key} className="fade-in mt-4 flex items-center gap-3 text-sm font-bold uppercase tracking-wide text-gold first:mt-0">
@@ -176,7 +187,7 @@ export function SituationScreen({ sessionId }: { sessionId: string }) {
 
           {/* your move */}
           {!st.finished ? (
-            <section aria-label={t("yourMove")} className={cn("mt-8 rounded-lg border border-gold/40 bg-navy-2 p-4 sm:p-6", busy && "opacity-60")} aria-busy={busy}>
+            <section ref={moveRef} aria-label={t("yourMove")} className={cn("mt-8 rounded-lg border border-gold/40 bg-navy-2 p-4 sm:p-6", busy && "opacity-60")} aria-busy={busy}>
               <p className="mb-4 text-sm font-bold uppercase tracking-wide text-gold">{t("yourMove")}</p>
               <div className="grid gap-6">
                 {decisions.map((a) => <Question key={a.action_id} action={a} value={picked[a.action_id]} disabled={busy}
@@ -208,7 +219,7 @@ export function SituationScreen({ sessionId }: { sessionId: string }) {
               </div>
             </section>
           ) : (
-            <section className="mt-8 rounded-lg border border-teal/40 bg-navy-2 p-6">
+            <section ref={moveRef} className="mt-8 rounded-lg border border-teal/40 bg-navy-2 p-6">
               <p className="flex items-center gap-2 text-lg font-bold"><Check className="size-5 text-teal" aria-hidden />{t("finished")}</p>
               <Button asChild size="lg" className="mt-4 h-12 px-6 text-base"><Link href={`/results/${sessionId}`}>{t("seeResult")}</Link></Button>
             </section>

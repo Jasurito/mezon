@@ -49,6 +49,9 @@
 .mini-folder { padding: 1rem 1.2rem; background: #6e5536; color: #e9dcc6; border-radius: 0 6px 6px 6px; position: relative; opacity: 0.75; }
 .mini-folder span { display: block; font: 700 0.85rem var(--font-oswald); letter-spacing: 0.06em; margin-bottom: 0.3rem; }
 .mini-folder em { display: block; font-style: normal; font-size: 0.8rem; color: #cbb894; }
+.mini-folder--open { display: block; height: 100%; opacity: 1; text-decoration: none; color: #f3e8d4 !important; transition: transform 0.2s ease, background-color 0.2s ease; }
+.mini-folder--open:hover, .mini-folder--open:focus-visible { background: #7d6140; transform: translateY(-3px); }
+html[data-motion="reduced"] .mini-folder--open { transition: none; }
 .shelf__all { display: inline-block; margin-top: 1.2rem; color: #aeb5c6 !important; }
 .desk-foot { text-align: center; color: #8b93a7; font-size: 0.85rem; padding: 0 1rem 5rem; }
 
