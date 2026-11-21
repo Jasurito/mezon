@@ -12,12 +12,17 @@ from app.auth.passwords import (
 )
 
 
+# professional = lawyer or law student, public = not a legal professional
+Audience = Literal["professional", "public"]
+
+
 class AccountUser(BaseModel):
     id: uuid.UUID
     display_name: str
     email: str
     provider: Literal["google", "email"]
     avatar_url: str | None = None
+    audience: Audience | None = None  # None = not specified (older accounts, Google sign-in before the choice)
 
 
 def _lenient_uuid(v):
@@ -35,6 +40,7 @@ class SignupIn(BaseModel):
     email: str = Field(max_length=320)
     password: str = Field(min_length=MIN_PASSWORD_LEN, max_length=MAX_PASSWORD_LEN)
     guest_user_id: uuid.UUID | None = None
+    audience: Audience | None = None
 
     @field_validator("display_name")
     @classmethod

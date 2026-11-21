@@ -55,6 +55,7 @@ def _profile(db: Session, user: User) -> UserProfileOut:
         preferred_locale=user.preferred_locale,  # type: ignore[arg-type]
         created_at=user.created_at,
         stats=stats,
+        audience=user.audience,  # type: ignore[arg-type]
     )
 
 
@@ -66,12 +67,14 @@ def get_user(user_id: uuid.UUID, db: Session = Depends(get_db)) -> UserProfileOu
 
 @router.patch("/users/{user_id}", response_model=UserProfileOut, dependencies=[Depends(require_path_user)])
 def patch_user(user_id: uuid.UUID, body: PatchUser, db: Session = Depends(get_db)) -> UserProfileOut:
-    """Изменить имя и/или язык по умолчанию; переданные поля заменяются, null очищает."""
+    """Изменить имя, язык по умолчанию и/или audience; переданные поля заменяются, null очищает."""
     user = _get_user(db, user_id)
     if "display_name" in body.model_fields_set:
         user.display_name = body.display_name
     if "preferred_locale" in body.model_fields_set:
         user.preferred_locale = body.preferred_locale
+    if "audience" in body.model_fields_set:
+        user.audience = body.audience
     db.commit()
     return _profile(db, user)
 

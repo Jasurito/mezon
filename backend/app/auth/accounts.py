@@ -24,6 +24,7 @@ def account_out(user: User) -> AccountUser:
         email=email,
         provider="google" if user.google_sub else "email",
         avatar_url=user.avatar_url,
+        audience=user.audience,  # type: ignore[arg-type]
     )
 
 
@@ -31,10 +32,12 @@ def find_by_email(db: Session, email: str) -> User | None:
     return db.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
 
-def create_email_user(db: Session, display_name: str, email: str, password_hash: str, now: datetime) -> User | None:
+def create_email_user(
+    db: Session, display_name: str, email: str, password_hash: str, now: datetime, audience: str | None = None
+) -> User | None:
     """None, если email занят (в том числе при гонке: ловим нарушение уникальности)."""
     user = User(id=uuid.uuid4(), display_name=display_name, email=email, email_verified=False,
-                password_hash=password_hash, created_at=now)
+                password_hash=password_hash, created_at=now, audience=audience)
     try:
         with db.begin_nested():
             db.add(user)

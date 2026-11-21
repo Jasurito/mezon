@@ -13,7 +13,8 @@ def test_signup_me_logout_login_cycle(client):
     r = signup(client, email="  Aziz@Example.com ")
     assert r.status_code == 201
     body = r.json()
-    assert set(body) == {"id", "display_name", "email", "provider", "avatar_url"}
+    assert set(body) == {"id", "display_name", "email", "provider", "avatar_url", "audience"}
+    assert body["audience"] is None  # not chosen
     assert body["email"] == "aziz@example.com" and body["provider"] == "email" and body["display_name"] == "Aziz"
     assert "password" not in r.text and "argon2" not in r.text
 

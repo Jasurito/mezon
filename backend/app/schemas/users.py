@@ -7,6 +7,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from app.schemas.auth import Audience
 from app.schemas.legal import Locale
 
 
@@ -28,11 +29,13 @@ class UserProfileOut(BaseModel):
     preferred_locale: Locale | None
     created_at: datetime
     stats: UserStatsOut
+    audience: Audience | None = None
 
 
 class PatchUser(BaseModel):
     display_name: str | None = None
     preferred_locale: Locale | None = None
+    audience: Audience | None = None  # professional (lawyer / law student) | public; null clears
 
 
 class UserSessionItem(BaseModel):
