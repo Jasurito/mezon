@@ -46,6 +46,7 @@ export const liveApi: Api = {
   session: (id, locale?: Locale) => call(`/sessions/${id}`, { query: { locale } }),
   setSessionLocale: (id, locale) => call(`/sessions/${id}`, { method: "PATCH", body: JSON.stringify({ locale }) }),
   act: (id, action_id, params) => call(`/sessions/${id}/actions`, post({ action_id, params: params ?? null })),
+  askNpc: (id, character, text) => call(`/sessions/${id}/npc/${encodeURIComponent(character)}/ask`, post({ text })),
   result: (id, locale) => call(`/sessions/${id}/result`, { query: { locale } }),
   citation: (id, date, locale) => call(`/legal/citations/${id}`, { query: { date: date ?? undefined, locale } }),
   document: async () => [], // TODO(backend): endpoint for evidence document bodies

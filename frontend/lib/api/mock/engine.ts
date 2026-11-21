@@ -2,7 +2,7 @@
  * Mock game engine for consumer_dispute_001. Same shape as the backend engine:
  * pure functions, state = fold(apply, initial, actionLog), texts localized at output time.
  */
-import type { ActionView, DecisionView, GameEvent, Locale, MistakeView, RecommendationView } from "../types";
+import type { ActionView, DecisionKind, DecisionView, GameEvent, Locale, MistakeView, RecommendationView, ResultKind } from "../types";
 import { tx } from "./content";
 
 export const STAGES = ["INTRO", "CASE_REVIEW", "PREPARATION", "HEARING_OPENING", "PARTY_EXPLANATIONS", "EVIDENCE_EXAMINATION", "MOTIONS", "DEBATE", "DECISION"] as const;
@@ -136,7 +136,12 @@ export function evaluate(s: EngineState, L: Locale) {
     d("motion", "MOTIONS", !!s.expertise, s.expertise ? "good" : "bad", tx(L, s.expertise ? "dec.motion.good" : "dec.motion.bad"), tx(L, "dec.motion.good"), ["CPC.art.W"]),
     d("debate", "DEBATE", s.debate === "good", s.debate ?? null, tx(L, s.debate ? `dec.debate.${s.debate}` : "dec.none"), tx(L, "dec.debate.good"), ["CPRL.art.X"]),
     d("final", "DECISION", s.claim === "refund", s.claim ?? null, s.claim ? tx(L, "opt." + s.claim) : tx(L, "dec.none"), tx(L, "opt.refund"), ["CPRL.art.X"]),
-  ].map((x, i) => ({ ...x, decision_id: ["explain_claim", "present_evidence", "motion_expertise", "debate", "final_claim"][i] }));
+  ].map((x, i) => ({
+    ...x,
+    decision_id: ["explain_claim", "present_evidence", "motion_expertise", "debate", "final_claim"][i],
+    kind: (["reasoning", "action", "action", "reasoning", "action"] as DecisionKind[])[i],
+    counterfactual: x.correct ? null : tx(L, "cf." + x.decision_id.split("_")[0]),
+  }));
   const cat: Record<string, string> = { explain: "substantive_law", evidence: "evidence", motion: "procedure", debate: "substantive_law", final: "remedy_choice" };
   const keyOf = ["explain", "evidence", "motion", "debate", "final"];
   const mistakes: MistakeView[] = decisions.flatMap((x, i) => x.correct ? [] : [{
@@ -146,8 +151,9 @@ export function evaluate(s: EngineState, L: Locale) {
   if (mistakes.some((m) => m.category === "evidence" || m.category === "procedure")) recommendations.push({ topic: tx(L, "rec.evidence"), citation_ids: ["CPC.art.Z", "CPC.art.W"], scenario_id: null });
   if (mistakes.some((m) => m.category === "substantive_law" || m.category === "remedy_choice")) recommendations.push({ topic: tx(L, "rec.consumer"), citation_ids: ["CPRL.art.X"], scenario_id: null });
   const outcome = outcomeOf(s);
+  const result_kind: ResultKind = outcome === "claim_granted" ? "win" : outcome === "claim_partially_granted" ? "partial" : "loss";
   return {
-    outcome, outcome_title: tx(L, "outcome." + outcome), ruling_text: tx(L, "ruling." + outcome),
+    outcome, result_kind, result_label: tx(L, "kind." + result_kind), outcome_title: tx(L, "outcome." + outcome), ruling_text: tx(L, "ruling." + outcome),
     decisions, mistakes, recommendations,
     correct_decision_rate: Math.round((decisions.filter((x) => x.correct).length / decisions.length) * 100) / 100,
   };

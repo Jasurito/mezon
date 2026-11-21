@@ -5,8 +5,8 @@
  */
 import { latnToCyrl } from "@/lib/translit";
 import {
-  ApiError, type Api, type CitationView, type DashboardOut, type GameState, type Locale, type MentorEvent,
-  type QuizKind, type ScenarioCard, type ScenarioDetail, type SessionResult,
+  ApiError, NPC_MAX_LEN, type Api, type CitationView, type DashboardOut, type GameState, type Locale, type MentorEvent,
+  type NpcAnswer, type QuizKind, type ScenarioCard, type ScenarioDetail, type SessionResult,
 } from "../types";
 import { actTitle, QUIZ, tx } from "./content";
 import { availableActions, evaluate, IllegalAction, LEGAL_DATE, MAX_SCORE, replay, stageInfo, type LoggedAction } from "./engine";
@@ -105,6 +105,47 @@ async function* mentorStream(question: string, sessionId: string | null, L: Loca
   yield { event: "done", data: { insufficient_sources: false, ai_unavailable: false, disclaimer: uz(L, ru ? "Образовательное объяснение, не юридическая консультация" : "Taʼlim maqsadidagi tuşuntiriş, yuridik maslahat emas") } };
 }
 
+/* ---------------- free questions to characters (scripted; the live backend classifies with an LLM) ---------------- */
+const CHARACTERS = ["judge", "plaintiff_rep", "plaintiff", "defendant_rep", "expert"];
+interface NpcQ { id: string; kw: RegExp; uz: string; ru: string; action?: string }
+const NPC_QUESTIONS: Record<string, NpcQ[]> = {
+  plaintiff: [
+    { id: "q_defect", kw: /(nosoz|buz|quvvat|zaryad|nuqson|suv|nam|nima b[öo'ʻ]|слом|неисправ|заряж|недостат|случил|произош|вод|влаг|намок)/i,
+      uz: "Telefonni sotib olganimdan ön kun ötib, u quvvatlanmay qoldi. Men uni tuşirmaganman, suvga ham tuşmagan.",
+      ru: "Через десять дней после покупки телефон перестал заряжаться. Я его не ронял, и в воду он не попадал." },
+    { id: "q_complaint", kw: /(sotuv[çc]|murojaat|talabnoma|yozdi|qa[çc]on|претенз|обрат|продав|писал|когда)/i,
+      uz: "Öşa kuniyoq sotuvçiga yozdim, keyin yozma talabnoma topşirdim. Yozişma telefonimda saqlangan.",
+      ru: "В тот же день написал продавцу, потом подал письменную претензию. Переписка сохранилась." },
+    { id: "q_docs", kw: /([çc]ek|kafolat|hujjat|şartnoma|shartnoma|talon|чек|гарант|документ|договор|талон)/i,
+      uz: "Kassa çeki va kafolat taloni menda. Oldi-sotdi şartnomasi ham bor.",
+      ru: "Кассовый чек и гарантийный талон у меня. Договор купли-продажи тоже есть." },
+    { id: "q_goal", kw: /(xohla|istay|pul|qaytar|almaştir|almashtir|хотит|хочет|деньг|вернуть|замен|цель)/i,
+      uz: "Pulimni qaytarişsa bas. Bu dökondan boşqa telefon olmoqçi emasman.",
+      ru: "Хочу вернуть деньги. Другой телефон в этом магазине брать не хочу." },
+  ],
+  defendant_rep: [
+    { id: "q_service", kw: /(servis|mustaqil|ekspert|kim tek|tek[şs]ir|сервис|независим|эксперт|кто провер|провер)/i, action: "ask_defendant",
+      uz: "Tekşiruvni dökonimizning öz servis markazi ötkazgan. Mustaqil ekspertiza ötkazilmagan.",
+      ru: "Проверку проводил собственный сервисный центр магазина. Независимой экспертизы не было." },
+    { id: "q_basis", kw: /(nega|nima uçun|nima uchun|sabab|rad|ayb|почему|причин|отказ|вин)/i,
+      uz: "Servis markazimiz xulosasiça, nosozlik mexanik taʼsir natijasida yuzaga kelgan. Şuning uçun bu kafolat holati emas.",
+      ru: "По заключению нашего сервисного центра поломка вызвана механическим воздействием. Поэтому это не гарантийный случай." },
+    { id: "q_proof", kw: /(dalil|isbot|dalolatnoma|доказ|акт|подтверд)/i,
+      uz: "Bizda servis markazining dalolatnomasi bor. Boşqa dalil taqdim etmaymiz.",
+      ru: "У нас есть акт сервисного центра. Других доказательств мы не представляем." },
+  ],
+};
+const NPC_UNKNOWN = { uz: "Keçirasiz, savolingizni tuşunmadim. Iltimos, boşqaça sörang.", ru: "Извините, я не понял вопрос. Спросите, пожалуйста, иначе." };
+
+/** Mock accounts: progress made as a guest moves to the account on sign-in (the live backend does the same). */
+export function mergeMockGuest(guestId: string | null, accountId: string) {
+  if (!guestId || guestId === accountId) return;
+  const db = load();
+  for (const s of Object.values(db.sessions)) if (s.user_id === guestId) s.user_id = accountId;
+  for (const a of db.attempts) if (a.user_id === guestId) a.user_id = accountId;
+  save(db);
+}
+
 export const mockApi: Api = {
   async health() { await delay(); return { status: "ok", db: true, articles: 0, chunks: 0, scenarios: 1, llm_configured: false, embedder: "mock" }; },
 
@@ -176,6 +217,22 @@ export const mockApi: Api = {
     const next = replay(s.log, s.locale).state;
     if (next.finished) s.finished_at = new Date().toISOString();
     save(db); return gameState(s, s.locale);
+  },
+
+  async askNpc(id, character, text): Promise<NpcAnswer> {
+    await delay(500); const s = getSession(load(), id);
+    const { state } = replay(s.log, s.locale);
+    if (state.finished) throw new ApiError(409, "SESSION_FINISHED", "Session finished");
+    if (!CHARACTERS.includes(character)) throw notFound("character");
+    const q0 = text.trim(); if (!q0 || q0.length > NPC_MAX_LEN) throw new ApiError(422, "VALIDATION_ERROR", "text");
+    const hit = NPC_QUESTIONS[character]?.find((q) => q.kw.test(q0.toLowerCase()));
+    const L = s.locale; const line = hit ?? NPC_UNKNOWN;
+    const available = new Set(availableActions(state, L).map((a) => a.action_id));
+    return {
+      speaker: character, text: uz(L, L === "ru" ? line.ru : line.uz), question_id: hit?.id ?? "unknown",
+      fact_ids: hit ? ["F_" + hit.id.toUpperCase()] : [], ai_generated: false,
+      suggested_action_id: hit?.action && available.has(hit.action) ? hit.action : null,
+    };
   },
 
   async result(id, L): Promise<SessionResult> {

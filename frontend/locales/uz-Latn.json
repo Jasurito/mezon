@@ -166,7 +166,17 @@
     "category_evidence": "Dalillar",
     "category_procedure": "Protsess",
     "category_substantive_law": "Moddiy huquq",
-    "category_remedy_choice": "Talabni tanlaş"
+    "category_remedy_choice": "Talabni tanlaş",
+    "resultLabel": "Natija",
+    "kind_win": "Ğalaba",
+    "kind_partial": "Qisman ğalaba",
+    "kind_loss": "Mağlubiyat",
+    "kind_settlement": "Kelişuv bitimi",
+    "kind_procedural_loss": "Daʼvo körilmasdan qoldirildi",
+    "dkind_action": "Harakat",
+    "dkind_reasoning": "Asoslaş",
+    "dkind_prediction": "Prognoz",
+    "whatIf": "Nima bölar edi?"
   },
   "mentor": {
     "title": "AI-murabbiy",
@@ -253,6 +263,33 @@
     "welcome": "Xuş kelibsiz, {name}",
     "signedOut": "Hisobdan çiqdingiz",
     "googleDemo": "Demo: Google SSO backendga ulangaç haqiqiy hisob bilan işlaydi.",
-    "progressKept": "Mehmon sifatidagi natijalaringiz hisobga biriktirildi"
+    "progressKept": "Mehmon sifatidagi natijalaringiz hisobga biriktirildi",
+    "err_rate_limited": "Urinişlar juda köp. Bir necha daqiqadan keyin qayta urinib köring.",
+    "err_invalid": "Maʼlumotlar qabul qilinmadi: pochta manzili va parolni tekşiring.",
+    "err_network": "Serverga ulanib bölmadi. Keyinroq urinib köring.",
+    "errorTitle": "Kirib bölmadi",
+    "googleErrorTitle": "Google orqali kirib bölmadi",
+    "googleErrorText": "Kiriş bekor qilingan yoki juda uzoq davom etgan. Qayta urinib köring yoki pochta orqali kiring.",
+    "tryAgain": "Qayta urinib köriş"
+  },
+  "npc": {
+    "open": "Savol beriş",
+    "title": "Iştirokçiga savol",
+    "lead": "Iştirokçilar faqat iş materiallarida bor narsani aytadi. Bu savollar ballga va iş borişiga taʼsir qilmaydi.",
+    "who": "Kimga savol berasiz",
+    "examples": "Masalan:",
+    "ex_plaintiff_1": "Telefon qaçon quvvatlanmay qoldi?",
+    "ex_plaintiff_2": "Telefon suvga tuşganmi?",
+    "ex_defendant_1": "Telefon nega servisga yuborildi?",
+    "ex_defendant_2": "Rad etiş nimaga asoslangan?",
+    "placeholder": "Savolingizni yozing",
+    "send": "Yuboriş",
+    "thinking": "Javob yozilmoqda",
+    "unknown": "Savol tanilmadi: boşqaça sörab köring.",
+    "aiNote": "Javobni sunʼiy intellekt faqat iş faktlari asosida tuzdi",
+    "scriptNote": "Javob iş materiallaridan olingan",
+    "askInCourt": "Bu savolni sudda rasman beriş",
+    "finished": "Iş tugagan: savollar endi qabul qilinmaydi",
+    "error": "Javob olinmadi. Yana bir bor urinib köring."
   }
 }

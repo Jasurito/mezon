@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { applySettings } from "@/lib/settings";
 import { useSettings } from "@/store/settings";
 import { useUser } from "@/store/user";
+import { AuthErrorNotice } from "./auth-error-notice";
 import { LegalPanel } from "./legal-panel";
 import { SketchSwitcher } from "./sketch-switcher";
 
@@ -20,6 +21,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <LegalPanel />
       <SketchSwitcher />
       <Toaster theme="dark" position="top-center" />
+      <AuthErrorNotice />
     </TooltipProvider>
   );
 }

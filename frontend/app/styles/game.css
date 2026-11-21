@@ -3,9 +3,8 @@
 
 .frame { position: relative; width: 100%; max-width: calc((100svh - 360px) * 16 / 9); min-width: min(100%, 640px); margin: 0 auto; border-radius: 10px; overflow: hidden; border: 1px solid var(--hairline); background: #000; }
 .frame__scene { aspect-ratio: 16 / 9; }
-.frame__btn { position: absolute; top: 0.8rem; z-index: 3; }
-.frame__btn--left { left: 0.8rem; }
-.frame__btn.has-new::after { content: ""; display: inline-block; width: 8px; height: 8px; margin-left: 0.5rem; border-radius: 50%; background: var(--terra); }
+.frame__tools { position: absolute; top: 0.8rem; left: 0.8rem; z-index: 3; display: flex; flex-wrap: wrap; gap: 0.5rem; max-width: calc(100% - 1.6rem); }
+.frame__tools .has-new::after { content: ""; display: inline-block; width: 8px; height: 8px; margin-left: 0.5rem; border-radius: 50%; background: var(--terra); }
 
 .note-card { position: absolute; top: 0.8rem; right: 0.8rem; z-index: 3; max-width: 19rem; padding: 0.9rem 1rem; border-radius: 8px; background: var(--paper); color: var(--navy); box-shadow: 0 8px 30px rgb(0 0 0 / 0.4); animation: drop 0.25s ease-out; }
 @keyframes drop { from { opacity: 0; transform: translateY(-8px); } }
@@ -39,3 +38,6 @@
   .frame__scene { border-radius: 8px; overflow: hidden; }
   .note-card { position: relative; inset: auto; max-width: none; margin-top: 0.8rem; }
 }
+
+/* results: Victory / Defeat stamp, like a court seal on the ruling */
+.result-stamp { display: inline-block; padding: 0.3rem 0.9rem; border: 3px solid; border-radius: 6px; font-weight: 800; font-size: 1.35rem; letter-spacing: 0.02em; transform: rotate(-2deg); }

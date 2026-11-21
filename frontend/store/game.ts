@@ -27,7 +27,7 @@ interface GameStore {
   newEvidence: string[];
   error: "offline" | "load" | null;
   illegal: number;
-  /** review_<doc> actions requested while the event queue was busy; sent when it drains */
+  /** actions requested while the event queue was busy (document reviews, questions from the NPC panel); sent when it drains */
   pending: string[];
   court: CourtApi | null;
   setCourt: (c: CourtApi | null) => void;
@@ -35,6 +35,8 @@ interface GameStore {
   dispatch: (actionId: string, params?: { option?: string }) => Promise<void>;
   markReviewed: (evidenceId: string) => void;
   review: (evidenceId: string) => void;
+  /** dispatch now, or after the current dialogue if the court is busy */
+  enqueue: (actionId: string) => void;
   advance: () => void;
   next: () => void;
   reset: () => void;
@@ -88,8 +90,9 @@ export const useGame = create<GameStore>()((set, get) => {
 
     markReviewed: (id) => set({ newEvidence: get().newEvidence.filter((x) => x !== id) }),
 
-    review: (id) => {
-      const actionId = `review_${id}`;
+    review: (id) => get().enqueue(`review_${id}`),
+
+    enqueue: (actionId) => {
       const { state, busy, pending } = get();
       if (!state?.available_actions.some((a) => a.action_id === actionId)) return;
       if (busy) { if (!pending.includes(actionId)) set({ pending: [...pending, actionId] }); return; }

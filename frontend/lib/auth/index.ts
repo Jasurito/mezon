@@ -1,17 +1,22 @@
 /**
- * Account service. The backend will own auth (Google SSO + optional email/password) and set an
- * httpOnly session cookie on the same origin. Proposed endpoints (see frontend/AUTH.md):
- *   GET  /api/auth/google/start?next=/uz/dashboard   -> 302 to Google, back to /api/auth/google/callback
- *   POST /api/auth/signup  {display_name, email, password, guest_user_id}
- *   POST /api/auth/login   {email, password, guest_user_id}
- *   POST /api/auth/logout
+ * Account service. The backend owns auth (backend/app/api/auth.py): Google OAuth (PKCE) + email/password,
+ * an httpOnly `mezon_session` cookie on the same origin, CSRF = Origin check (same origin, so nothing to send).
+ *   GET  /api/auth/google/start?next=/dashboard&guest_user_id=…  -> 302 to Google -> /api/auth/google/callback
+ *        -> 302 to next, or to /?auth_error=google on any failure (shown by <AuthErrorNotice/>)
+ *   POST /api/auth/signup  {display_name, email, password, guest_user_id}  -> AccountUser | 409 EMAIL_EXISTS
+ *   POST /api/auth/login   {email, password, guest_user_id}                -> AccountUser | 401 INVALID_CREDENTIALS
+ *   POST /api/auth/logout  -> 204
  *   GET  /api/auth/me      -> AccountUser | 401
- * Until then the mock keeps accounts in localStorage (demo only, never real credentials).
+ * 429 RATE_LIMITED (Retry-After), 422 validation. Guest progress (guest_user_id) moves to the account on sign-in.
+ * Mock mode keeps accounts in localStorage (demo only, never real credentials).
  */
 import { API_MODE } from "@/lib/api";
+import { mergeMockGuest } from "@/lib/api/mock";
 
 export interface AccountUser { id: string; display_name: string; email: string; provider: "google" | "email"; avatar_url?: string | null }
-export type AuthErrorCode = "credentials" | "exists" | "network";
+export type AuthErrorCode = "credentials" | "exists" | "rate_limited" | "invalid" | "network";
+/** Live mode shows "Continue with Google" only when the server has Google credentials (NEXT_PUBLIC_GOOGLE_AUTH=true). */
+export const GOOGLE_ENABLED = API_MODE === "mock" || process.env.NEXT_PUBLIC_GOOGLE_AUTH === "true";
 export class AuthError extends Error { constructor(public code: AuthErrorCode) { super(code); } }
 
 export interface AuthService {
@@ -34,22 +39,24 @@ async function hash(s: string) {
 
 const mockAuth: AuthService = {
   async me() { return read<AccountUser | null>(K_ME, null); },
-  async signIn(email, password) {
+  async signIn(email, password, guest) {
     await wait(); const users = read<Record<string, AccountUser & { pw: string }>>(K_USERS, {});
     const u = users[email.toLowerCase()];
     if (!u || u.pw !== (await hash(password))) throw new AuthError("credentials");
-    const me: AccountUser = { id: u.id, display_name: u.display_name, email: u.email, provider: u.provider }; write(K_ME, me); return me;
+    const me: AccountUser = { id: u.id, display_name: u.display_name, email: u.email, provider: u.provider };
+    mergeMockGuest(guest, me.id); write(K_ME, me); return me;
   },
-  async signUp(name, email, password) {
+  async signUp(name, email, password, guest) {
     await wait(); const users = read<Record<string, AccountUser & { pw: string }>>(K_USERS, {});
     const key = email.toLowerCase(); if (users[key]) throw new AuthError("exists");
     const me: AccountUser = { id: crypto.randomUUID(), display_name: name.trim(), email: key, provider: "email" };
-    users[key] = { ...me, pw: await hash(password) }; write(K_USERS, users); write(K_ME, me); return me;
+    users[key] = { ...me, pw: await hash(password) }; write(K_USERS, users);
+    mergeMockGuest(guest, me.id); write(K_ME, me); return me;
   },
-  async google() {
+  async google(_next, guest) {
     await wait(700);
     const me: AccountUser = { id: "google-demo", display_name: "Demo Google", email: "demo@example.com", provider: "google" };
-    write(K_ME, me); return me;
+    mergeMockGuest(guest, me.id); write(K_ME, me); return me;
   },
   async signOut() { localStorage.removeItem(K_ME); },
 };
@@ -58,6 +65,8 @@ async function req<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch("/api/auth" + path, { method: body ? "POST" : "GET", credentials: "include", headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
   if (res.status === 401) throw new AuthError("credentials");
   if (res.status === 409) throw new AuthError("exists");
+  if (res.status === 429) throw new AuthError("rate_limited");
+  if (res.status === 422) throw new AuthError("invalid");
   if (!res.ok) throw new AuthError("network");
   return res.status === 204 ? (undefined as T) : res.json();
 }

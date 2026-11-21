@@ -5,10 +5,18 @@ import { useParams } from "next/navigation";
 import { CitationChip, ErrorState, Loading } from "@/components/common/state";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
-import { api, type SessionResult } from "@/lib/api";
+import { api, type DecisionKind, type ResultKind, type SessionResult } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/store/user";
 import { useLoad } from "@/hooks/use-load";
+
+/** stamp colour per outcome kind: green win, gold partial, paper settlement, red loss / left without consideration */
+const STAMP: Record<ResultKind, string> = {
+  win: "border-teal text-teal", partial: "border-gold text-gold", settlement: "border-paper text-paper",
+  loss: "border-terra text-terra", procedural_loss: "border-terra text-terra",
+};
+const KINDS: ResultKind[] = ["win", "partial", "loss", "settlement", "procedural_loss"];
+const DKINDS: DecisionKind[] = ["action", "reasoning", "prediction"];
 
 const short = (id: string, locale: string) => { const n = id.split(".").pop(); return locale === "ru" ? `ст. ${n}` : `${n}-modda`; };
 
@@ -30,11 +38,19 @@ export default function ResultsPage() {
   if (failed) return <ErrorState onRetry={load} />;
   if (!r) return <Loading />;
   const min = Math.floor(r.time_spent_sec / 60), sec = r.time_spent_sec % 60;
+  // the label is ours (2026 Uzbek alphabet, same wording everywhere); unknown kinds fall back to the backend's text
+  const kind = KINDS.includes(r.result_kind) ? r.result_kind : null;
+  const label = kind ? t(`kind_${kind}`) : r.result_label;
   return (
     <article className="grid gap-10 lg:grid-cols-[1.5fr_1fr]">
       <div>
         <p className="text-ink-muted">{t("kicker")}</p>
-        <h1 className="mt-1 text-4xl font-extrabold">{r.outcome_title}</h1>
+        {label && (
+          <p className={cn("result-stamp mt-4", STAMP[kind ?? "settlement"])}>
+            <span className="sr-only">{t("resultLabel")}: </span>{label}
+          </p>
+        )}
+        <h1 className="mt-3 text-4xl font-extrabold">{r.outcome_title}</h1>
         <p className="pix mt-3 text-5xl text-gold">{r.score}<span className="text-2xl text-ink-muted">/{r.max_score}</span></p>
         <p className="mt-2 text-ink-muted">{t("rate", { pct: Math.round(r.correct_decision_rate * 100) })}. {t("time", { min, sec })}</p>
         <p className="mt-5 border-l-4 border-gold bg-gold/10 px-4 py-3">{t("disclaimer")}</p>
@@ -48,9 +64,20 @@ export default function ResultsPage() {
                 <span className={cn("absolute -left-[35px] top-1 grid size-5 place-items-center rounded-full", d.correct ? "bg-teal" : "bg-terra")} aria-hidden>
                   {d.correct ? <Check className="size-3 text-navy" /> : <X className="size-3 text-navy" />}
                 </span>
+                {d.kind && DKINDS.includes(d.kind) && (
+                  <p className={cn("mb-1 inline-block rounded-sm border px-1.5 py-0.5 text-xs", d.kind === "action" ? "border-hairline text-gold" : "border-teal/50 text-teal")}>
+                    {t(`dkind_${d.kind}`)}
+                  </p>
+                )}
                 <p className="font-semibold">{d.chosen_label}<span className="sr-only">{d.correct ? " ✓" : " ✗"}</span></p>
                 {!d.correct && <p className="text-sm text-ink-muted">{t("best")}: {d.best_label}.</p>}
                 <p className="mt-1">{d.explanation}</p>
+                {!d.correct && d.counterfactual && (
+                  <div className="mt-2 rounded-md border-l-4 border-gold/70 bg-navy-2 px-3 py-2">
+                    <p className="text-sm font-bold text-gold">{t("whatIf")}</p>
+                    <p className="mt-0.5">{d.counterfactual}</p>
+                  </div>
+                )}
                 <div className="mt-2 flex flex-wrap gap-2">{d.citation_ids.map((c) => <CitationChip key={c} id={c} label={short(c, locale)} date="2026-03-01" />)}</div>
               </li>
             ))}

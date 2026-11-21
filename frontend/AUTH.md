@@ -1,7 +1,16 @@
-# Accounts and Google SSO: proposal
+# Accounts and Google SSO
 
-The frontend already has Sign in / Sign up, an account menu and guest mode (`lib/auth`, `store/user.ts`).
-It runs on a mock today. To go live, the backend needs to implement the endpoints below. The frontend switches over with `NEXT_PUBLIC_API_MODE=live`.
+**Status (2026-11-21): implemented.** The backend serves the endpoints below (`backend/app/api/auth.py`), and the
+frontend uses them in live mode (`NEXT_PUBLIC_API_MODE=live`; `lib/auth`, `store/user.ts`). Production settings and how
+to enable Google are in `deploy/vm1/README.md` ("Accounts"). The rest of this file is the original proposal, kept for
+the reasoning.
+
+Frontend behaviour in live mode:
+- After sign-in the active learner id becomes the account id: the backend moved the guest's sessions and quiz attempts
+  to the account (`guest_user_id`), so the guest id is dropped. Signing out starts a new guest.
+- "Continue with Google" is shown only with `NEXT_PUBLIC_GOOGLE_AUTH=true` (the server returns 503 without credentials).
+- A failed Google sign-in returns to `/?auth_error=google`; `components/site/auth-error-notice.tsx` explains it.
+- 429 (rate limit), 422 (validation) and network errors have their own messages in the form.
 
 ## 1. Flow (OAuth 2.0 Authorization Code with PKCE, handled entirely by the backend)
 

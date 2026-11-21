@@ -1,5 +1,5 @@
 "use client";
-import { ChevronLeft, FileText, Scale } from "lucide-react";
+import { ChevronLeft, FileText, MessagesSquare, Scale } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { api, type ActionView, type Locale } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useGame } from "@/store/game";
 import { useUi } from "@/store/ui";
+import { NpcPanel, type Askable } from "./npc-panel";
 
 const NAMES: Record<string, string> = {};
 
@@ -26,6 +27,8 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
   const [doc, setDoc] = useState<{ id: string; title: string; lines: string[] } | null>(null);
   const [decision, setDecision] = useState<ActionView | null>(null);
   const [names, setNames] = useState<Record<string, { name: string; role: string }>>({});
+  const [askable, setAskable] = useState<Askable[]>([]);
+  const [asking, setAsking] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
   const secretary = t("play.secretary");
   const tagNames = useMemo(() => ({ secretary, ...Object.fromEntries(Object.entries(names).map(([id, n]) => [id, n.name])) }), [names, secretary]);
@@ -41,7 +44,11 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
       const s = useGame.getState().state;
       if (s && !cancelled) {
         const sc = await api.scenario(s.scenario_id, locale).catch(() => null);
-        if (sc) setNames(Object.fromEntries(sc.characters.map((c) => [c.id, { name: c.id === sc.player_role.character_id ? (locale === "ru" ? "Вы" : t("case.you")) : c.name, role: c.role }])));
+        if (sc) {
+          setNames(Object.fromEntries(sc.characters.map((c) => [c.id, { name: c.id === sc.player_role.character_id ? (locale === "ru" ? "Вы" : t("case.you")) : c.name, role: c.role }])));
+          // free questions go to the other participants; the judge runs the hearing and is not questioned
+          setAskable(sc.characters.filter((c) => c.id !== sc.player_role.character_id && c.id !== "judge").map((c) => ({ id: c.id, name: c.name, role: c.role })));
+        }
       }
     })();
     return () => { cancelled = true; };
@@ -107,9 +114,16 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
       <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-2 pb-24 pt-4 sm:px-6">
         <div className="frame">
           <Court theme="night" mode="play" className="frame__scene" onClick={onSceneClick} onReady={g.setCourt} names={tagNames} label={t("play.evidenceTable")} />
-          <Button variant="outline" className={cn("frame__btn frame__btn--left bg-navy/85", g.newEvidence.length > 0 && "has-new")} onClick={() => setDrawer(true)} aria-expanded={drawer}>
-            <FileText />{t("play.evidence")}
-          </Button>
+          <div className="frame__tools">
+            <Button variant="outline" className={cn("bg-navy/85", g.newEvidence.length > 0 && "has-new")} onClick={() => setDrawer(true)} aria-expanded={drawer}>
+              <FileText />{t("play.evidence")}
+            </Button>
+            {!st.finished && askable.length > 0 && (
+              <Button variant="outline" className="bg-navy/85" onClick={() => setAsking(true)} aria-expanded={asking}>
+                <MessagesSquare />{t("npc.open")}
+              </Button>
+            )}
+          </div>
           {g.note && (
             <div className="note-card" role="status">
               <p className="mb-2 text-[0.95rem]">{g.note.text}</p>
@@ -179,6 +193,8 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
           <div className="doc-body space-y-1.5">{doc?.lines.map((l, i) => <p key={i}>{l}</p>)}</div>
         </DialogContent>
       </Dialog>
+
+      <NpcPanel open={asking && !st.finished} onOpenChange={setAsking} sessionId={sessionId} characters={askable} />
 
       <DecisionDialog key={decision?.action_id ?? "none"} action={decision} onClose={() => setDecision(null)} onConfirm={(option) => { const id = decision!.action_id; setDecision(null); g.dispatch(id, { option }); }} legalDate={st.legal_date} />
     </div>

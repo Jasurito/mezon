@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useRouter } from "@/i18n/navigation";
 import { API_MODE } from "@/lib/api";
-import { auth, AuthError } from "@/lib/auth";
+import { auth, AuthError, GOOGLE_ENABLED, type AuthErrorCode } from "@/lib/auth";
 import { useUser } from "@/store/user";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -54,7 +54,12 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       const a = up ? await auth.signUp(form.name, form.email, form.password, userId) : await auth.signIn(form.email, form.password, userId);
       setAccount(a); done(a.display_name);
     } catch (e) {
-      setErrors({ form: e instanceof AuthError && e.code === "exists" ? t("err_exists") : t("err_credentials") });
+      const code: AuthErrorCode = e instanceof AuthError ? e.code : "network";
+      const msg: Record<AuthErrorCode, string> = {
+        credentials: t("err_credentials"), exists: t("err_exists"), rate_limited: t("err_rate_limited"),
+        invalid: t("err_invalid"), network: t("err_network"),
+      };
+      setErrors({ form: msg[code] });
     } finally { setPending(null); }
   }
   async function google() {
@@ -77,12 +82,16 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     <div className="mx-auto max-w-md">
       <h1 className="text-3xl font-extrabold">{t(up ? "signUpTitle" : "signInTitle")}</h1>
       <p className="mt-2 text-ink-muted">{t(up ? "signUpLead" : "signInLead")}</p>
-      <Button type="button" variant="outline" size="lg" className="mt-8 h-12 w-full gap-3 bg-paper text-base text-navy hover:bg-white hover:text-navy" disabled={!!pending} onClick={google}>
-        <GoogleG />{t("google")}
-      </Button>
-      {API_MODE === "mock" && <p className="mt-2 text-xs text-ink-muted">{t("googleDemo")}</p>}
-      <div className="my-6 flex items-center gap-3 text-sm text-ink-muted"><span className="h-px flex-1 bg-paper/15" />{t("or")}<span className="h-px flex-1 bg-paper/15" /></div>
-      <form noValidate onSubmit={submit} className="grid gap-4">
+      {GOOGLE_ENABLED && (
+        <>
+          <Button type="button" variant="outline" size="lg" className="mt-8 h-12 w-full gap-3 bg-paper text-base text-navy hover:bg-white hover:text-navy" disabled={!!pending} onClick={google}>
+            <GoogleG />{t("google")}
+          </Button>
+          {API_MODE === "mock" && <p className="mt-2 text-xs text-ink-muted">{t("googleDemo")}</p>}
+          <div className="my-6 flex items-center gap-3 text-sm text-ink-muted"><span className="h-px flex-1 bg-paper/15" />{t("or")}<span className="h-px flex-1 bg-paper/15" /></div>
+        </>
+      )}
+      <form noValidate onSubmit={submit} className={GOOGLE_ENABLED ? "grid gap-4" : "mt-8 grid gap-4"}>
         {up && field("name", "text", "name")}
         {field("email", "email", "email")}
         {field("password", "password", up ? "new-password" : "current-password")}
