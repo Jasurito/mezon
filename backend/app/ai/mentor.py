@@ -40,7 +40,8 @@ log = logging.getLogger("adolat.ai")
 
 HISTORY_LIMIT = 6
 HISTORY_TEXT_LIMIT = 1000
-MENTOR_MAX_TOKENS = 4096
+MENTOR_MAX_TOKENS = 1500
+OLLAMA_MENTOR_MAX_TOKENS = 700
 HEAD_SOURCES = 5
 
 Kind = Literal["error", "out_of_scope", "insufficient", "answer"]
@@ -110,7 +111,7 @@ def prepare(
         plan.session_id = str(ctx.session_id)
         plan.user_id = ctx.user_id
 
-    plan.category = classify_question(llm, settings, question)
+    plan.category = classify_question(llm, settings, question, has_session=req.session_id is not None)
     if plan.category == "out_of_scope":
         plan.kind = "out_of_scope"
         return plan
@@ -129,7 +130,7 @@ def prepare(
         plan.kind = "insufficient"
         return plan
 
-    limit = settings.RAG_MAX_SOURCES
+    limit = settings.MENTOR_MAX_SOURCES
     reranker = get_reranker(settings, llm)
     use_rerank = (
         llm is not None
@@ -194,7 +195,7 @@ def _call_mentor(llm: LLM, settings: Settings, plan: MentorPlan) -> MentorAnswer
             system=plan.system,
             messages=[{"role": "user", "content": plan.user_message}],
             output_model=MentorAnswer,
-            max_tokens=MENTOR_MAX_TOKENS,
+            max_tokens=OLLAMA_MENTOR_MAX_TOKENS if settings.LLM_PROVIDER == "ollama" else MENTOR_MAX_TOKENS,
             timeout=settings.mentor_timeout,
             effort=settings.LLM_MENTOR_EFFORT,
         )

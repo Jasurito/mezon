@@ -7,12 +7,13 @@ from contextlib import contextmanager
 import pytest
 
 from app.ai.llm import get_llm
+from app.config import Settings, get_settings
 from app.api.mentor import get_event_db_factory
 from app.rag.deps import embedder_dep
 from app.rag.embedder import NullEmbedder
 from tests.fixtures.legal_seed import seed_test_legal_data
 from tests.fixtures.rag_seed import seed_test_chunks
-from tests.game.conftest import Api, Clock, clock, make_client  # noqa: F401  (переиспользуются)
+from tests.game.conftest import SCENARIOS_FIXTURES, Api, Clock, clock, make_client  # noqa: F401  (переиспользуются)
 from tests.mentor.helpers import parse_sse
 
 
@@ -46,17 +47,21 @@ class Mentor:
 
 
 @pytest.fixture
-def mentor_client(make_client, seeded_db):
+def mentor_client(make_client, seeded_db, db_url):
     """with mentor_client(llm=FakeLLM(...)) as m: m.ask("вопрос"); llm=None = режим без AI."""
 
     @contextmanager
-    def _make(llm=None, embedder=None):
+    def _make(llm=None, embedder=None, **settings_kw):
         @contextmanager
         def open_db():
             yield seeded_db
 
         with make_client() as c:
             ov = c.app.dependency_overrides
+            kw = {"MENTOR_CLASSIFIER": "llm", **settings_kw}
+            ov[get_settings] = lambda: Settings(
+                DATABASE_URL=db_url, SCENARIOS_DIR=SCENARIOS_FIXTURES, **kw
+            )
             ov[get_llm] = lambda: llm
             ov[embedder_dep] = lambda: embedder or NullEmbedder()
             ov[get_event_db_factory] = lambda: open_db

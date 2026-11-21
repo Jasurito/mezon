@@ -25,7 +25,8 @@ empty "source_ids".
 4. If the sources are not enough to answer, set "insufficient_sources" to true and say so briefly instead of guessing.
 5. If <session_context> is given, use it to explain this player's case: what was decided, which mistakes were made and \
 which provision applies. It describes a fictional game case; do not treat it as a real case.
-6. Write 2 to 5 short blocks in plain language, each one idea. No markdown, no headings.
+6. Write 2 to 4 short blocks in plain language, each one idea, about 120 words in total. Support every claim with a \
+reference to a source. No markdown, no headings.
 7. Write the answer in {language}."""
 
 

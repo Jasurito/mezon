@@ -31,13 +31,13 @@ class OllamaLLM:
         effort: str,
         thinking_disabled: bool = False,
     ) -> T | None:
-        # model, max_tokens, effort, thinking_disabled — параметры Anthropic, здесь игнорируются.
+        # model, effort, thinking_disabled — параметры Anthropic, здесь игнорируются; max_tokens = num_predict.
         body = {
             "model": self._model,
             "messages": [{"role": "system", "content": system}, *messages],
             "stream": False,
             "format": output_model.model_json_schema(),
-            "options": {"temperature": 0},
+            "options": {"temperature": 0, "num_predict": max_tokens},
         }
         try:
             resp = self._client.post(f"{self._url}/api/chat", json=body, timeout=timeout)

@@ -40,7 +40,9 @@ class Settings(BaseSettings):
     RAG_TOP_K: int = 30  # размер списка каждой ветки поиска перед слиянием
     RAG_RRF_K: int = 60
     RAG_TITLE_SIMILARITY: float = 0.6  # порог pg_trgm word_similarity по названию статьи
-    RAG_MAX_SOURCES: int = 8  # сколько статей уходит наставнику
+    RAG_MAX_SOURCES: int = 8  # сколько статей уходит в другие места (не наставнику)
+    MENTOR_MAX_SOURCES: int = 5  # сколько статей уходит наставнику
+    MENTOR_CLASSIFIER: Literal["rules", "llm"] = "rules"  # rules = без вызова LLM
     RERANKER: Literal["none", "llm"] = "none"  # llm = один дополнительный вызов быстрой модели
     RERANK_CANDIDATES: int = 15  # сколько кандидатов отдаётся reranker'у
     RERANK_TIMEOUT: float | None = None  # None = fast_timeout

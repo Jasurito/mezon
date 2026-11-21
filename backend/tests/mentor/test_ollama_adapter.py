@@ -42,7 +42,7 @@ def test_success_and_request_shape():
     assert b["model"] == "qwen2.5:7b" and b["stream"] is False
     assert b["format"] == QueryClassification.model_json_schema()
     assert b["messages"][0] == {"role": "system", "content": "SYS"}
-    assert b["messages"][1]["role"] == "user" and b["options"] == {"temperature": 0}
+    assert b["messages"][1]["role"] == "user" and b["options"] == {"temperature": 0, "num_predict": 256}
 
 
 def test_bad_json_and_schema_mismatch():

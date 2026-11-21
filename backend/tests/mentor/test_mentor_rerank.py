@@ -20,7 +20,7 @@ QUESTION = "Можно ли вернуть товар с недостатком?
 
 def set_settings(m, db_url, **kw):
     m.c.app.dependency_overrides[get_settings] = lambda: Settings(
-        DATABASE_URL=db_url, SCENARIOS_DIR=SCENARIOS_FIXTURES, **kw
+        DATABASE_URL=db_url, SCENARIOS_DIR=SCENARIOS_FIXTURES, **{"MENTOR_CLASSIFIER": "llm", **kw}
     )
 
 
@@ -55,12 +55,12 @@ def baseline(mentor_client, db_url, llm, **kw):
 
 
 def test_llm_reranker_changes_sources_order(mentor_client, seeded_db, db_url):
-    plain = baseline(mentor_client, db_url, make_llm(None), RAG_MAX_SOURCES=2, RERANKER="none")
+    plain = baseline(mentor_client, db_url, make_llm(None), MENTOR_MAX_SOURCES=2, RERANKER="none")
     base_order = article_numbers(plain)
     assert len(base_order) == 2
 
     llm = make_llm(last_first)
-    events = baseline(mentor_client, db_url, llm, RAG_MAX_SOURCES=2, RERANKER="llm", RERANK_CANDIDATES=10)
+    events = baseline(mentor_client, db_url, llm, MENTOR_MAX_SOURCES=2, RERANKER="llm", RERANK_CANDIDATES=10)
     assert len(llm.calls_for(RerankScores)) == 1
     assert article_numbers(events) != base_order
     assert [s["source_id"] for s in first(events, "sources")] == ["c1", "c2"]
@@ -69,25 +69,25 @@ def test_llm_reranker_changes_sources_order(mentor_client, seeded_db, db_url):
 
 def test_reranker_none_keeps_order_and_no_call(mentor_client, seeded_db, db_url):
     llm = make_llm(last_first)
-    baseline(mentor_client, db_url, llm, RAG_MAX_SOURCES=2, RERANKER="none")
+    baseline(mentor_client, db_url, llm, MENTOR_MAX_SOURCES=2, RERANKER="none")
     assert llm.calls_for(RerankScores) == []
     assert mentor_event(seeded_db).payload["reranked"] is False
 
 
 def test_no_rerank_when_candidates_fit(mentor_client, seeded_db, db_url):
     llm = make_llm(last_first)
-    baseline(mentor_client, db_url, llm, RAG_MAX_SOURCES=50, RERANKER="llm")
+    baseline(mentor_client, db_url, llm, MENTOR_MAX_SOURCES=50, RERANKER="llm")
     assert llm.calls_for(RerankScores) == []
     assert mentor_event(seeded_db).payload["reranked"] is False
 
 
 def test_no_ai_never_reranks(mentor_client, seeded_db, db_url):
-    events = baseline(mentor_client, db_url, None, RAG_MAX_SOURCES=2, RERANKER="llm")
+    events = baseline(mentor_client, db_url, None, MENTOR_MAX_SOURCES=2, RERANKER="llm")
     assert first(events, "done")["ai_unavailable"] is True
     assert mentor_event(seeded_db).payload["reranked"] is False
 
 
 def test_rerank_failure_keeps_rrf_order(mentor_client, seeded_db, db_url):
-    base = article_numbers(baseline(mentor_client, db_url, make_llm(None), RAG_MAX_SOURCES=2, RERANKER="none"))
-    events = baseline(mentor_client, db_url, make_llm(None), RAG_MAX_SOURCES=2, RERANKER="llm")
+    base = article_numbers(baseline(mentor_client, db_url, make_llm(None), MENTOR_MAX_SOURCES=2, RERANKER="none"))
+    events = baseline(mentor_client, db_url, make_llm(None), MENTOR_MAX_SOURCES=2, RERANKER="llm")
     assert article_numbers(events) == base
