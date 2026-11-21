@@ -1,14 +1,33 @@
 # Отчёт проверки (check)
 
-Ошибок: 0. Предупреждений: 0.
+Ошибок: 10. Предупреждений: 11.
 
 ## Ошибки
 
-нет
+- CC1 ru 2026-09-12 (version id=15): активная редакция без verified_by
+- CC1 uz-Latn 2026-09-12 (version id=16): активная редакция без verified_by
+- CC2 ru 2026-08-08 (version id=17): активная редакция без verified_by
+- CC2 uz-Latn 2026-07-19 (version id=18): активная редакция без verified_by
+- CONST ru 2026-07-25 (version id=13): активная редакция без verified_by
+- CONST uz-Latn 2026-07-25 (version id=14): активная редакция без verified_by
+- CPC ru 2026-09-12 (version id=19): активная редакция без verified_by
+- CPC uz-Latn 2026-09-12 (version id=20): активная редакция без verified_by
+- CPRL ru 2026-01-19 (version id=21): активная редакция без verified_by
+- CPRL uz-Latn 2026-02-02 (version id=22): активная редакция без verified_by
 
 ## Предупреждения
 
-нет
+- citation TEST_BROKEN.art.9 есть в базе, но не в citations.yaml
+- citation TEST_CC.art.1 есть в базе, но не в citations.yaml
+- citation TEST_CPC.art.1 есть в базе, но не в citations.yaml
+- citation TEST_CPC.art.2 есть в базе, но не в citations.yaml
+- citation TEST_CPRL.art.1 есть в базе, но не в citations.yaml
+- citation TEST_CPRL.art.2 есть в базе, но не в citations.yaml
+- citation TEST_EDGE.art.1 есть в базе, но не в citations.yaml
+- citation TEST_EDGE.art.2 есть в базе, но не в citations.yaml
+- citation TEST_EDGE.art.2.p2 есть в базе, но не в citations.yaml
+- citation TEST_FUTURE.art.1 есть в базе, но не в citations.yaml
+- citation TEST_RAG.art.10 есть в базе, но не в citations.yaml
 
 ## Ручная проверка: случайные статьи рядом с исходником
 

@@ -163,3 +163,141 @@
   part: null
   topic: "Мировое соглашение: письменное заявление, разъяснение последствий, определение об утверждении и прекращении производства"
   verified_by: null
+- citation_id: CPRL.art.1
+  document_key: CPRL
+  article_number: "1"
+  part: null
+  topic: "Основные понятия: потребитель, продавец, исполнитель (предприятие, организация, ИП, самозанятый), договор"
+  verified_by: null
+- citation_id: CPRL.art.19
+  document_key: CPRL
+  article_number: "19"
+  part: null
+  topic: "Права потребителя при нарушении условий договора о выполнении работы, оказании услуги: расторжение договора и возмещение убытков при существенных недостатках"
+  verified_by: null
+- citation_id: CC1.art.14
+  document_key: CC1
+  article_number: "14"
+  part: null
+  topic: "Возмещение убытков: реальный ущерб и упущенная выгода"
+  verified_by: null
+- citation_id: CC1.art.107
+  document_key: CC1
+  article_number: "107"
+  part: null
+  topic: "Письменная форма сделки; обмен письмами и иными документами приравнивается к письменной форме"
+  verified_by: null
+- citation_id: CC1.art.327
+  document_key: CC1
+  article_number: "327"
+  part: null
+  topic: "Проценты за пользование чужими денежными средствами при неправомерном удержании или неосновательном получении"
+  verified_by: null
+- citation_id: CC2.art.541
+  document_key: CC2
+  article_number: "541"
+  part: null
+  topic: "Предоставление имущества нанимателю; подготовка и представление на подпись передаточного акта — обязанность наймодателя"
+  verified_by: null
+- citation_id: CC2.art.554
+  document_key: CC2
+  article_number: "554"
+  part: null
+  topic: "Возврат имущества наймодателю в состоянии при получении с учётом нормального износа"
+  verified_by: null
+- citation_id: CC2.art.600
+  document_key: CC2
+  article_number: "600"
+  part: null
+  topic: "Договор найма жилого помещения"
+  verified_by: null
+- citation_id: CC2.art.603
+  document_key: CC2
+  article_number: "603"
+  part: null
+  topic: "Форма договора найма жилого помещения: письменная"
+  verified_by: null
+- citation_id: CC2.art.607
+  document_key: CC2
+  article_number: "607"
+  part: null
+  topic: "Обязанности нанимателя жилого помещения: использовать по назначению, обеспечивать сохранность"
+  verified_by: null
+- citation_id: CC2.art.631
+  document_key: CC2
+  article_number: "631"
+  part: null
+  topic: "Договор подряда: выполнить работу и сдать результат заказчику"
+  verified_by: null
+- citation_id: CC2.art.647
+  document_key: CC2
+  article_number: "647"
+  part: null
+  topic: "Качество работы по договору подряда: условия договора, при их неполноте — обычно предъявляемые требования"
+  verified_by: null
+- citation_id: CC2.art.656
+  document_key: CC2
+  article_number: "656"
+  part: null
+  topic: "Договор бытового подряда: подрядчик-предприниматель выполняет работу для личных нужд гражданина"
+  verified_by: null
+- citation_id: CC2.art.1022
+  document_key: CC2
+  article_number: "1022"
+  part: null
+  topic: "Способ и размер компенсации морального вреда: разумность и справедливость, степень вины"
+  verified_by: null
+- citation_id: CC2.art.1023
+  document_key: CC2
+  article_number: "1023"
+  part: null
+  topic: "Обязанность возвратить неосновательное обогащение, в том числе при последующем отпадении основания"
+  verified_by: null
+- citation_id: CC2.art.1024
+  document_key: CC2
+  article_number: "1024"
+  part: null
+  topic: "Применение правил о неосновательном обогащении к требованиям о возврате в связи с обязательствами"
+  verified_by: null
+- citation_id: CPC.art.61
+  document_key: CPC
+  article_number: "61"
+  part: null
+  topic: "Специалист: содействие суду в собирании, исследовании и оценке доказательств"
+  verified_by: null
+- citation_id: CPC.art.82
+  document_key: CPC
+  article_number: "82"
+  part: null
+  topic: "Ходатайство о вызове свидетеля: какие обстоятельства подтвердит, данные свидетеля"
+  verified_by: null
+- citation_id: CPC.art.84
+  document_key: CPC
+  article_number: "84"
+  part: null
+  topic: "Письменные доказательства: документы, деловая корреспонденция в цифровой форме"
+  verified_by: null
+- citation_id: CPC.art.89¹
+  document_key: CPC
+  article_number: "89¹"
+  part: null
+  topic: "Электронные данные: осмотр первичного носителя судом с участием специалиста"
+  verified_by: null
+- citation_id: CPC.art.89²
+  document_key: CPC
+  article_number: "89²"
+  part: null
+  topic: "Цифровые доказательства: копия допустима при наличии подлинника; бумажная форма без нотариуса — не письменное доказательство"
+  verified_by: null
+- citation_id: CPC.art.89³
+  document_key: CPC
+  article_number: "89³"
+  part: null
+  topic: "Обязанность представления цифровых доказательств; ходатайство об истребовании у других лиц"
+  verified_by: null
+- citation_id: CPC.art.89⁴
+  document_key: CPC
+  article_number: "89⁴"
+  part: null
+  topic: "Осмотр и исследование цифровых доказательств судом с участием специалиста"
+  verified_by: null

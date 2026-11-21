@@ -169,7 +169,7 @@ jobs:
         run: |
           rsync -az --delete \
             --exclude '.git/' --exclude 'node_modules/' --exclude '.next/' --exclude '.venv/' \
-            --exclude '__pycache__/' --exclude '.pytest_cache/' --exclude '.DS_Store' \
+            --exclude '__pycache__/' --exclude '.pytest_cache/' --exclude '.DS_Store' --exclude 'scenarios/' \
             ./ deploy@vm1.modeus.cc:/opt/mezon/src/
 
       - name: Build and restart on vm1

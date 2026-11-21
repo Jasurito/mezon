@@ -19,3 +19,7 @@ graphify-out/*
 legal_data/processed/embeddings_cache/
 # Ingestion: промежуточные JSONL (пересобираются командой make ingest ARGS="run"); отчёты остаются в git
 legal_data/processed/*.jsonl
+
+# Дела хранятся вне git, на сервер заливаются make scenarios-upload
+scenarios/*
+!scenarios/README.md

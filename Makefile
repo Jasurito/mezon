@@ -4,7 +4,7 @@ DEMO_PORT ?= 8002
 DEMO_DB_URL ?= postgresql+psycopg://adolat:adolat@localhost:5433/adolat_demo
 DEMO_MONGO_URL ?= mongodb://localhost:27018
 
-.PHONY: db-up migrate dev test history-backfill api-client demo demo-reset demo-seed demo-laws dev-all ingest ingest-check seed-dump
+.PHONY: db-up migrate dev test history-backfill api-client demo demo-reset demo-seed demo-laws dev-all ingest ingest-check seed-dump scenarios-upload
 
 db-up:
 	docker compose up -d db mongo
@@ -78,3 +78,10 @@ ingest-check:
 # Дамп правовых таблиц в legal_data/seed.sql.gz (нужен запущенный контейнер db)
 seed-dump:
 	$(PY) -m legal_ingestion dump
+
+# Дела хранятся вне git: залить scenarios/ на сервер (нужен SSH-доступ к vm1), потом перезапустить бэкенд там.
+VM_HOST ?= deploy@vm1.modeus.cc
+VM_SRC ?= /opt/mezon/src
+scenarios-upload:
+	rsync -az --delete --exclude '.DS_Store' scenarios/ $(VM_HOST):$(VM_SRC)/scenarios/
+	@echo "Дела залиты в $(VM_HOST):$(VM_SRC)/scenarios. Перезапустите бэкенд на сервере: systemctl restart mezon-backend"
