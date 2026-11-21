@@ -1,4 +1,5 @@
 "use client";
+import { articleLabel } from "@/lib/article";
 import { Check, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
@@ -19,7 +20,7 @@ const STAMP: Record<ResultKind, string> = {
 const KINDS: ResultKind[] = ["win", "partial", "loss", "settlement", "procedural_loss"];
 const DKINDS: DecisionKind[] = ["action", "reasoning", "prediction"];
 
-const short = (id: string, locale: string) => { const n = id.split(".").pop(); return locale === "ru" ? `ст. ${n}` : `${n}-modda`; };
+const short = (id: string, locale: string) => { const n = id.split(".").pop() ?? ""; return articleLabel(n, locale); };
 
 export default function ResultsPage() {
   const t = useTranslations("results");

@@ -1,4 +1,5 @@
 "use client";
+import { articleLabel } from "@/lib/article";
 import { ExternalLink } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ export function LegalPanel() {
         <SheetHeader className="p-0">
           <SheetDescription className="text-[#42506a]">{data?.document_title ?? " "}</SheetDescription>
           <SheetTitle className="text-3xl font-extrabold text-navy">
-            {data ? (locale === "ru" ? `Статья ${data.article_number}` : `${data.article_number}-modda`) : failed ? t("notFound") : "…"}
+            {data ? articleLabel(data.article_number, locale, true) : failed ? t("notFound") : "…"}
           </SheetTitle>
         </SheetHeader>
         {data && (

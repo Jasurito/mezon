@@ -1,4 +1,5 @@
 "use client";
+import { articleLabel } from "@/lib/article";
 import { Send } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
@@ -12,7 +13,7 @@ import { cn } from "@/lib/utils";
 interface Block { text: string; source_ids: string[]; verified: boolean }
 interface Msg { role: "user" | "assistant"; text: string; blocks?: Block[]; sources?: Record<string, CitationView>; status?: "streaming" | "done" | "insufficient" | "ai_unavailable" | "error"; disclaimer?: string }
 
-const label = (c: CitationView, locale: string) => (locale === "ru" ? `ст. ${c.article_number}` : `${c.article_number}-modda`);
+const label = (c: CitationView, locale: string) => articleLabel(c.article_number, locale);
 
 /** AI Legal Mentor (spec §4.7): streamed answer blocks, each followed by source chips that open the LegalPanel. */
 export default function MentorPage() {
