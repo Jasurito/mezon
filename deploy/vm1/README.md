@@ -2,11 +2,12 @@
 
 ```
 GitHub Actions (.github/workflows/ci-cd.yml)
-  changes ─┬─ frontend: pnpm i18n check, typecheck, build
-           ├─ backend:  critical pytest (Postgres 16 + pgvector service)
-           └─ deploy (main only, after green checks):
-                rsync repo ──> deploy@vm1:/opt/mezon/src
-                ssh deploy@vm1 sudo mezon-deploy --sha <sha> <backend|frontend|all>
+  changes ── deploy (main only, first):
+               rsync repo ──> deploy@vm1:/opt/mezon/src
+               ssh deploy@vm1 sudo mezon-deploy --sha <sha> <backend|frontend|all>   (health check + auto rollback)
+             └─ then checks (report only, do not block the deploy; on PRs they run alone):
+                  frontend: pnpm i18n check, typecheck, build
+                  backend:  critical pytest (Postgres 16 + pgvector service)
 vm1
   /usr/local/sbin/mezon-deploy   build image on the host, keep :previous, systemctl restart, health check, rollback
   systemd: mezon-db.service (Postgres) ─┐

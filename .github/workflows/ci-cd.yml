@@ -1,4 +1,4 @@
-# CI for frontend + backend, CD to vm1 (systemd units, see deploy/vm1/README.md).
+# CD to vm1 first (systemd units, see deploy/vm1/README.md), then frontend + backend checks.
 # Secret VM1_SSH_KEY (private key of the "deploy" user on vm1); variable VM1_KNOWN_HOSTS (ssh-keyscan of vm1.modeus.cc,
 # public data, so a repository variable; a secret with the same name also works).
 name: CI/CD
@@ -45,11 +45,15 @@ jobs:
               - 'deploy/**'
               - '.github/workflows/ci-cd.yml'
 
-  # Demo/test environment: CI runs only the checks that catch broken deploys (full suites: `pnpm lint`, `make test`).
+  # Order: deploy first, then the checks (team decision for the demo environment). The checks report problems but
+  # no longer gate the deploy; mezon-deploy itself health-checks and rolls back a broken build. On pull requests there
+  # is no deploy, so the checks run right away. Full suites: `pnpm lint`, `make test`.
   frontend:
-    name: Frontend (typecheck, build)
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch'
+    name: Frontend checks (typecheck, build)
+    needs: [changes, deploy]
+    if: >-
+      always() && needs.changes.result == 'success'
+      && (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -73,9 +77,11 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
 
   backend:
-    name: Backend (critical pytest + Postgres/pgvector)
-    needs: changes
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch'
+    name: Backend checks (critical pytest + Postgres/pgvector)
+    needs: [changes, deploy]
+    if: >-
+      always() && needs.changes.result == 'success'
+      && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -112,11 +118,9 @@ jobs:
 
   deploy:
     name: Deploy to vm1
-    needs: [changes, frontend, backend]
-    # main only, after every check that ran has passed (skipped jobs are fine)
-    if: >-
-      always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-      && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    needs: changes
+    # main only; runs first, the checks follow it
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: vm1
