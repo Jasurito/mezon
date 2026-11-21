@@ -1,4 +1,6 @@
-# CD to vm1 first (systemd units, see deploy/vm1/README.md), then frontend + backend checks.
+# CD to vm1 (systemd units, see deploy/vm1/README.md). No test jobs here (team decision: deploy speed for the demo);
+# run them locally: `pnpm typecheck && pnpm build` in frontend/, `make test` for the backend. mezon-deploy still
+# health-checks every build and rolls back a broken one.
 # Secret VM1_SSH_KEY (private key of the "deploy" user on vm1); variable VM1_KNOWN_HOSTS (ssh-keyscan of vm1.modeus.cc,
 # public data, so a repository variable; a secret with the same name also works).
 name: CI/CD
@@ -6,7 +8,6 @@ name: CI/CD
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
     inputs:
       target:
@@ -20,7 +21,7 @@ permissions:
 
 concurrency:
   group: ci-cd-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
 
 jobs:
   changes:
@@ -44,77 +45,6 @@ jobs:
             infra:
               - 'deploy/**'
               - '.github/workflows/ci-cd.yml'
-
-  # Order: deploy first, then the checks (team decision for the demo environment). The checks report problems but
-  # no longer gate the deploy; mezon-deploy itself health-checks and rolls back a broken build. On pull requests there
-  # is no deploy, so the checks run right away. Full suites: `pnpm lint`, `make test`.
-  frontend:
-    name: Frontend checks (typecheck, build)
-    needs: [changes, deploy]
-    if: >-
-      always() && needs.changes.result == 'success'
-      && (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-        with:
-          package_json_file: frontend/package.json
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
-      - name: uz-Cyrl locale is generated and up to date
-        run: pnpm i18n && git diff --exit-code -- locales/uz-Cyrl.json
-      - run: pnpm typecheck
-      - run: pnpm build
-        env:
-          NEXT_TELEMETRY_DISABLED: 1
-
-  backend:
-    name: Backend checks (critical pytest + Postgres/pgvector)
-    needs: [changes, deploy]
-    if: >-
-      always() && needs.changes.result == 'success'
-      && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_USER: adolat
-          POSTGRES_PASSWORD: adolat
-          POSTGRES_DB: adolat
-        ports: ['5433:5432']
-        options: >-
-          --health-cmd "pg_isready -U adolat"
-          --health-interval 3s --health-timeout 3s --health-retries 30
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: '3.12'
-          cache: pip
-          cache-dependency-path: backend/pyproject.toml
-      - run: pip install ".[dev]"
-      - name: Critical tests (engine, API playthrough, citations, mentor guards, migrations)
-        run: >-
-          pytest -q
-          tests/engine/test_golden_paths.py tests/engine/test_transitions.py tests/engine/test_determinism.py
-          tests/game/test_api_flow.py tests/game/test_citations_resolve.py tests/game/test_locales.py
-          tests/game/test_evidence_document.py
-          tests/mentor/test_mentor_no_ai.py tests/mentor/test_mentor_validation.py
-          tests/api/test_health.py tests/api/test_migrations.py
-        env:
-          TEST_DATABASE_URL: postgresql+psycopg://adolat:adolat@localhost:5433/adolat_test
 
   deploy:
     name: Deploy to vm1

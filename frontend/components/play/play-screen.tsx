@@ -112,8 +112,8 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
       <header className="grid grid-cols-[auto_1fr_auto] items-center gap-x-6 gap-y-2 border-b border-hairline px-4 py-3 sm:px-8">
         <Link href={`/cases/${st.scenario_id}`} className="flex items-center text-ink-muted no-underline hover:text-paper"><ChevronLeft className="size-4" />{t("play.exit")}</Link>
         <p className="truncate">{t("play.stage", { index: st.stage_index, count: st.stage_count })}: <strong>{st.stage_title}</strong></p>
-        <p className="relative flex items-center gap-2 text-xl text-gold">
-          <span className="sr-only">{t("play.score")}:</span><span className="star-icon" aria-hidden /><span className="num">{st.score}</span>
+        <p className="relative flex items-center gap-2 text-xl text-gold" title={t("common.scoreHint")}>
+          <span className="sr-only">{t("common.scoreHint")}</span><span className="star-icon" aria-hidden /><span className="num">{st.score}</span><span className="num text-sm text-ink-muted">/{st.max_score}</span>
           {g.scorePop && <span key={g.scorePop.key} className="score-pop is-on num" aria-live="polite">+{g.scorePop.delta}</span>}
         </p>
         <div className="stage-track col-span-3" aria-hidden><span style={{ width: `${(st.stage_index / st.stage_count) * 100}%` }} /></div>

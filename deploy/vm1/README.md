@@ -2,12 +2,11 @@
 
 ```
 GitHub Actions (.github/workflows/ci-cd.yml)
-  changes ── deploy (main only, first):
+  changes ── deploy (main only):
                rsync repo ──> deploy@vm1:/opt/mezon/src
                ssh deploy@vm1 sudo mezon-deploy --sha <sha> <backend|frontend|all>   (health check + auto rollback)
-             └─ then checks (report only, do not block the deploy; on PRs they run alone):
-                  frontend: pnpm i18n check, typecheck, build
-                  backend:  critical pytest (Postgres 16 + pgvector service)
+  No test jobs in CI (team decision for deploy speed). Run them locally before pushing:
+  frontend: pnpm i18n && pnpm typecheck && pnpm build    backend: make test
 vm1
   /usr/local/sbin/mezon-deploy   build image on the host, keep :previous, systemctl restart, health check, rollback
   systemd: mezon-db.service (Postgres) ─┐

@@ -130,7 +130,11 @@ export function SituationScreen({ sessionId }: { sessionId: string }) {
             <span className="text-ink-muted">{t("kicker")} · {t("step", { index: Math.min(st.stage_index, steps), count: steps })}: </span>
             <strong>{st.stage_title}</strong>
           </p>
-          <p className="num flex items-center gap-1.5 text-lg text-gold"><span className="sr-only">{t("score")}:</span><span className="star-icon" aria-hidden />{st.score}</p>
+          <p className="flex items-center gap-1.5 text-gold" title={tc("scoreHint")}>
+            <span className="star-icon" aria-hidden />
+            <span className="num text-lg">{st.score}</span><span className="num text-sm text-ink-muted">/{st.max_score}</span>
+            <span className="sr-only">{tc("scoreHint")}</span>
+          </p>
         </div>
         <ol className="mx-auto mt-3 flex max-w-6xl gap-1.5" aria-label={t("progress")}>
           {Array.from({ length: steps }, (_, i) => (
