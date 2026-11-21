@@ -26,7 +26,7 @@ export default function ResultsPage() {
   const locale = useLocale();
   const router = useRouter();
   const { sessionId } = useParams<{ sessionId: string }>();
-  const ensureUser = useUser((s) => s.ensureUser);
+  const withUser = useUser((s) => s.withUser);
   // the result plus the case's legal date (article editions are shown as of that date)
   const { data, error: failed, retry: load } = useLoad<[SessionResult, string | null]>(
     () => Promise.all([api.result(sessionId, locale), api.session(sessionId, locale).then((s) => s.legal_date).catch(() => null)]),
@@ -35,8 +35,7 @@ export default function ResultsPage() {
   const [r, legalDate] = data ?? [null, null];
 
   async function replay() {
-    const user_id = await ensureUser();
-    const s = await api.createSession({ user_id, scenario_id: r!.scenario_id, locale });
+    const s = await withUser((user_id) => api.createSession({ user_id, scenario_id: r!.scenario_id, locale }));
     router.push(`/play/${s.session_id}`);
   }
 

@@ -1,9 +1,14 @@
 "use client";
 import { create } from "zustand";
-import { api } from "@/lib/api";
+import { api, API_MODE, ApiError } from "@/lib/api";
 import { auth, type AccountUser } from "@/lib/auth";
 
-const GUEST_KEY = "mezon.user_id";
+// separate keys: a guest id made by the in-browser mock means nothing to the real backend
+const GUEST_KEY = API_MODE === "live" ? "mezon.live.user_id" : "mezon.user_id";
+
+/** the backend does not know this learner id (e.g. a guest from before a database reset): 404 with details.user_id */
+export const isUnknownUser = (e: unknown) =>
+  e instanceof ApiError && e.status === 404 && !!(e.details as { user_id?: string } | null)?.user_id;
 
 interface UserStore {
   /**
@@ -16,6 +21,10 @@ interface UserStore {
   ready: boolean;
   init: () => Promise<void>;
   ensureUser: () => Promise<string>;
+  /** run a call that needs the learner id; an unknown guest id is replaced by a new guest once */
+  withUser: <T>(fn: (userId: string) => Promise<T>) => Promise<T>;
+  /** forget a guest id the backend does not know (no-op when signed in) */
+  dropGuest: () => void;
   setAccount: (a: AccountUser | null) => void;
   signOut: () => Promise<void>;
 }
@@ -39,6 +48,15 @@ export const useUser = create<UserStore>()((set, get) => ({
     try { localStorage.setItem(GUEST_KEY, user_id); } catch { /* ignore */ }
     set({ userId: user_id }); return user_id;
   },
+  withUser: async (fn) => {
+    const id = await get().ensureUser();
+    try { return await fn(id); } catch (e) {
+      if (!isUnknownUser(e) || get().account) throw e;
+      get().dropGuest();
+      return fn(await get().ensureUser());
+    }
+  },
+  dropGuest: () => { if (get().account) return; forgetGuest(); set({ userId: null }); },
   setAccount: (account) => {
     if (account) forgetGuest();
     set({ account, userId: account?.id ?? null });

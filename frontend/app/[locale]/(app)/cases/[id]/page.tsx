@@ -18,7 +18,7 @@ export default function CasePage() {
   const locale = useLocale();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const ensureUser = useUser((s) => s.ensureUser);
+  const withUser = useUser((s) => s.withUser);
   const { data, error, retry: load } = useLoad<ScenarioDetail>(() => api.scenario(id, locale), [id, locale]);
   const [startFailed, setStartFailed] = useState(false);
   const failed = error || startFailed;
@@ -28,8 +28,7 @@ export default function CasePage() {
   async function start(withTest: boolean) {
     setStarting(withTest ? "test" : "play");
     try {
-      const user_id = await ensureUser();
-      const s = await api.createSession({ user_id, scenario_id: id, locale });
+      const s = await withUser((user_id) => api.createSession({ user_id, scenario_id: id, locale }));
       router.push(withTest ? `/cases/${id}/pretest?session=${s.session_id}` : `/play/${s.session_id}`);
     } catch { setStarting(null); setStartFailed(true); }
   }

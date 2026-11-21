@@ -4,7 +4,7 @@ import { ErrorState, Loading, PageTitle } from "@/components/common/state";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { api, type DashboardOut } from "@/lib/api";
-import { useUser } from "@/store/user";
+import { isUnknownUser, useUser } from "@/store/user";
 import { useLoad } from "@/hooks/use-load";
 
 const fmt = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -16,7 +16,11 @@ export default function DashboardPage() {
   const common = useTranslations("common");
   const locale = useLocale();
   const { userId, account, ready } = useUser();
-  const { data: d, error: failed, retry: load } = useLoad<DashboardOut>(userId ? () => api.dashboard(userId, locale) : null, [userId, locale]);
+  // an unknown guest id (e.g. after a database reset) means "no progress yet", not an error
+  const { data: d, error: failed, retry: load } = useLoad<DashboardOut>(
+    userId ? () => api.dashboard(userId, locale).catch((e) => { if (isUnknownUser(e)) useUser.getState().dropGuest(); throw e; }) : null,
+    [userId, locale],
+  );
 
   if (!ready) return <Loading />;
   if (!userId || (d && d.completed.length === 0)) {

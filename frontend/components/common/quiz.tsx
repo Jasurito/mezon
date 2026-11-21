@@ -15,7 +15,7 @@ export function Quiz({ scenarioId, kind, footer }: { scenarioId: string; kind: Q
   const t = useTranslations("quiz");
   const common = useTranslations("common");
   const locale = useLocale();
-  const ensureUser = useUser((s) => s.ensureUser);
+  const withUser = useUser((s) => s.withUser);
   const { data: quiz, error: loadFailed, retry: load } = useLoad<QuizOut>(() => api.quiz(scenarioId, kind, locale), [scenarioId, kind, locale]);
   const [i, setI] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -27,7 +27,7 @@ export function Quiz({ scenarioId, kind, footer }: { scenarioId: string; kind: Q
 
   async function submit() {
     if (!quiz) return; setSending(true);
-    try { const user_id = await ensureUser(); setResult(await api.submitQuiz(scenarioId, { user_id, kind, answers }, locale)); }
+    try { setResult(await withUser((user_id) => api.submitQuiz(scenarioId, { user_id, kind, answers }, locale))); }
     catch { setFailed(true); } finally { setSending(false); }
   }
 
