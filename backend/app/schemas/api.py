@@ -108,6 +108,7 @@ class ScoreEvent(BaseModel):
     type: Literal["score"] = "score"
     delta: int
     total: int
+    reason: str | None = None  # why the points changed (translated); null if the case gives no reason
 
 
 class LegalNoteEvent(BaseModel):
@@ -166,6 +167,7 @@ class GameState(BaseModel):
     events: list[GameEvent] = Field(description="События последнего действия")
     finished: bool
     legal_date: date
+    stage_goal: str | None = Field(None, description="Что нужно добиться на этом этапе (null, если дело не задаёт)")
 
 
 # --------------------------------------------------------------------------- сценарии
@@ -222,6 +224,25 @@ class DocumentView(BaseModel):
     title: str
 
 
+class ScoringSkill(BaseModel):
+    skill: str
+    label: str
+    description: str
+
+
+class ScoringOutcome(BaseModel):
+    result_kind: str
+    label: str
+
+
+class ScenarioScoring(BaseModel):
+    """«Как оценивается»: карточка перед игрой."""
+
+    max_score: int
+    skills: list[ScoringSkill]
+    outcomes: list[ScoringOutcome]
+
+
 class ScenarioDetail(BaseModel):
     scenario_id: str
     title: str
@@ -234,6 +255,7 @@ class ScenarioDetail(BaseModel):
     documents: list[DocumentView]
     legal_acts: list[LegalActView]
     kind: Literal["court", "situation"] = "court"
+    scoring: ScenarioScoring
 
 
 # --------------------------------------------------------------------------- результат
@@ -267,6 +289,15 @@ class RecommendationView(BaseModel):
     scenario_id: str | None
 
 
+class SkillScore(BaseModel):
+    skill: str  # procedure | evidence | substantive_law | remedy_choice
+    label: str
+    correct: int
+    total: int
+    percent: int | None  # null if total = 0
+    mistakes: int  # mistakes of the matching category
+
+
 class SessionResult(BaseModel):
     session_id: uuid.UUID
     scenario_id: str
@@ -283,4 +314,6 @@ class SessionResult(BaseModel):
     mistakes: list[MistakeView]
     citations: list[CitationView]
     recommendations: list[RecommendationView]
+    skills: list[SkillScore] = []
+    main_mistake: MistakeView | None = None  # the first mistake in order, null if none
     disclaimer: str

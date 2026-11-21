@@ -5,10 +5,13 @@ from __future__ import annotations
 import uuid
 
 from app.game_engine import AvailableAction, EngineState, Event, Outcome, available_actions
+from app.game_engine.engine import FORECAST_REASON_KEY
 from app.i18n import message, translate
+from app.i18n.messages import MESSAGES
 from app.scenarios.loader import LoadedScenario
 from app.schemas import api
 from app.schemas.legal import CitationView, Locale
+from app.schemas.scenario import SKILLS
 
 
 def stage_index(loaded: LoadedScenario, stage_id: str) -> int:
@@ -34,7 +37,10 @@ def present_events(
         elif e.type == "evidence_added":
             out.append(api.EvidenceAddedEvent(evidence_id=e.evidence_id))
         elif e.type == "score":
-            out.append(api.ScoreEvent(delta=e.delta, total=e.total))
+            reason = None
+            if e.reason_key:
+                reason = message(e.reason_key, locale) if e.reason_key in MESSAGES else translate(loaded, e.reason_key, locale)
+            out.append(api.ScoreEvent(delta=e.delta, total=e.total, reason=reason))
         elif e.type == "legal_note":
             out.append(
                 api.LegalNoteEvent(citation_id=e.citation_id, text=translate(loaded, e.text_key, locale))
@@ -131,6 +137,7 @@ def build_game_state(
         events=present_events(loaded, events, locale),
         finished=state.finished,
         legal_date=sc.legal_date,
+        stage_goal=translate(loaded, stage.goal_key, locale) if stage.goal_key else None,
     )
 
 
@@ -173,6 +180,21 @@ def build_scenario_detail(
         documents=[api.DocumentView(id=e.id, title=t(e.title_key)) for e in sc.evidence if e.in_case_file],
         legal_acts=legal_acts,
         kind=sc.card.kind,
+        scoring=api.ScenarioScoring(
+            max_score=sc.max_score,
+            skills=[
+                api.ScoringSkill(
+                    skill=s,
+                    label=message(f"skill.{s}", locale),
+                    description=message(f"skill.{s}.desc", locale),
+                )
+                for s in SKILLS
+            ],
+            outcomes=[
+                api.ScoringOutcome(result_kind=k, label=message(f"result.kind.{k}", locale))
+                for k in dict.fromkeys(r.result_kind or "loss" for r in sc.evaluation_rules)
+            ],
+        ),
     )
 
 
@@ -195,6 +217,30 @@ def build_result(
             if o.id == option_id:
                 return t(o.label_key)
         return option_id
+
+    def mistake_view(m) -> api.MistakeView:
+        return api.MistakeView(
+            category=m.category,
+            title=t(m.title_key),
+            explanation=t(m.explanation_key),
+            correct_action=t(m.correct_action_key) if m.correct_action_key else None,
+            citation_ids=list(m.citation_ids),
+        )
+
+    skills = []
+    for s in SKILLS:
+        total = sum(1 for d in outcome.decisions if d.skill == s)
+        correct = sum(1 for d in outcome.decisions if d.skill == s and d.correct)
+        skills.append(
+            api.SkillScore(
+                skill=s,
+                label=message(f"skill.{s}", locale),
+                correct=correct,
+                total=total,
+                percent=round(100 * correct / total) if total else None,
+                mistakes=sum(1 for m in outcome.mistakes if m.category == s),
+            )
+        )
 
     return api.SessionResult(
         session_id=session_id,
@@ -226,20 +272,13 @@ def build_result(
             )
             for d in outcome.decisions
         ],
-        mistakes=[
-            api.MistakeView(
-                category=m.category,
-                title=t(m.title_key),
-                explanation=t(m.explanation_key),
-                correct_action=t(m.correct_action_key) if m.correct_action_key else None,
-                citation_ids=list(m.citation_ids),
-            )
-            for m in outcome.mistakes
-        ],
+        mistakes=[mistake_view(m) for m in outcome.mistakes],
         citations=citations,
         recommendations=[
             api.RecommendationView(topic=t(r.topic_key), citation_ids=list(r.citation_ids), scenario_id=r.scenario_id)
             for r in outcome.recommendations
         ],
+        skills=skills,
+        main_mistake=mistake_view(outcome.mistakes[0]) if outcome.mistakes else None,
         disclaimer=message("result.disclaimer", locale),
     )

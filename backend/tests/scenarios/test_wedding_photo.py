@@ -103,7 +103,7 @@ def mistake_titles(out) -> set[str]:
 
 def test_loads_strict_without_errors(loaded, sc):
     assert loaded.errors == []
-    assert sc.scenario_id == SID and sc.version == "1.0.0" and str(sc.legal_date) == "2026-10-01"
+    assert sc.scenario_id == SID and sc.version == "1.1.0" and str(sc.legal_date) == "2026-10-01"
     assert sc.reveal_mistakes is False and sc.card.difficulty == "intermediate"
     assert loaded.warnings and all("uz-Cyrl" in w for w in loaded.warnings)
     assert loaded.quiz is not None and len(loaded.quiz.pre) == 9 and len(loaded.quiz.post) == 9

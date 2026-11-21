@@ -19,9 +19,11 @@ from app.game_engine.state import (
     ScoreEvent,
     StageChangedEvent,
 )
-from app.schemas.scenario import OUTCOME_BEST, Action, Effect, Scenario, Stage
+from app.schemas.scenario import OUTCOME_BEST, Action, Effect, Scenario, ScoreEffect, Stage
 
 RESULTS = "RESULTS"
+# reason of the forecast bonus: a key of app.i18n.messages, not of the scenario texts
+FORECAST_REASON_KEY = "score.forecast_correct"
 MAX_TRANSITIONS = 20
 
 
@@ -52,7 +54,10 @@ def _run_effects(w: _Work, effects: list[Effect]) -> None:
         elif name == "unset":
             w.flags.discard(val)
         elif name == "score":
-            _add_score(w, val)
+            if isinstance(val, ScoreEffect):
+                _add_score(w, val.delta, val.reason_key)
+            else:
+                _add_score(w, val)
         elif name == "say":
             w.events.append(SayEvent(speaker=val.speaker, text_key=val.text_key, emotion=val.emotion))
         elif name == "react":
@@ -70,9 +75,9 @@ def _run_effects(w: _Work, effects: list[Effect]) -> None:
             _enter(w, val)
 
 
-def _add_score(w: _Work, delta: int) -> None:
+def _add_score(w: _Work, delta: int, reason_key: str | None = None) -> None:
     w.score += delta
-    w.events.append(ScoreEvent(delta=delta, total=w.score))
+    w.events.append(ScoreEvent(delta=delta, total=w.score, reason_key=reason_key))
 
 
 def _enter(w: _Work, to: str) -> None:
@@ -104,7 +109,7 @@ def _award_forecasts(w: _Work) -> None:
         return
     for d in targets:
         if w.choices.get(d.decision_id) == rule.outcome:
-            _add_score(w, d.outcome_score)
+            _add_score(w, d.outcome_score, FORECAST_REASON_KEY)
 
 
 def _settle(w: _Work) -> None:
@@ -211,7 +216,7 @@ def apply(
         _run_effects(w, action.effects)
         _run_effects(w, dp.consequences.get(option, []))
         if option in dp.score:
-            _add_score(w, dp.score[option])
+            _add_score(w, dp.score[option], dp.score_reason_keys.get(option))
     else:
         _run_effects(w, action.effects)
     _settle(w)

@@ -84,5 +84,5 @@ seed-dump:
 VM_HOST ?= deploy@vm1.modeus.cc
 VM_SRC ?= /opt/mezon/src
 scenarios-upload:
-	rsync -az --exclude '.DS_Store' --exclude 'README.md' scenarios/ $(VM_HOST):$(VM_SRC)/scenarios/
+	rsync -az --exclude '.DS_Store' --exclude 'README.md' --exclude 'uz_review.json' scenarios/ $(VM_HOST):$(VM_SRC)/scenarios/
 	@echo "Дела залиты в $(VM_HOST):$(VM_SRC)/scenarios. Перезапустите бэкенд на сервере: systemctl restart mezon-backend"

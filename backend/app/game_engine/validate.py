@@ -20,6 +20,8 @@ def iter_text_keys(data: Any) -> Iterator[str]:
                 yield v
             elif k.endswith("_keys") and isinstance(v, list):
                 yield from (x for x in v if isinstance(x, str))
+            elif k.endswith("_keys") and isinstance(v, dict):
+                yield from (x for x in v.values() if isinstance(x, str))
             else:
                 yield from iter_text_keys(v)
     elif isinstance(data, list):
@@ -234,7 +236,7 @@ def validate_scenario(sc: Scenario) -> list[str]:
             errs.append(f"decision '{d.decision_id}': best '{d.best}' is not an option")
         if d.outcome_score and d.best != OUTCOME_BEST:
             errs.append(f"decision '{d.decision_id}': outcome_score needs best {OUTCOME_BEST}")
-        for key in list(d.consequences) + list(d.score):
+        for key in list(d.consequences) + list(d.score) + list(d.score_reason_keys):
             if key not in opts:
                 errs.append(f"decision '{d.decision_id}': consequences/score key '{key}' is not an option")
 

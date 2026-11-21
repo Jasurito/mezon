@@ -57,6 +57,7 @@ class ScoreEvent(_Frozen):
     type: Literal["score"] = "score"
     delta: int
     total: int
+    reason_key: str | None = None
 
 
 class LegalNoteEvent(_Frozen):
@@ -114,6 +115,7 @@ class DecisionResult(_Frozen):
     citation_ids: tuple[str, ...] = ()
     kind: str = "action"
     counterfactual_key: str | None = None
+    skill: str | None = None
 
 
 class Outcome(_Frozen):

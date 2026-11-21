@@ -17,6 +17,8 @@ ActionKind = Literal[
 ]
 ResultKind = Literal["win", "partial", "loss", "settlement", "procedural_loss"]
 DecisionKind = Literal["action", "reasoning", "prediction"]
+Skill = Literal["procedure", "evidence", "substantive_law", "remedy_choice"]
+SKILLS: tuple[str, ...] = ("procedure", "evidence", "substantive_law", "remedy_choice")
 # `DecisionPoint.best` value: the correct option is the final outcome of the case.
 OUTCOME_BEST = "@outcome"
 
@@ -125,12 +127,19 @@ class LegalNote(_Model):
     text_key: str
 
 
+class ScoreEffect(_Model):
+    """Score change with a short human reason (``score`` also accepts a bare number)."""
+
+    delta: int
+    reason_key: str | None = None
+
+
 class Effect(_OneOf):
     """State-changing DSL node. Exactly one key."""
 
     set_: str | None = Field(None, alias="set")
     unset: str | None = None
-    score: int | None = None
+    score: int | ScoreEffect | None = None
     say: Say | None = None
     react: React | None = None
     add_evidence: str | None = None
@@ -247,6 +256,7 @@ class Action(_Model):
 class Stage(_Model):
     id: str
     title_key: str
+    goal_key: str | None = None  # what the player must achieve at this stage
     on_enter: list[Effect] = []
     actions: list[Action] = []
     transitions: list[Transition] = []
@@ -266,10 +276,12 @@ class DecisionPoint(_Model):
     best: str  # an option id, or "@outcome" (options are then outcome ids; the right one is the final outcome)
     consequences: dict[str, list[Effect]] = {}
     score: dict[str, int] = {}
+    score_reason_keys: dict[str, str] = {}  # option id -> why these points
     explanation_key: str
     citation_ids: list[str] = []
     kind: DecisionKind = "action"  # for the debrief: a move, a justification or a forecast
     counterfactual_key: str | None = None  # "what if" text shown in the debrief when chosen != best
+    skill: Skill | None = None  # which skill the decision trains (for the results screen)
     outcome_score: int = 0  # only with best "@outcome": bonus added at RESULTS when the forecast is right
 
 

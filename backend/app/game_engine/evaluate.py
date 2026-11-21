@@ -42,6 +42,7 @@ def evaluate(scenario: Scenario, state: EngineState) -> Outcome:
                 citation_ids=tuple(d.citation_ids),
                 kind=d.kind,
                 counterfactual_key=d.counterfactual_key,
+                skill=d.skill,
             )
         )
 

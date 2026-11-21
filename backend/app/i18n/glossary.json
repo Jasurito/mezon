@@ -1,0 +1,400 @@
+{
+  "terms": [
+    {
+      "id": "motion",
+      "ru": {
+        "term": "ходатайство",
+        "definition": "Письменная или устная просьба к суду что-то сделать по делу, например назначить экспертизу.",
+        "aliases": [
+          "ходатайство",
+          "ходатайства",
+          "ходатайству",
+          "ходатайством",
+          "ходатайстве",
+          "ходатайств"
+        ]
+      },
+      "uz-Latn": {
+        "term": "iltimosnoma",
+        "definition": "Sudga ish bo'yicha biror narsani qilishni so'rab murojaat qilish, masalan ekspertiza tayinlashni so'rash.",
+        "aliases": [
+          "iltimosnoma",
+          "iltimosnomasi",
+          "iltimosnomani",
+          "iltimosnoma bilan",
+          "iltimos"
+        ]
+      }
+    },
+    {
+      "id": "expertise",
+      "ru": {
+        "term": "экспертиза",
+        "definition": "Проверка спорного вопроса специалистом, который даёт письменное заключение для суда.",
+        "aliases": [
+          "экспертиза",
+          "экспертизы",
+          "экспертизу",
+          "экспертизе",
+          "экспертизой",
+          "эксперт",
+          "эксперта"
+        ]
+      },
+      "uz-Latn": {
+        "term": "ekspertiza",
+        "definition": "Munozarali masalani mutaxassis tekshirib, sud uchun yozma xulosa berishi.",
+        "aliases": [
+          "ekspertiza",
+          "ekspertizani",
+          "ekspertizaga",
+          "ekspertizasi",
+          "ekspert",
+          "eksperti"
+        ]
+      }
+    },
+    {
+      "id": "settlement",
+      "ru": {
+        "term": "мировое соглашение",
+        "definition": "Договорённость сторон закончить спор по обоюдному согласию, которую утверждает суд.",
+        "aliases": [
+          "мировое соглашение",
+          "мирового соглашения",
+          "мировому соглашению",
+          "мировым соглашением",
+          "мировом соглашении",
+          "мировое"
+        ]
+      },
+      "uz-Latn": {
+        "term": "kelishuv bitimi",
+        "definition": "Tomonlarning o'zaro rozilik bilan nizoni tugatish haqidagi kelishuvi, uni sud tasdiqlaydi.",
+        "aliases": [
+          "kelishuv bitimi",
+          "kelishuv bitimini",
+          "kelishuv bitimiga",
+          "kelishuv bitimi bilan",
+          "kelishuv"
+        ]
+      }
+    },
+    {
+      "id": "burden_of_proof",
+      "ru": {
+        "term": "бремя доказывания",
+        "definition": "Обязанность стороны подтвердить свои слова доказательствами: кто что утверждает, тот это и доказывает.",
+        "aliases": [
+          "бремя доказывания",
+          "бремени доказывания",
+          "бременем доказывания",
+          "бремя доказательства",
+          "бремя"
+        ]
+      },
+      "uz-Latn": {
+        "term": "isbotlash yuki",
+        "definition": "Tomonning o'z gaplarini dalillar bilan tasdiqlash majburiyati: kim nimani da'vo qilsa, o'sha uni isbotlaydi.",
+        "aliases": [
+          "isbotlash yuki",
+          "isbotlash yukini",
+          "isbotlash yuki bilan",
+          "isbotlash majburiyati"
+        ]
+      }
+    },
+    {
+      "id": "statement_of_claim",
+      "ru": {
+        "term": "исковое заявление",
+        "definition": "Документ, с которого начинается дело в суде: в нём написано, кто чего требует и почему.",
+        "aliases": [
+          "исковое заявление",
+          "искового заявления",
+          "исковому заявлению",
+          "исковым заявлением",
+          "исковом заявлении",
+          "иск",
+          "иска",
+          "иском"
+        ]
+      },
+      "uz-Latn": {
+        "term": "da'vo arizasi",
+        "definition": "Sudda ish boshlanadigan hujjat: unda kim nimani talab qilishi va nima uchun ekani yoziladi.",
+        "aliases": [
+          "da'vo arizasi",
+          "da'vo arizasini",
+          "da'vo arizasiga",
+          "da'vo arizasi bilan",
+          "da'vo",
+          "da'voni"
+        ]
+      }
+    },
+    {
+      "id": "defendant",
+      "ru": {
+        "term": "ответчик",
+        "definition": "Тот, к кому предъявлен иск, то есть человек или организация, от которых чего-то требуют.",
+        "aliases": [
+          "ответчик",
+          "ответчика",
+          "ответчику",
+          "ответчиком",
+          "ответчике",
+          "ответчики",
+          "ответчиков"
+        ]
+      },
+      "uz-Latn": {
+        "term": "javobgar",
+        "definition": "Unga nisbatan da'vo qo'yilgan tomon, ya'ni undan nimadir talab qilinayotgan shaxs yoki tashkilot.",
+        "aliases": [
+          "javobgar",
+          "javobgarga",
+          "javobgarni",
+          "javobgarning",
+          "javobgardan",
+          "javobgarlar"
+        ]
+      }
+    },
+    {
+      "id": "plaintiff",
+      "ru": {
+        "term": "истец",
+        "definition": "Тот, кто обратился в суд и требует защитить свои права.",
+        "aliases": [
+          "истец",
+          "истца",
+          "истцу",
+          "истцом",
+          "истце",
+          "истцы",
+          "истцов"
+        ]
+      },
+      "uz-Latn": {
+        "term": "da'vogar",
+        "definition": "Sudga murojaat qilib, o'z huquqlarini himoya qilishni talab qilgan tomon.",
+        "aliases": [
+          "da'vogar",
+          "da'vogarga",
+          "da'vogarni",
+          "da'vogarning",
+          "da'vogardan",
+          "da'vogarlar"
+        ]
+      }
+    },
+    {
+      "id": "power_of_attorney",
+      "ru": {
+        "term": "доверенность",
+        "definition": "Документ, по которому один человек разрешает другому действовать от своего имени.",
+        "aliases": [
+          "доверенность",
+          "доверенности",
+          "доверенностью",
+          "доверенностей"
+        ]
+      },
+      "uz-Latn": {
+        "term": "ishonchnoma",
+        "definition": "Bir kishi boshqasiga o'z nomidan harakat qilishga ruxsat beradigan hujjat.",
+        "aliases": [
+          "ishonchnoma",
+          "ishonchnomasi",
+          "ishonchnomani",
+          "ishonchnomaga",
+          "ishonchnoma bilan"
+        ]
+      }
+    },
+    {
+      "id": "penalty",
+      "ru": {
+        "term": "неустойка",
+        "definition": "Деньги, которые нарушитель должен заплатить за каждый день просрочки или за нарушение договора.",
+        "aliases": [
+          "неустойка",
+          "неустойки",
+          "неустойку",
+          "неустойке",
+          "неустойкой",
+          "неустоек"
+        ]
+      },
+      "uz-Latn": {
+        "term": "neustoyka",
+        "definition": "Shartnomani buzgan yoki muddatni o'tkazib yuborgan tomon to'laydigan pul.",
+        "aliases": [
+          "neustoyka",
+          "neustoykani",
+          "neustoykasi",
+          "neustoykaga",
+          "neustoyka bilan"
+        ]
+      }
+    },
+    {
+      "id": "moral_damage",
+      "ru": {
+        "term": "моральный вред",
+        "definition": "Страдания и переживания человека из-за нарушения его прав, за которые суд может присудить деньги.",
+        "aliases": [
+          "моральный вред",
+          "морального вреда",
+          "моральному вреду",
+          "моральным вредом",
+          "моральном вреде",
+          "компенсация морального вреда"
+        ]
+      },
+      "uz-Latn": {
+        "term": "ma'naviy zarar",
+        "definition": "Shaxsning huquqlari buzilgani sababli chekkan azob-uqubatlari, buning uchun sud pul to'lashni belgilashi mumkin.",
+        "aliases": [
+          "ma'naviy zarar",
+          "ma'naviy zararni",
+          "ma'naviy zarari",
+          "ma'naviy zararga",
+          "ma'naviy zarar uchun"
+        ]
+      }
+    },
+    {
+      "id": "warranty_period",
+      "ru": {
+        "term": "гарантийный срок",
+        "definition": "Время, в течение которого продавец отвечает за недостатки товара и обязан их устранить.",
+        "aliases": [
+          "гарантийный срок",
+          "гарантийного срока",
+          "гарантийному сроку",
+          "гарантийным сроком",
+          "гарантийном сроке",
+          "гарантия",
+          "гарантии"
+        ]
+      },
+      "uz-Latn": {
+        "term": "kafolat muddati",
+        "definition": "Sotuvchi tovardagi kamchiliklar uchun javob beradigan va ularni bartaraf etishi shart bo'lgan davr.",
+        "aliases": [
+          "kafolat muddati",
+          "kafolat muddatini",
+          "kafolat muddatida",
+          "kafolat muddatiga",
+          "kafolat muddati davomida",
+          "kafolat"
+        ]
+      }
+    },
+    {
+      "id": "claim_letter",
+      "ru": {
+        "term": "претензия",
+        "definition": "Письменное требование к другой стороне исправить нарушение до обращения в суд.",
+        "aliases": [
+          "претензия",
+          "претензии",
+          "претензию",
+          "претензией",
+          "претензий"
+        ]
+      },
+      "uz-Latn": {
+        "term": "da'vo xati",
+        "definition": "Sudga murojaat qilishdan oldin boshqa tomonga yuboriladigan, buzilishni tuzatishni talab qiluvchi yozma xat.",
+        "aliases": [
+          "da'vo xati",
+          "da'vo xatini",
+          "da'vo xatiga",
+          "da'vo xati bilan",
+          "pretenziya",
+          "pretenziyani"
+        ]
+      }
+    },
+    {
+      "id": "evidence",
+      "ru": {
+        "term": "доказательство",
+        "definition": "Любые сведения и предметы, которые подтверждают ваши слова: документы, чеки, переписка, показания свидетелей.",
+        "aliases": [
+          "доказательство",
+          "доказательства",
+          "доказательству",
+          "доказательством",
+          "доказательстве",
+          "доказательств",
+          "доказательствами"
+        ]
+      },
+      "uz-Latn": {
+        "term": "dalil",
+        "definition": "Gaplaringizni tasdiqlovchi har qanday ma'lumot va narsalar: hujjatlar, cheklar, yozishmalar, guvohlarning ko'rsatuvlari.",
+        "aliases": [
+          "dalil",
+          "dalili",
+          "dalilni",
+          "dalillar",
+          "dalillarni",
+          "dalillarga",
+          "dalillar bilan"
+        ]
+      }
+    },
+    {
+      "id": "claim_left_without_consideration",
+      "ru": {
+        "term": "иск оставлен без рассмотрения",
+        "definition": "Суд не решает спор по существу, потому что не выполнено обязательное условие, например не соблюдён досудебный порядок; позже можно обратиться снова.",
+        "aliases": [
+          "иск оставлен без рассмотрения",
+          "без рассмотрения",
+          "оставлен без рассмотрения",
+          "оставить без рассмотрения"
+        ]
+      },
+      "uz-Latn": {
+        "term": "da'vo ko'rilmasdan qoldirildi",
+        "definition": "Sud nizoni mohiyatan hal qilmaydi, chunki majburiy shart bajarilmagan, masalan sudgacha tartib saqlanmagan; keyinroq qayta murojaat qilish mumkin.",
+        "aliases": [
+          "da'vo ko'rilmasdan qoldirildi",
+          "ko'rilmasdan qoldirildi",
+          "ko'rilmasdan qoldirish",
+          "ko'rilmasdan"
+        ]
+      }
+    },
+    {
+      "id": "unjust_enrichment",
+      "ru": {
+        "term": "неосновательное обогащение",
+        "definition": "Ситуация, когда человек получил деньги или имущество без законного основания за счёт другого и должен их вернуть.",
+        "aliases": [
+          "неосновательное обогащение",
+          "неосновательного обогащения",
+          "неосновательному обогащению",
+          "неосновательным обогащением",
+          "неосновательном обогащении"
+        ]
+      },
+      "uz-Latn": {
+        "term": "asossiz boyish",
+        "definition": "Shaxs boshqaning hisobidan qonuniy asossiz ravishda pul yoki mol-mulk olgan va uni qaytarishi kerak bo'lgan holat.",
+        "aliases": [
+          "asossiz boyish",
+          "asossiz boyishni",
+          "asossiz boyishga",
+          "asossiz boyish uchun",
+          "asossiz boyishdan"
+        ]
+      }
+    }
+  ]
+}

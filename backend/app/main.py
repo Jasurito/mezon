@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth as auth_api
+from app.api import glossary as glossary_api
 from app.api import health, legal, scenarios, sessions, users
 from app.api import history as history_api
 from app.api import analytics as analytics_api
@@ -68,6 +69,7 @@ def create_app() -> FastAPI:
 
     api = APIRouter(prefix="/api", dependencies=[Depends(csrf_guard)])
     api.include_router(auth_api.router)
+    api.include_router(glossary_api.router)
     api.include_router(health.router)
     api.include_router(legal.router)
     api.include_router(mentor_api.router)

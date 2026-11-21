@@ -373,6 +373,14 @@
           "title": "Score",
           "type": "object"
         },
+        "score_reason_keys": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "title": "Score Reason Keys",
+          "type": "object"
+        },
         "explanation_key": {
           "title": "Explanation Key",
           "type": "string"
@@ -406,6 +414,24 @@
           ],
           "default": null,
           "title": "Counterfactual Key"
+        },
+        "skill": {
+          "anyOf": [
+            {
+              "enum": [
+                "procedure",
+                "evidence",
+                "substantive_law",
+                "remedy_choice"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Skill"
         },
         "outcome_score": {
           "default": 0,
@@ -456,6 +482,9 @@
           "anyOf": [
             {
               "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/ScoreEffect"
             },
             {
               "type": "null"
@@ -1013,6 +1042,33 @@
       "title": "Say",
       "type": "object"
     },
+    "ScoreEffect": {
+      "additionalProperties": false,
+      "description": "Score change with a short human reason (``score`` also accepts a bare number).",
+      "properties": {
+        "delta": {
+          "title": "Delta",
+          "type": "integer"
+        },
+        "reason_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason Key"
+        }
+      },
+      "required": [
+        "delta"
+      ],
+      "title": "ScoreEffect",
+      "type": "object"
+    },
     "Stage": {
       "additionalProperties": false,
       "properties": {
@@ -1023,6 +1079,18 @@
         "title_key": {
           "title": "Title Key",
           "type": "string"
+        },
+        "goal_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Goal Key"
         },
         "on_enter": {
           "default": [],

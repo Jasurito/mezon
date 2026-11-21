@@ -101,7 +101,7 @@ def mistake_titles(out) -> set[str]:
 
 def test_loads_strict_without_errors(loaded, sc):
     assert loaded.errors == []
-    assert sc.scenario_id == SID and sc.version == "1.1.0" and str(sc.legal_date) == "2026-10-01"
+    assert sc.scenario_id == SID and sc.version == "1.2.0" and str(sc.legal_date) == "2026-10-01"
     assert sc.reveal_mistakes is False
     # предупреждения только про отсутствующий uz-Cyrl
     assert loaded.warnings and all("uz-Cyrl" in w for w in loaded.warnings)

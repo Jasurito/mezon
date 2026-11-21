@@ -60,6 +60,35 @@ MESSAGES: dict[str, dict[str, str]] = {
     "mistake_category.remedy_choice": {
         "ru": "Выбор требования", "uz-Latn": "Talabni tanlash", "uz-Cyrl": "Талабни танлаш",
     },
+    "score.forecast_correct": {
+        "ru": "верный прогноз решения суда",
+        "uz-Latn": "sud qarorini to'g'ri bashorat qildingiz",
+        "uz-Cyrl": "суд қарорини тўғри башорат қилдингиз",
+    },
+    "skill.procedure": {"ru": "Процедура", "uz-Latn": "Protsedura", "uz-Cyrl": "Процедура"},
+    "skill.evidence": {"ru": "Доказательства", "uz-Latn": "Dalillar", "uz-Cyrl": "Далиллар"},
+    "skill.substantive_law": {"ru": "Нормы права", "uz-Latn": "Huquq normalari", "uz-Cyrl": "Ҳуқуқ нормалари"},
+    "skill.remedy_choice": {"ru": "Выбор требования", "uz-Latn": "Talabni tanlash", "uz-Cyrl": "Талабни танлаш"},
+    "skill.procedure.desc": {
+        "ru": "Делать шаги в суде в нужном порядке и вовремя.",
+        "uz-Latn": "Sudda qadamlarni to'g'ri tartibda va o'z vaqtida qo'yish.",
+        "uz-Cyrl": "Судда қадамларни тўғри тартибда ва ўз вақтида қўйиш.",
+    },
+    "skill.evidence.desc": {
+        "ru": "Собрать нужные доказательства и показать их суду.",
+        "uz-Latn": "Kerakli dalillarni to'plash va sudga ko'rsatish.",
+        "uz-Cyrl": "Керакли далилларни тўплаш ва судга кўрсатиш.",
+    },
+    "skill.substantive_law.desc": {
+        "ru": "Опираться на правильные нормы закона в своих доводах.",
+        "uz-Latn": "Dalillarda qonunning to'g'ri normalariga tayanish.",
+        "uz-Cyrl": "Далилларда қонуннинг тўғри нормаларига таяниш.",
+    },
+    "skill.remedy_choice.desc": {
+        "ru": "Выбрать требование, которое суд действительно может удовлетворить.",
+        "uz-Latn": "Sud haqiqatan ham qanoatlantira oladigan talabni tanlash.",
+        "uz-Cyrl": "Суд ҳақиқатан ҳам қаноатлантира оладиган талабни танлаш.",
+    },
 }
 
 
