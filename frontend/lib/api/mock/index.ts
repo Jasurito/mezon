@@ -272,8 +272,9 @@ export const mockApi: Api = {
     };
   },
 
-  async document(scenarioId, evidenceId, L) {
-    await delay(60); if (scenarioId !== SCENARIO) throw notFound("document");
+  async document(sessionId, evidenceId, L) {
+    await delay(60); const s = getSession(load(), sessionId);
+    if (!replay(s.log, L).state.evidence.includes(evidenceId)) throw notFound("document");
     return tx(L, "doc." + evidenceId).split("\n");
   },
 

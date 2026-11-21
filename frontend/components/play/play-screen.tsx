@@ -6,13 +6,14 @@ import { toast } from "sonner";
 import { ErrorState, Loading } from "@/components/common/state";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Court } from "@/game/Court";
 import { Link, useRouter } from "@/i18n/navigation";
 import { api, type ActionView, type Locale } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useGame } from "@/store/game";
+import { useSettings } from "@/store/settings";
 import { useUi } from "@/store/ui";
+import { CaseFile } from "./case-file";
 import { NpcPanel, type Askable } from "./npc-panel";
 
 const NAMES: Record<string, string> = {};
@@ -23,8 +24,8 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
   const router = useRouter();
   const g = useGame();
   const openLegal = useUi((s) => s.openLegal);
-  const [drawer, setDrawer] = useState(false);
-  const [doc, setDoc] = useState<{ id: string; title: string; lines: string[] } | null>(null);
+  const [docId, setDocId] = useState<string | null>(null);
+  const caseRef = useRef<HTMLElement>(null);
   const [decision, setDecision] = useState<ActionView | null>(null);
   const [names, setNames] = useState<Record<string, { name: string; role: string }>>({});
   const [askable, setAskable] = useState<Askable[]>([]);
@@ -56,10 +57,8 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
   }, [sessionId, locale]);
   useEffect(() => () => useGame.getState().reset(), []);
 
-  // preparation stage: evidence drawer opens by default (spec §4.5)
+  // preparation stage: the case materials are the task, so the panel is highlighted until a document is open (spec §4.5)
   const stage = g.state?.stage;
-  const [prepOpened, setPrepOpened] = useState(false);
-  if (stage === "PREPARATION" && !g.busy && !prepOpened) { setPrepOpened(true); setDrawer(true); }
 
   // finished: after the gavel, go to results
   useEffect(() => {
@@ -79,18 +78,27 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
     window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const onSceneClick = useCallback((id: string) => {
-    if (id === "evidence_table") return setDrawer(true);
-    const a = useGame.getState().state?.available_actions.find((x) => x.target_character === id);
-    if (a) actionsRef.current?.querySelector<HTMLButtonElement>(`[data-action="${a.action_id}"]`)?.focus();
+  const showCaseFile = useCallback(() => {
+    const el = caseRef.current; if (!el) return;
+    el.scrollIntoView({ block: "nearest", behavior: useSettings.getState().motion === "reduced" ? "auto" : "smooth" });
+    el.focus({ preventScroll: true });
   }, []);
 
-  async function openDoc(id: string, title: string) {
-    const lines = await api.document(g.state!.scenario_id, id, locale).catch(() => []);
-    setDoc({ id, title, lines });
-    g.markReviewed(id);
-    g.review(id);
-  }
+  const openDoc = useCallback((id: string) => {
+    setDocId(id);
+    const g0 = useGame.getState(); g0.markReviewed(id); g0.review(id);
+    if (window.matchMedia("(max-width: 1023px)").matches) showCaseFile(); // stacked layout: the reader is below
+  }, [showCaseFile]);
+
+  const onSceneClick = useCallback((id: string) => {
+    if (id === "evidence_table") {
+      const ev = useGame.getState().state?.evidence ?? [];
+      if (!docId && ev.length) openDoc((ev.find((e) => !e.reviewed) ?? ev[0]).id);
+      return showCaseFile();
+    }
+    const a = useGame.getState().state?.available_actions.find((x) => x.target_character === id);
+    if (a) actionsRef.current?.querySelector<HTMLButtonElement>(`[data-action="${a.action_id}"]`)?.focus();
+  }, [docId, openDoc, showCaseFile]);
 
   if (g.error) return <div className="px-4"><ErrorState message={g.error === "load" ? t("play.loadError") : t("play.offline")} onRetry={() => g.load(sessionId, locale)} /></div>;
   if (!g.state) return <Loading />;
@@ -111,11 +119,13 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
         <div className="stage-track col-span-3" aria-hidden><span style={{ width: `${(st.stage_index / st.stage_count) * 100}%` }} /></div>
       </header>
 
-      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-2 pb-24 pt-4 sm:px-6">
+      <main id="main" className="mx-auto grid w-full max-w-[88rem] flex-1 items-start gap-6 px-2 pb-24 pt-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)]">
+        <div className="min-w-0">
         <div className="frame">
           <Court theme="night" mode="play" className="frame__scene" onClick={onSceneClick} onReady={g.setCourt} names={tagNames} label={t("play.evidenceTable")} />
           <div className="frame__tools">
-            <Button variant="outline" className={cn("bg-navy/85", g.newEvidence.length > 0 && "has-new")} onClick={() => setDrawer(true)} aria-expanded={drawer}>
+            {/* the case materials sit next to the scene on wide screens; on narrow ones this jumps to them */}
+            <Button variant="outline" className={cn("bg-navy/85 lg:hidden", g.newEvidence.length > 0 && "has-new")} onClick={showCaseFile}>
               <FileText />{t("play.evidence")}
             </Button>
             {!st.finished && askable.length > 0 && (
@@ -148,7 +158,7 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
           {actions.map((a, i) => (
             <div key={a.action_id} className="flex overflow-hidden rounded-md border border-paper/20 bg-navy-2">
               <button type="button" data-action={a.action_id} autoFocus={i === 0}
-                onClick={() => (a.kind === "decision" ? setDecision(a) : a.action_id.startsWith("review_") && a.evidence_id ? openDoc(a.evidence_id, a.label) : g.dispatch(a.action_id))}
+                onClick={() => (a.kind === "decision" ? setDecision(a) : a.action_id.startsWith("review_") && a.evidence_id ? openDoc(a.evidence_id) : g.dispatch(a.action_id))}
                 onKeyDown={(e) => {
                   if (!["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp"].includes(e.key)) return;
                   const list = Array.from(actionsRef.current?.querySelectorAll<HTMLButtonElement>("[data-action]") ?? []);
@@ -166,33 +176,12 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
             </div>
           ))}
         </div>
+        </div>
+
+        <CaseFile ref={caseRef} sessionId={sessionId} locale={locale} evidence={st.evidence} fresh={g.newEvidence}
+          selected={docId} onSelect={openDoc} highlight={stage === "PREPARATION" && !docId}
+          className="max-lg:h-[32rem] lg:sticky lg:top-4 lg:h-[calc(100svh-8rem)]" />
       </main>
-
-      <Sheet open={drawer} onOpenChange={setDrawer}>
-        <SheetContent side="left" className="w-[min(26rem,92vw)] border-hairline bg-navy-2 sm:max-w-none">
-          <SheetHeader><SheetTitle>{t("play.evidence")}</SheetTitle></SheetHeader>
-          <ul className="grid gap-2 px-4">
-            {st.evidence.map((e) => (
-              <li key={e.id}>
-                <button type="button" onClick={() => openDoc(e.id, e.title)}
-                  className={cn("flex min-h-12 w-full items-center justify-between gap-3 rounded-md border bg-navy px-4 py-3 text-left hover:border-gold",
-                    g.newEvidence.includes(e.id) ? "border-terra" : "border-paper/15")}>
-                  <span>{e.title}</span>
-                  <span className="text-xs text-teal">{g.newEvidence.includes(e.id) ? <span className="text-terra">{t("play.newEvidence")}</span> : e.reviewed ? t("play.reviewed") : ""}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </SheetContent>
-      </Sheet>
-
-      <Dialog open={!!doc} onOpenChange={(o) => !o && setDoc(null)}>
-        {/* one document style for every piece of evidence: same font (the user's UI font), left-aligned title */}
-        <DialogContent className="paper-doc border-0">
-          <DialogHeader className="text-left"><DialogTitle className="border-b border-[#d8cfb8] pb-2 text-navy">{doc?.title}</DialogTitle><DialogDescription className="sr-only">{t("play.docTitle")}</DialogDescription></DialogHeader>
-          <div className="doc-body space-y-1.5">{doc?.lines.map((l, i) => <p key={i}>{l}</p>)}</div>
-        </DialogContent>
-      </Dialog>
 
       <NpcPanel open={asking && !st.finished} onOpenChange={setAsking} sessionId={sessionId} characters={askable} />
 

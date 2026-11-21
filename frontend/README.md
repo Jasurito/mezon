@@ -28,7 +28,7 @@ app/[locale]/(game)/play/[id]     court simulator (night style, sketch 1)
 game/                             Phaser 4 courtroom, drawn in code; Court.tsx mounts it client-only
 store/                            game (event queue), user (guest id + account), settings (fonts), ui (legal panel)
 lib/api/                          contract types (= backend/app/schemas), mock backend, live client
-lib/auth/                         account service (mock now; Google SSO via backend, see AUTH.md)
+lib/auth/                         account service (mock or backend: email/password + Google, see AUTH.md)
 locales/                          uz-Latn.json, ru.json (hand-written), uz-Cyrl.json (generated)
 ```
 
@@ -37,4 +37,4 @@ locales/                          uz-Latn.json, ru.json (hand-written), uz-Cyrl.
 - **Languages.** URLs use `/uz`, `/uz-cyrl` and `/ru`; the locale codes sent to the API stay `uz-Latn`, `uz-Cyrl` and `ru`. **Uzbek Latin uses the 2026 alphabet** (law of 21.10.2026: `ö ğ ş ç` instead of `oʻ gʻ sh ch`; the tutuq `ʼ` stays). `lib/translit.ts` has `toNewLatin()` for converting old-alphabet text, and the Cyrillic generator understands both alphabets. Uzbek Cyrillic is a deterministic transliteration. **The legal member must spot-check it** (legal text is never transliterated).
 - **Fonts.** Every font was checked for `ʻ ʼ ў қ ғ ҳ`. Manrope and Pixelify Sans fail, so don't use them.
 - **The mock case is placeholder content.** Article numbers are `X/Z/W` and the article text is empty on purpose (no invented law). Quiz questions and stage names need legal review.
-- **Backend gap.** Evidence documents need a body endpoint (e.g. `GET /api/scenarios/{id}/documents/{doc}`). `lib/api/live.ts` marks it with a TODO.
+- **Live mode** (`NEXT_PUBLIC_API_MODE=live`, used on mezon.modeus.cc): the landing case card and legal base come from `/api/scenarios` and `/api/health`, documents from `GET /api/sessions/{id}/evidence/{evidence_id}`. In uz-Latn, `lib/api/live.ts` converts the backend's game texts to the 2026 alphabet field by field; ids and legal texts (citations, article parts, act titles) are left exactly as published.

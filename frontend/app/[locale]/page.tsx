@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { use } from "react";
 import { DeskHeader } from "@/components/site/desk-header";
+import { CaseCaption, CaseCover, LegalBase } from "@/components/site/featured-case";
 import { Court } from "@/game/Court";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
@@ -10,11 +11,6 @@ export default function Landing({ params }: { params: Promise<{ locale: string }
   const { locale } = use(params);
   setRequestLocale(locale as Locale);
   const t = useTranslations("landing");
-  const acts = useTranslations("acts");
-  const fields = [
-    ["fieldType", "fieldTypeValue"], ["fieldCategory", "fieldCategoryValue"], ["fieldParties", "fieldPartiesValue"],
-    ["fieldRole", "fieldRoleValue"], ["fieldDuration", "fieldDurationValue"],
-  ] as const;
   const soon = useTranslations("cases");
   const common = useTranslations("common");
   return (
@@ -32,15 +28,10 @@ export default function Landing({ params }: { params: Promise<{ locale: string }
             <figure className="photo">
               <span className="clip" aria-hidden />
               <Court theme="ink" mode="hero" className="photo__scene" />
-              <figcaption>{t("photoCaption")}</figcaption>
+              <CaseCaption />
             </figure>
-            <div className="cover-form">
-              <h2 id="case-title" className="desk-h">{t("caseTitle")}</h2>
-              <dl>
-                {fields.map(([k, v]) => (<div key={k}><dt>{t(k)}</dt><dd>{t(v)}</dd></div>))}
-              </dl>
-              <Link className="btn-ink" href="/cases/consumer_dispute_001">{t("open")}</Link>
-            </div>
+            {/* demo case in mock mode, the first real scenario in live mode */}
+            <CaseCover />
             <p className="stamp" aria-hidden>{t("stamp")}</p>
           </div>
         </article>
@@ -54,12 +45,7 @@ export default function Landing({ params }: { params: Promise<{ locale: string }
 
         <section className="sheet-paper acts" aria-labelledby="acts-title">
           <h2 id="acts-title" className="desk-h">{t("actsTitle")}</h2>
-          <ul>
-            {(["CPRL", "CC", "CPC"] as const).map((k) => (
-              <li key={k}><a href="https://lex.uz/" target="_blank" rel="noopener noreferrer">{acts(k)}</a> <span>{t("actCurrent")}</span></li>
-            ))}
-          </ul>
-          <p className="acts__checked">{t("actsChecked")}</p>
+          <LegalBase />
         </section>
 
         <section className="shelf" aria-labelledby="shelf-title">

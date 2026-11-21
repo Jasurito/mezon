@@ -31,6 +31,7 @@ export type GameEvent =
   | { type: "legal_note"; citation_id: string; text: string }
   | { type: "mistake"; category: string; text: string };
 
+export interface EvidenceDocument { id: string; title: string; type: EvidenceView["type"]; lines: string[] }
 export interface EvidenceView { id: string; title: string; type: "document" | "object" | "testimony"; reviewed: boolean; presented: boolean }
 
 export interface GameState {
@@ -140,7 +141,10 @@ export interface Api {
   result(id: string, locale?: Locale): Promise<SessionResult>;
   citation(id: string, date: string | null, locale: Locale): Promise<CitationView>;
   mentor(body: MentorAsk, signal?: AbortSignal): AsyncGenerator<MentorEvent>;
-  /** Evidence document body. NOT in the backend contract yet: needs an endpoint (e.g. GET /api/scenarios/{id}/documents/{doc}). */
-  document(scenarioId: string, evidenceId: string, locale: Locale): Promise<string[]>;
+  /**
+   * Text of a case document, paragraph by paragraph (GET /api/sessions/{id}/evidence/{evidence_id}).
+   * Only documents already in this session's case file; a document without its own text returns the facts it proves.
+   */
+  document(sessionId: string, evidenceId: string, locale: Locale): Promise<string[]>;
   events(body: { user_id: string; session_id?: string; events: { type: string; payload: unknown; ts: string }[] }): Promise<void>;
 }

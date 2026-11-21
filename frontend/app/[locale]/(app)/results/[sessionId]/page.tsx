@@ -27,7 +27,12 @@ export default function ResultsPage() {
   const router = useRouter();
   const { sessionId } = useParams<{ sessionId: string }>();
   const ensureUser = useUser((s) => s.ensureUser);
-  const { data: r, error: failed, retry: load } = useLoad<SessionResult>(() => api.result(sessionId, locale), [sessionId, locale]);
+  // the result plus the case's legal date (article editions are shown as of that date)
+  const { data, error: failed, retry: load } = useLoad<[SessionResult, string | null]>(
+    () => Promise.all([api.result(sessionId, locale), api.session(sessionId, locale).then((s) => s.legal_date).catch(() => null)]),
+    [sessionId, locale],
+  );
+  const [r, legalDate] = data ?? [null, null];
 
   async function replay() {
     const user_id = await ensureUser();
@@ -78,7 +83,7 @@ export default function ResultsPage() {
                     <p className="mt-0.5">{d.counterfactual}</p>
                   </div>
                 )}
-                <div className="mt-2 flex flex-wrap gap-2">{d.citation_ids.map((c) => <CitationChip key={c} id={c} label={short(c, locale)} date="2026-03-01" />)}</div>
+                <div className="mt-2 flex flex-wrap gap-2">{d.citation_ids.map((c) => <CitationChip key={c} id={c} label={short(c, locale)} date={legalDate} />)}</div>
               </li>
             ))}
           </ol>
@@ -113,7 +118,7 @@ export default function ResultsPage() {
           <h2 id="norms" className="mb-3 text-lg font-bold text-gold">{t("norms")}</h2>
           <ul className="grid gap-2">
             {r.citations.map((c) => (
-              <li key={c.citation_id}><CitationChip id={c.citation_id!} label={`${short(c.citation_id!, locale)}, ${c.document_title}`} date="2026-03-01" /></li>
+              <li key={c.citation_id}><CitationChip id={c.citation_id!} label={`${short(c.citation_id!, locale)}, ${c.document_title}`} date={legalDate} /></li>
             ))}
           </ul>
         </section>

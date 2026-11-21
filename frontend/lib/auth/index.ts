@@ -61,8 +61,11 @@ const mockAuth: AuthService = {
   async signOut() { localStorage.removeItem(K_ME); },
 };
 
+/** same origin in production (nginx); `make dev-all` points it at the local backend */
+const AUTH_BASE = (process.env.NEXT_PUBLIC_API_BASE ?? "") + "/api/auth";
+
 async function req<T>(path: string, body?: unknown): Promise<T> {
-  const res = await fetch("/api/auth" + path, { method: body ? "POST" : "GET", credentials: "include", headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  const res = await fetch(AUTH_BASE + path, { method: body ? "POST" : "GET", credentials: "include", headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
   if (res.status === 401) throw new AuthError("credentials");
   if (res.status === 409) throw new AuthError("exists");
   if (res.status === 429) throw new AuthError("rate_limited");
@@ -77,8 +80,7 @@ const liveAuth: AuthService = {
   async google(next, guest) {
     const q = new URLSearchParams({ next, ...(guest ? { guest_user_id: guest } : {}) });
     // full navigation on purpose: /api/* is the backend (OAuth redirect), not a Next.js page
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.assign("/api/auth/google/start?" + q);
+    window.location.assign(AUTH_BASE + "/google/start?" + q);
   },
   signOut: () => req("/logout", {}),
 };

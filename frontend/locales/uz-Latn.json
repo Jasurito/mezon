@@ -67,7 +67,9 @@
     "actCurrent": "amaldagi tahrir",
     "actsChecked": "Matnlar lex.uz bilan 20.11.2026 da soliştirilgan.",
     "shelfTitle": "Javondagi boşqa işlar",
-    "allCases": "Barça işlar"
+    "allCases": "Barça işlar",
+    "photoCaptionDate": "Sud zali. Majlis {date}",
+    "actsArticles": "Bazada {count} ta modda."
   },
   "acts": {
     "CPRL": "«Isteʼmolçilarning huquqlarini himoya qiliş töğrisida»gi Qonun",
@@ -134,7 +136,13 @@
     "loadError": "Öyinni yuklab bölmadi",
     "evidenceTable": "Dalillar stoli",
     "secretary": "Kotib",
-    "docTitle": "Hujjat"
+    "docTitle": "Hujjat",
+    "caseFile": "Iş materiallari",
+    "readCount": "Öqildi: {read}/{total}",
+    "pickDoc": "Hujjatni tanlang: u şu yerda oçiladi.",
+    "prevDoc": "Oldingi hujjat",
+    "nextDoc": "Keyingi hujjat",
+    "docEmpty": "Hujjat matni hali yuklanmagan."
   },
   "legal": {
     "status_current": "Amaldagi tahrir",

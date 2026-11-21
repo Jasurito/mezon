@@ -41,3 +41,8 @@
 
 /* results: Victory / Defeat stamp, like a court seal on the ruling */
 .result-stamp { display: inline-block; padding: 0.3rem 0.9rem; border: 3px solid; border-radius: 6px; font-weight: 800; font-size: 1.35rem; letter-spacing: 0.02em; transform: rotate(-2deg); }
+
+/* case materials next to the scene: a gold outline while documents are the task (preparation stage) */
+.case-file.is-highlight { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+html:not([data-motion="reduced"]) .case-file.is-highlight { animation: case-pulse 1.6s ease-in-out 3; }
+@keyframes case-pulse { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 35%, transparent); } }
