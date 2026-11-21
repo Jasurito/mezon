@@ -1,4 +1,5 @@
 "use client";
+import { ThemePicker } from "@/components/site/theme-picker";
 import { RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PageTitle } from "@/components/common/state";
@@ -70,6 +71,12 @@ export default function SettingsPage() {
               ))}
             </div>
             <p className="mt-2 text-sm text-ink-muted">{t("motionHint")}</p>
+          </fieldset>
+
+          <fieldset>
+            <legend className="mb-1 font-semibold">{t("theme")}</legend>
+            <p className="mb-3 text-sm text-ink-muted">{t("themeHint")}</p>
+            <ThemePicker />
           </fieldset>
 
           <p className="text-sm text-ink-muted">{t("scope")}</p>

@@ -12,6 +12,6 @@ export const useSettings = create<SettingsStore>()(
       set: (patch) => { set(patch); applySettings({ ...get(), ...patch }); },
       reset: () => { set(DEFAULT_SETTINGS); applySettings(DEFAULT_SETTINGS); },
     }),
-    { name: SETTINGS_KEY, partialize: ({ family, size, lineHeight, motion }) => ({ family, size, lineHeight, motion }) },
+    { name: SETTINGS_KEY, partialize: ({ family, size, lineHeight, motion, courtTheme }) => ({ family, size, lineHeight, motion, courtTheme }) },
   ),
 );

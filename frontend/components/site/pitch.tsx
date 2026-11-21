@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
-import { Court } from "@/game/Court";
 import { Link } from "@/i18n/navigation";
 import { ArticleCount } from "./pitch-facts";
+import { ThemeStack } from "./theme-stack";
 
 /** Public home page for guests: same case-file desk design, descriptive instead of a demo case. */
 export function Pitch() {
@@ -17,11 +17,7 @@ export function Pitch() {
             <Link className="desk-btn desk-btn--ghost desk-btn--lg" href="/cases">{t("ctaTry")}</Link>
           </div>
         </div>
-        <figure className="photo">
-          <span className="clip" aria-hidden />
-          <Court theme="ink" mode="hero" className="photo__scene" label={t("photoAlt")} />
-          <figcaption>{t("photoCaption")}</figcaption>
-        </figure>
+        <ThemeStack />
       </section>
 
       <section aria-labelledby="pitch-for">

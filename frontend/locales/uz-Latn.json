@@ -90,7 +90,16 @@
     "track_situation": "Hayotiy vaziyatlar",
     "track_situation_lead": "Hayotdan qisqa voqealar: huquqlaringiz buzilsa nima qiliş va buni qanday isbotlaş.",
     "track_court": "Sud işlari",
-    "track_court_lead": "Töliq sud jarayoni: iş materiallari, iltimosnomalar, dalillar, muhokama va qaror."
+    "track_court_lead": "Töliq sud jarayoni: iş materiallari, iltimosnomalar, dalillar, muhokama va qaror.",
+    "filterKind": "Toifa",
+    "filterTopic": "Mavzu",
+    "tab_all": "Hammasi",
+    "tab_situation": "Hayotiy vaziyatlar",
+    "tab_court": "Sud işlari",
+    "kind_situation": "Vaziyat",
+    "kind_court": "Sud işi",
+    "allTopics": "Barça mavzular",
+    "empty": "Bu toifada hozirça iş yöq."
   },
   "case": {
     "story": "Nizo tarixi",
@@ -248,7 +257,13 @@
     "motion": "Animatsiya",
     "motion_full": "Töliq",
     "motion_reduced": "Kamaytirilgan",
-    "motionHint": "Kamaytirilgan rejimda kamera harakati, silkiniş va yozuv effekti öçiriladi."
+    "motionHint": "Kamaytirilgan rejimda kamera harakati, silkiniş va yozuv effekti öçiriladi.",
+    "theme": "Sud zali mavzusi",
+    "themeHint": "Öyinda va bosh sahifada sud zali qanday körinişi.",
+    "theme_pixel": "Piksel, tun",
+    "theme_daylight": "Piksel, kun",
+    "theme_flat": "Tekis illyustratsiya",
+    "theme_ink": "Tuş bilan çizilgan"
   },
   "auth": {
     "signInTitle": "Hisobga kiriş",
@@ -340,7 +355,10 @@
     "courtPoint1": "Iltimosnomalar, dalillar, eʼtirozlar va sud muhokamasi",
     "courtPoint2": "Moddalar iş sanasidagi tahririda, lex.uz havolasi bilan",
     "courtPoint3": "Tahlil: qaysi qaror yaxşiroq edi va boşqa tanlovda nima bölar edi",
-    "courtCta": "Sud işlarini oçiş"
+    "courtCta": "Sud işlarini oçiş",
+    "showTheme": "«{theme}» mavzusini körsatiş",
+    "photoCaptionTheme": "Mezondagi sud zali: {theme}",
+    "stackHint": "Mavzuni almaştiriş uçun orqadagi suratni bosing"
   },
   "situation": {
     "kicker": "Hayotiy vaziyat",

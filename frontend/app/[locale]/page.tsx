@@ -40,7 +40,8 @@ function CaseDesk() {
           <div className="folder__cover">
             <figure className="photo">
               <span className="clip" aria-hidden />
-              <Court theme="ink" mode="hero" className="photo__scene" />
+              {/* the signed-in user's own courtroom theme (Settings) */}
+              <Court mode="hero" className="photo__scene" />
               <CaseCaption />
             </figure>
             {/* demo case in mock mode, the first real scenario in live mode */}

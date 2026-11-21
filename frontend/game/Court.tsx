@@ -1,10 +1,13 @@
 "use client";
 import { useEffect, useRef } from "react";
+import type { CourtTheme } from "@/lib/settings";
 import { useSettings } from "@/store/settings";
 import type { CourtApi } from "@/store/game";
 import type { CourtHandle, MountOptions } from "./courtroom";
 
-type Props = Omit<MountOptions, "motion" | "fontFamily"> & {
+type Props = Omit<MountOptions, "motion" | "fontFamily" | "theme"> & {
+  /** fixed look; by default the user's choice (Settings, "Courtroom theme") */
+  theme?: CourtTheme;
   onReady?: (api: CourtApi | null) => void;
   /** nametags: character id -> display name (localized) */
   names?: Record<string, string>;
@@ -24,6 +27,8 @@ export function Court({ theme, mode, onClick, onReady, names, className, label }
   const namesRef = useRef(names);
   const motion = useSettings((s) => s.motion);
   const family = useSettings((s) => s.family);
+  const chosen = useSettings((s) => s.courtTheme);
+  const look = theme ?? chosen ?? "pixel";
   useEffect(() => { clickRef.current = onClick; readyRef.current = onReady; namesRef.current = names; });
 
   useEffect(() => {
@@ -31,14 +36,14 @@ export function Court({ theme, mode, onClick, onReady, names, className, label }
     Promise.all([import("phaser"), import("./courtroom"), document.fonts?.ready]).then(([Phaser, { mountCourt }]) => {
       if (destroyed || !ref.current) return;
       const fontFamily = getComputedStyle(document.body).fontFamily;
-      const handle = mountCourt(Phaser.default ?? Phaser, ref.current, { theme, mode, motion, fontFamily, onClick: (id) => clickRef.current?.(id) });
+      const handle = mountCourt(Phaser.default ?? Phaser, ref.current, { theme: look, mode, motion, fontFamily, onClick: (id) => clickRef.current?.(id) });
       handleRef.current = handle;
       if (namesRef.current) handle.setNames(namesRef.current);
       readyRef.current?.(handle);
     });
     return () => { destroyed = true; readyRef.current?.(null); handleRef.current?.destroy(); handleRef.current = null; };
-    // the font family is read at mount; remount when the user changes it
-  }, [theme, mode, motion, family]);
+    // the font family and theme are read at mount; remount when the user changes them
+  }, [look, mode, motion, family]);
 
   useEffect(() => { if (names) handleRef.current?.setNames(names); }, [names]);
 

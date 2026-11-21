@@ -1,14 +1,16 @@
 "use client";
-import { ChevronLeft, FileText, MessagesSquare, Scale } from "lucide-react";
+import { ChevronLeft, FileText, MessagesSquare, Palette, Scale } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ErrorState, Loading } from "@/components/common/state";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Court } from "@/game/Court";
 import { Link, useRouter } from "@/i18n/navigation";
 import { api, type ActionView, type Locale } from "@/lib/api";
+import { COURT_THEMES, type CourtTheme } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 import { useGame } from "@/store/game";
 import { useSettings } from "@/store/settings";
@@ -122,12 +124,13 @@ export function PlayScreen({ sessionId }: { sessionId: string }) {
       <main id="main" className="mx-auto grid w-full max-w-[88rem] flex-1 items-start gap-6 px-2 pb-24 pt-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)]">
         <div className="min-w-0">
         <div className="frame">
-          <Court theme="night" mode="play" className="frame__scene" onClick={onSceneClick} onReady={g.setCourt} names={tagNames} label={t("play.evidenceTable")} />
+          <Court mode="play" className="frame__scene" onClick={onSceneClick} onReady={g.setCourt} names={tagNames} label={t("play.evidenceTable")} />
           <div className="frame__tools">
             {/* the case materials sit next to the scene on wide screens; on narrow ones this jumps to them */}
             <Button variant="outline" className={cn("bg-navy/85 lg:hidden", g.newEvidence.length > 0 && "has-new")} onClick={showCaseFile}>
               <FileText />{t("play.evidence")}
             </Button>
+            <ThemeMenu />
             {!st.finished && askable.length > 0 && (
               <Button variant="outline" className="bg-navy/85" onClick={() => setAsking(true)} aria-expanded={asking}>
                 <MessagesSquare />{t("npc.open")}
@@ -217,5 +220,25 @@ function DecisionDialog({ action, onClose, onConfirm, legalDate }: { action: Act
         <DialogFooter><Button size="lg" className="h-11 px-6" disabled={!choice} onClick={() => choice && onConfirm(choice)}>{t("play.confirm")}</Button></DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Courtroom theme switch in the game toolbar (same setting as in Settings). */
+function ThemeMenu() {
+  const t = useTranslations("settings");
+  const theme = useSettings((s) => s.courtTheme);
+  const set = useSettings((s) => s.set);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="bg-navy/85" aria-label={t("theme")}><Palette /><span className="max-sm:hidden">{t(`theme_${theme}`)}</span></Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-52">
+        <DropdownMenuLabel>{t("theme")}</DropdownMenuLabel>
+        <DropdownMenuRadioGroup value={theme} onValueChange={(v) => set({ courtTheme: v as CourtTheme })}>
+          {COURT_THEMES.map((id) => <DropdownMenuRadioItem key={id} value={id}>{t(`theme_${id}`)}</DropdownMenuRadioItem>)}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
