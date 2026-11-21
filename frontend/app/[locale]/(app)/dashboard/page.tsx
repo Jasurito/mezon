@@ -46,7 +46,7 @@ export default function DashboardPage() {
           <h2 id="lvl" className="text-sm font-semibold text-ink-muted">{t("level")}</h2>
           <div className="mt-4 flex items-center gap-5">
             <div className="grid size-28 place-items-center rounded-full" style={{ background: `conic-gradient(var(--gold) ${(level ?? 0) * 3.6}deg, rgb(245 241 232 / .1) 0)` }}>
-              <div className="grid size-22 place-items-center rounded-full bg-navy-2"><span className="pix text-3xl text-gold">{level ?? "–"}</span></div>
+              <div className="grid size-22 place-items-center rounded-full bg-navy-2"><span className="num text-3xl text-gold">{level ?? "–"}</span></div>
             </div>
             <p className="text-xl font-bold">{level === null ? t("levelNone") : d.knowledge_level.label}</p>
           </div>
@@ -72,7 +72,7 @@ export default function DashboardPage() {
           <h2 id="mis" className="text-sm font-semibold text-ink-muted">{t("mistakes")}</h2>
           <ul className="mt-4 grid gap-2">
             {d.mistake_categories.length === 0 ? <li className="text-teal">{tr("noMistakes")}</li> : d.mistake_categories.map((m) => (
-              <li key={m.category} className="flex justify-between gap-3"><span>{tr(`category_${m.category}` as "category_evidence")}</span><span className="pix text-terra">{m.count}</span></li>
+              <li key={m.category} className="flex justify-between gap-3"><span>{tr(`category_${m.category}` as "category_evidence")}</span><span className="num text-terra">{m.count}</span></li>
             ))}
           </ul>
         </section>
@@ -85,7 +85,7 @@ export default function DashboardPage() {
             <li key={c.session_id}>
               <Link href={`/results/${c.session_id}`} className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-md border border-paper/10 px-4 py-3 no-underline hover:border-gold sm:grid-cols-[1fr_auto_auto]">
                 <span><span className="block font-semibold">{c.title}</span><span className="text-sm text-ink-muted">{c.outcome_title}</span></span>
-                <span className="pix text-lg text-gold">{c.score}/{c.max_score}</span>
+                <span className="num text-lg text-gold">{c.score}/{c.max_score}</span>
                 <span className="hidden text-sm text-ink-muted sm:block">{fmt(c.finished_at)}</span>
               </Link>
             </li>
@@ -93,7 +93,7 @@ export default function DashboardPage() {
         </ul>
       </section>
 
-      <section className="mt-10" aria-labelledby="rec">
+      {d.recommended.length > 0 && <section className="mt-10" aria-labelledby="rec">
         <h2 id="rec" className="mb-4 text-xl font-bold">{t("recommended")}</h2>
         <ul className="grid gap-3 md:grid-cols-3">
           {d.recommended.map((c) => (
@@ -104,7 +104,7 @@ export default function DashboardPage() {
             </li>
           ))}
         </ul>
-      </section>
+      </section>}
     </>
   );
 }

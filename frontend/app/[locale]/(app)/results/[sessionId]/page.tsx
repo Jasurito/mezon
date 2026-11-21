@@ -55,7 +55,7 @@ export default function ResultsPage() {
           </p>
         )}
         <h1 className="mt-3 text-4xl font-extrabold">{r.outcome_title}</h1>
-        <p className="pix mt-3 text-5xl text-gold">{r.score}<span className="text-2xl text-ink-muted">/{r.max_score}</span></p>
+        <p className="num mt-3 text-5xl text-gold">{r.score}<span className="text-2xl text-ink-muted">/{r.max_score}</span></p>
         <p className="mt-2 text-ink-muted">{t("rate", { pct: Math.round(r.correct_decision_rate * 100) })}. {t("time", { min, sec })}</p>
         <p className="mt-5 border-l-4 border-gold bg-gold/10 px-4 py-3">{t("disclaimer")}</p>
         <p className="mt-5 max-w-[65ch]">{r.ruling_text}</p>

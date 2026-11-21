@@ -22,15 +22,16 @@ export default function CasePage() {
   const { data, error, retry: load } = useLoad<ScenarioDetail>(() => api.scenario(id, locale), [id, locale]);
   const [startFailed, setStartFailed] = useState(false);
   const failed = error || startFailed;
-  const [starting, setStarting] = useState<"test" | "play" | null>(null);
+  const [starting, setStarting] = useState(false);
 
 
-  async function start(withTest: boolean) {
-    setStarting(withTest ? "test" : "play");
+  // straight into the hearing: no test before the game (the test after it stays on the results page)
+  async function start() {
+    setStarting(true);
     try {
       const s = await withUser((user_id) => api.createSession({ user_id, scenario_id: id, locale }));
-      router.push(withTest ? `/cases/${id}/pretest?session=${s.session_id}` : `/play/${s.session_id}`);
-    } catch { setStarting(null); setStartFailed(true); }
+      router.push(`/play/${s.session_id}`);
+    } catch { setStarting(false); setStartFailed(true); }
   }
 
   if (failed) return <ErrorState onRetry={load} />;
@@ -72,11 +73,8 @@ export default function CasePage() {
 
       <aside className="space-y-8">
         <div className="rounded-lg border border-hairline bg-navy-2 p-6">
-          <p className="mb-4 text-sm text-ink-muted">{t("testHint")}</p>
-          <div className="grid gap-2">
-            <Button size="lg" className="h-12 text-base" disabled={!!starting} onClick={() => start(true)}>{t("withTest")}</Button>
-            <Button size="lg" variant="outline" className="h-12 text-base" disabled={!!starting} onClick={() => start(false)}>{t("withoutTest")}</Button>
-          </div>
+          <p className="mb-4 text-sm text-ink-muted">{t("startHint")}</p>
+          <Button size="lg" className="h-12 w-full text-base" disabled={starting} onClick={start}>{t("start")}</Button>
         </div>
         <section aria-labelledby="docs">
           <h2 id="docs" className="mb-3 text-lg font-bold text-gold">{t("documents")}</h2>

@@ -13,7 +13,9 @@
 import { API_MODE } from "@/lib/api";
 import { mergeMockGuest } from "@/lib/api/mock";
 
-export interface AccountUser { id: string; display_name: string; email: string; provider: "google" | "email"; avatar_url?: string | null }
+/** who is learning: professional = lawyer or law student, public = not a legal professional */
+export type Audience = "professional" | "public";
+export interface AccountUser { id: string; display_name: string; email: string; provider: "google" | "email"; avatar_url?: string | null; audience?: Audience | null }
 export type AuthErrorCode = "credentials" | "exists" | "rate_limited" | "invalid" | "network";
 /** Live mode shows "Continue with Google" only when the server has Google credentials (NEXT_PUBLIC_GOOGLE_AUTH=true). */
 export const GOOGLE_ENABLED = API_MODE === "mock" || process.env.NEXT_PUBLIC_GOOGLE_AUTH === "true";
@@ -22,13 +24,20 @@ export class AuthError extends Error { constructor(public code: AuthErrorCode) {
 export interface AuthService {
   me(): Promise<AccountUser | null>;
   signIn(email: string, password: string, guestUserId: string | null): Promise<AccountUser>;
-  signUp(name: string, email: string, password: string, guestUserId: string | null): Promise<AccountUser>;
-  /** Real mode redirects the browser to Google; mock mode resolves with a demo account. */
-  google(next: string, guestUserId: string | null): Promise<AccountUser | void>;
+  signUp(name: string, email: string, password: string, guestUserId: string | null, audience: Audience): Promise<AccountUser>;
+  /**
+   * Real mode redirects the browser to Google; mock mode resolves with a demo account. An audience chosen on the
+   * sign-up page is kept for the way back and saved with setAudience (Google sign-in itself does not carry it).
+   */
+  google(next: string, guestUserId: string | null, audience?: Audience | null): Promise<AccountUser | void>;
+  /** PATCH /api/users/{id} {audience}: for Google sign-up and for accounts made before the choice existed */
+  setAudience(account: AccountUser, audience: Audience): Promise<AccountUser>;
   signOut(): Promise<void>;
 }
 
 const K_USERS = "mezon.auth.users", K_ME = "mezon.auth.me";
+/** audience chosen on the sign-up page before "Continue with Google"; applied after the redirect back */
+export const PENDING_AUDIENCE = "mezon.pending_audience";
 const read = <T,>(k: string, d: T): T => { try { return JSON.parse(localStorage.getItem(k) || "null") ?? d; } catch { return d; } };
 const write = (k: string, v: unknown) => localStorage.setItem(k, JSON.stringify(v));
 const wait = (ms = 450) => new Promise((r) => setTimeout(r, ms));
@@ -43,20 +52,27 @@ const mockAuth: AuthService = {
     await wait(); const users = read<Record<string, AccountUser & { pw: string }>>(K_USERS, {});
     const u = users[email.toLowerCase()];
     if (!u || u.pw !== (await hash(password))) throw new AuthError("credentials");
-    const me: AccountUser = { id: u.id, display_name: u.display_name, email: u.email, provider: u.provider };
+    const me: AccountUser = { id: u.id, display_name: u.display_name, email: u.email, provider: u.provider, audience: u.audience ?? null };
     mergeMockGuest(guest, me.id); write(K_ME, me); return me;
   },
-  async signUp(name, email, password, guest) {
+  async signUp(name, email, password, guest, audience) {
     await wait(); const users = read<Record<string, AccountUser & { pw: string }>>(K_USERS, {});
     const key = email.toLowerCase(); if (users[key]) throw new AuthError("exists");
-    const me: AccountUser = { id: crypto.randomUUID(), display_name: name.trim(), email: key, provider: "email" };
+    const me: AccountUser = { id: crypto.randomUUID(), display_name: name.trim(), email: key, provider: "email", audience };
     users[key] = { ...me, pw: await hash(password) }; write(K_USERS, users);
     mergeMockGuest(guest, me.id); write(K_ME, me); return me;
   },
-  async google(_next, guest) {
+  async google(_next, guest, audience) {
     await wait(700);
-    const me: AccountUser = { id: "google-demo", display_name: "Demo Google", email: "demo@example.com", provider: "google" };
+    const me: AccountUser = { id: "google-demo", display_name: "Demo Google", email: "demo@example.com", provider: "google", audience: audience ?? read<AccountUser | null>(K_ME, null)?.audience ?? null };
     mergeMockGuest(guest, me.id); write(K_ME, me); return me;
+  },
+  async setAudience(account, audience) {
+    await wait(150);
+    const me = { ...account, audience }; write(K_ME, me);
+    const users = read<Record<string, AccountUser & { pw: string }>>(K_USERS, {});
+    if (users[account.email]) { users[account.email].audience = audience; write(K_USERS, users); }
+    return me;
   },
   async signOut() { localStorage.removeItem(K_ME); },
 };
@@ -76,11 +92,20 @@ async function req<T>(path: string, body?: unknown): Promise<T> {
 const liveAuth: AuthService = {
   async me() { try { return await req<AccountUser>("/me"); } catch { return null; } },
   signIn: (email, password, guest_user_id) => req("/login", { email, password, guest_user_id }),
-  signUp: (display_name, email, password, guest_user_id) => req("/signup", { display_name, email, password, guest_user_id }),
-  async google(next, guest) {
+  signUp: (display_name, email, password, guest_user_id, audience) => req("/signup", { display_name, email, password, guest_user_id, audience }),
+  async google(next, guest, audience) {
     const q = new URLSearchParams({ next, ...(guest ? { guest_user_id: guest } : {}) });
+    try { if (audience) sessionStorage.setItem(PENDING_AUDIENCE, audience); } catch { /* storage blocked */ }
     // full navigation on purpose: /api/* is the backend (OAuth redirect), not a Next.js page
     window.location.assign(AUTH_BASE + "/google/start?" + q);
+  },
+  async setAudience(account, audience) {
+    const base = process.env.NEXT_PUBLIC_API_BASE ?? "";
+    const res = await fetch(`${base}/api/users/${account.id}`, {
+      method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ audience }),
+    });
+    if (!res.ok) throw new AuthError(res.status === 429 ? "rate_limited" : "network");
+    return { ...account, audience };
   },
   signOut: () => req("/logout", {}),
 };

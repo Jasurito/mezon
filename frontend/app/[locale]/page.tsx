@@ -3,6 +3,8 @@ import { setRequestLocale } from "next-intl/server";
 import { use } from "react";
 import { DeskHeader } from "@/components/site/desk-header";
 import { CaseCaption, CaseCover, LegalBase } from "@/components/site/featured-case";
+import { HomeGate } from "@/components/site/home-gate";
+import { Pitch } from "@/components/site/pitch";
 import { Court } from "@/game/Court";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
@@ -10,12 +12,23 @@ import type { Locale } from "@/i18n/routing";
 export default function Landing({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
   setRequestLocale(locale as Locale);
-  const t = useTranslations("landing");
-  const soon = useTranslations("cases");
   const common = useTranslations("common");
   return (
     <div className="desk-page">
       <DeskHeader />
+      {/* guests: what Mezon is and for whom; signed-in users: their case desk */}
+      <HomeGate guest={<Pitch />} member={<CaseDesk />} />
+      <footer className="desk-foot">{common("disclaimer")} LexHackathon 2026.</footer>
+    </div>
+  );
+}
+
+/** The case desk for signed-in users: the featured case folder, legal base and the shelf. */
+function CaseDesk() {
+  const t = useTranslations("landing");
+  const soon = useTranslations("cases");
+  const common = useTranslations("common");
+  return (
       <main id="main" className="desk">
         <section className="desk-intro">
           <h1 className="desk-h">{t("headline")}</h1>
@@ -58,7 +71,5 @@ export default function Landing({ params }: { params: Promise<{ locale: string }
           <Link className="shelf__all" href="/cases">{t("allCases")}</Link>
         </section>
       </main>
-      <footer className="desk-foot">{common("disclaimer")} LexHackathon 2026.</footer>
-    </div>
   );
 }

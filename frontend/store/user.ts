@@ -1,7 +1,7 @@
 "use client";
 import { create } from "zustand";
 import { api, API_MODE, ApiError } from "@/lib/api";
-import { auth, type AccountUser } from "@/lib/auth";
+import { auth, PENDING_AUDIENCE, type AccountUser, type Audience } from "@/lib/auth";
 
 // separate keys: a guest id made by the in-browser mock means nothing to the real backend
 const GUEST_KEY = API_MODE === "live" ? "mezon.live.user_id" : "mezon.user_id";
@@ -37,8 +37,14 @@ export const useUser = create<UserStore>()((set, get) => ({
   init: () => (initPromise ??= (async () => {
     let id: string | null = null;
     try { id = localStorage.getItem(GUEST_KEY); } catch { /* storage blocked */ }
-    const account = await auth.me().catch(() => null);
+    let account = await auth.me().catch(() => null);
     if (account) forgetGuest(); // back from Google: the server already merged the guest into the account
+    // back from "Continue with Google" on the sign-up page: save the chosen audience on the new account
+    let pending: string | null = null;
+    try { pending = sessionStorage.getItem(PENDING_AUDIENCE); sessionStorage.removeItem(PENDING_AUDIENCE); } catch { /* storage blocked */ }
+    if (account && !account.audience && (pending === "professional" || pending === "public")) {
+      account = await auth.setAudience(account, pending as Audience).catch(() => account);
+    }
     set({ userId: account?.id ?? id, account, ready: true });
   })()),
   ensureUser: async () => {

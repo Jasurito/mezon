@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useRouter } from "@/i18n/navigation";
 import { API_MODE } from "@/lib/api";
-import { auth, AuthError, GOOGLE_ENABLED, type AuthErrorCode } from "@/lib/auth";
+import { auth, AuthError, GOOGLE_ENABLED, type Audience, type AuthErrorCode } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 import { useUser } from "@/store/user";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -31,6 +32,9 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const next = useSearchParams().get("next") || "/dashboard";
   const { userId, setAccount } = useUser();
   const [form, setForm] = useState({ name: "", email: "", password: "", consent: false });
+  // who is learning; asked once at sign-up (email and Google), stored on the account
+  const preset = useSearchParams().get("audience");
+  const [audience, setAudience] = useState<Audience | null>(preset === "professional" || preset === "public" ? preset : null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pending, setPending] = useState<"form" | "google" | null>(null);
   const up = mode === "sign-up";
@@ -41,6 +45,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     if (!EMAIL.test(form.email)) e.email = t("err_email");
     if (form.password.length < 8) e.password = t("err_password");
     if (up && !form.consent) e.consent = t("err_consent");
+    if (up && !audience) e.audience = t("err_audience");
     setErrors(e); return Object.keys(e).length === 0;
   }
   function done(name: string) {
@@ -51,7 +56,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     ev.preventDefault(); if (!validate()) return;
     setPending("form");
     try {
-      const a = up ? await auth.signUp(form.name, form.email, form.password, userId) : await auth.signIn(form.email, form.password, userId);
+      const a = up ? await auth.signUp(form.name, form.email, form.password, userId, audience!) : await auth.signIn(form.email, form.password, userId);
       setAccount(a); done(a.display_name);
     } catch (e) {
       const code: AuthErrorCode = e instanceof AuthError ? e.code : "network";
@@ -64,7 +69,8 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   }
   async function google() {
     setPending("google");
-    try { const a = await auth.google(next, userId); if (a) { setAccount(a); toast.info(t("googleDemo")); done(a.display_name); } }
+    if (up && !audience) { setErrors({ audience: t("err_audience") }); setPending(null); return; }
+    try { const a = await auth.google(next, userId, up ? audience : null); if (a) { setAccount(a); toast.info(t("googleDemo")); done(a.display_name); } }
     finally { setPending(null); }
   }
 
@@ -82,6 +88,22 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     <div className="mx-auto max-w-md">
       <h1 className="text-3xl font-extrabold">{t(up ? "signUpTitle" : "signInTitle")}</h1>
       <p className="mt-2 text-ink-muted">{t(up ? "signUpLead" : "signInLead")}</p>
+      {up && (
+        <fieldset className="mt-8">
+          <legend className="mb-2 font-semibold">{t("audience")}</legend>
+          <div role="radiogroup" aria-label={t("audience")} aria-invalid={!!errors.audience} aria-describedby={errors.audience ? "audience-err" : undefined} className="grid gap-2 sm:grid-cols-2">
+            {(["professional", "public"] as const).map((a) => (
+              <button key={a} type="button" role="radio" aria-checked={audience === a} onClick={() => { setAudience(a); setErrors((e) => Object.fromEntries(Object.entries(e).filter(([k]) => k !== "audience"))); }}
+                className={cn("rounded-md border px-4 py-3 text-left transition-colors hover:border-gold",
+                  audience === a ? "border-gold bg-gold/15" : errors.audience ? "border-terra/70" : "border-paper/20")}>
+                <span className="block font-semibold">{t(`audience_${a}`)}</span>
+                <span className="mt-0.5 block text-sm text-ink-muted">{t(`audience_${a}_hint`)}</span>
+              </button>
+            ))}
+          </div>
+          {errors.audience && <p id="audience-err" className="mt-1.5 text-sm text-terra">{errors.audience}</p>}
+        </fieldset>
+      )}
       {GOOGLE_ENABLED && (
         <>
           <Button type="button" variant="outline" size="lg" className="mt-8 h-12 w-full gap-3 bg-paper text-base text-navy hover:bg-white hover:text-navy" disabled={!!pending} onClick={google}>

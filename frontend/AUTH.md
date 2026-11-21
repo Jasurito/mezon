@@ -38,12 +38,14 @@ Browser                     mezon.modeus.cc (nginx)                 Google
 |---|---|---|---|
 | GET | `/api/auth/google/start` | query: `next`, `guest_user_id?` | 302 to Google |
 | GET | `/api/auth/google/callback` | from Google | 302 to `next` + cookie |
-| POST | `/api/auth/signup` | `{display_name, email, password, guest_user_id}` | `AccountUser`, 409 if the email exists |
+| POST | `/api/auth/signup` | `{display_name, email, password, guest_user_id, audience?}` | `AccountUser`, 409 if the email exists |
 | POST | `/api/auth/login` | `{email, password, guest_user_id}` | `AccountUser`, 401 if wrong |
 | POST | `/api/auth/logout` | – | 204, clears the cookie |
 | GET | `/api/auth/me` | – | `AccountUser` or 401 |
 
-`AccountUser = { id, display_name, email, provider: "google" | "email", avatar_url? }`
+`AccountUser = { id, display_name, email, provider: "google" | "email", avatar_url?, audience? }`
+
+`audience` (added 2026-11-21, migration 0007): `"professional"` = lawyer or law student, `"public"` = not a legal professional, `null` = not specified. The sign-up page asks it for both email and Google. Google sign-in cannot carry it, so the frontend keeps the choice in `sessionStorage` and saves it after the redirect back with `PATCH /api/users/{id} {audience}` (also usable later to change it).
 
 Email/password is optional. If you keep it, use argon2id, rate-limit `/login`, and add email verification later. For the hackathon, **Google-only is enough**: the email form can be hidden behind a flag.
 

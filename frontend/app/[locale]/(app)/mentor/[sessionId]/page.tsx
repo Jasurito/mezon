@@ -57,7 +57,7 @@ export default function MentorPage() {
         {result ? (
           <>
             <p className="mt-2 text-lg font-bold">{result.outcome_title}</p>
-            <p className="pix text-2xl text-gold">{result.score}/{result.max_score}</p>
+            <p className="num text-2xl text-gold">{result.score}/{result.max_score}</p>
             <ul className="mt-3 grid gap-1.5 text-sm">
               {result.mistakes.map((m, i) => <li key={i} className="border-l-2 border-terra pl-2">{m.title}</li>)}
             </ul>
