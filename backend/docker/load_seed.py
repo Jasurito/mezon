@@ -14,6 +14,8 @@ import psycopg
 from app.config import get_settings
 
 LEGAL_TABLES = "citations, chunks, article_parts, articles, document_versions, legal_documents"
+# the pg_dump seed clears search_path, so statements after it must name the schema
+LEGAL_TABLES_QUALIFIED = ", ".join("public." + t.strip() for t in LEGAL_TABLES.split(","))
 
 
 def log(msg: str) -> None:
@@ -41,6 +43,8 @@ def main() -> int:
         count = conn.execute("SELECT count(*) FROM legal_documents").fetchone()[0]
         if count > 0 and row and row[0] == digest:
             log(f"seed {digest[:12]} уже загружен, пропуск")
+            conn.execute(f"ANALYZE {LEGAL_TABLES_QUALIFIED}")  # см. ниже: дёшево, держит статистику свежей
+            conn.commit()
             return 0
         if count > 0:
             reason = "seed изменился" if row else "законы загружены без отметки seed"
@@ -52,6 +56,11 @@ def main() -> int:
             " ON CONFLICT (id) DO UPDATE SET sha256 = EXCLUDED.sha256, loaded_at = now()",
             (digest,),
         )
+        conn.commit()
+        # Статистика для планировщика сразу после массовой загрузки. Без неё маленькие таблицы (document_versions,
+        # legal_documents: единицы строк) никогда не попадают под autoanalyze, планировщик оценивает соединение в 1
+        # строку и выбирает nested loop: полнотекстовый поиск наставника шёл 38 с вместо 40 мс.
+        conn.execute(f"ANALYZE {LEGAL_TABLES_QUALIFIED}")
         conn.commit()
     log(f"seed загружен из {path} (sha256 {digest[:12]})")
     return 0

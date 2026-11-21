@@ -1,0 +1,28 @@
+# SSH tunnel from vm1 to Ollama on the GPU server (vast.ai). Ollama listens only on 127.0.0.1:11434 there; the
+# tunnel makes it available on the docker0 address of vm1 (TUNNEL_BIND:TUNNEL_PORT), so the backend container reaches
+# it as http://host.docker.internal:11435 and nothing is exposed publicly on either side.
+#
+# The key /etc/mezon/llm-tunnel.key is used for nothing else; on the GPU server it is restricted to forwarding to
+# 127.0.0.1:11434 (restrict,port-forwarding,permitopen=..., no shell). The host key is pinned in
+# /etc/mezon/llm-tunnel.known_hosts (StrictHostKeyChecking=yes): a recreated instance needs a new scan and fingerprint
+# check, see deploy/vm1/README.md.
+[Unit]
+Description=Mezon SSH tunnel to the GPU LLM server (Ollama)
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+EnvironmentFile=/etc/mezon/llm-tunnel.env
+ExecStart=/usr/bin/ssh -N -T \
+  -o BatchMode=yes -o ExitOnForwardFailure=yes \
+  -o ServerAliveInterval=20 -o ServerAliveCountMax=3 -o ConnectTimeout=15 \
+  -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o HostKeyAlgorithms=ssh-ed25519 \
+  -o UserKnownHostsFile=/etc/mezon/llm-tunnel.known_hosts \
+  -i /etc/mezon/llm-tunnel.key -p ${GPU_PORT} \
+  -L ${TUNNEL_BIND}:${TUNNEL_PORT}:127.0.0.1:11434 \
+  ${GPU_USER}@${GPU_HOST}
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

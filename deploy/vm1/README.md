@@ -80,4 +80,24 @@ To turn on Google sign-in: create a Web OAuth client in Google Cloud with the re
 `sudo mezon-deploy frontend` (the button is hidden until then). Failed Google sign-ins come back to `/?auth_error=google`
 and the site explains what happened.
 
+**AI (LLM on the GPU server).** Ollama (`gemma3:27b` + `bge-m3`) runs on a vast.ai RTX 3090 and listens only on
+`127.0.0.1:11434` there. `mezon-llm-tunnel.service` keeps an SSH tunnel to it and exposes it on the docker0 address
+of vm1 (`172.17.0.1:11435`), so the backend uses `OLLAMA_URL=http://host.docker.internal:11435`; nothing is public.
+
+| File | Role |
+|---|---|
+| `/etc/mezon/llm-tunnel.key` | key used only for the tunnel; on the GPU server it is restricted (`restrict,port-forwarding,permitopen="127.0.0.1:11434",command=...`: no shell) |
+| `/etc/mezon/llm-tunnel.known_hosts` | pinned ED25519 host key of the GPU server (check the fingerprint before writing it) |
+| `/etc/mezon/llm-tunnel.env` | `GPU_HOST`, `GPU_PORT`, `GPU_USER`, `TUNNEL_BIND` (docker0), `TUNNEL_PORT` (template: `env/llm-tunnel.env.example`) |
+
+Backend settings for it: `LLM_PROVIDER=ollama`, `OLLAMA_URL=http://host.docker.internal:11435`,
+`OLLAMA_MODEL=gemma3:27b`, `EMBEDDER=ollama-bge-m3`; `/api/health` then shows `llm_configured: true` and the embedder.
+Check: `systemctl status mezon-llm-tunnel`, `curl -s http://172.17.0.1:11435/api/version`.
+
+**When vast.ai recreates the instance** (new IP/port): update `/etc/mezon/llm-tunnel.env`, rescan and verify the host
+key (`ssh-keyscan -p <port> <ip> | grep ssh-ed25519 > /etc/mezon/llm-tunnel.known_hosts; ssh-keygen -lf …`), add
+`/etc/mezon/llm-tunnel.key.pub` with the restriction above to `~/.ssh/authorized_keys` on the new instance, then
+`systemctl restart mezon-llm-tunnel`. While the tunnel is down the site keeps working without AI (mentor shows sources,
+NPCs use scripted lines).
+
 **Frontend → real backend.** Set `NEXT_PUBLIC_API_MODE=live` in `/etc/mezon/frontend.build.env`, then run `sudo mezon-deploy frontend` (the value is baked in at build time).
